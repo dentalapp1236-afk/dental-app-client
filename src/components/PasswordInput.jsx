@@ -1,0 +1,40 @@
+import { useState } from "react";
+import Icon from "./Icon";
+
+// Password input with a show/hide eye toggle. Drop-in for a normal <input>.
+export default function PasswordInput({
+  name = "password",
+  value,
+  onChange,
+  placeholder,
+  required,
+  minLength,
+  autoComplete = "off",
+  invalid = false,
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="password-field">
+      <input
+        type={show ? "text" : "password"}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        minLength={minLength}
+        autoComplete={autoComplete}
+        className={invalid ? "invalid" : ""}
+      />
+      <button
+        type="button"
+        className="password-toggle"
+        onClick={() => setShow((s) => !s)}
+        aria-label={show ? "Hide password" : "Show password"}
+        tabIndex={-1}
+      >
+        <Icon name={show ? "visibility" : "visibility_off"} size={20} />
+      </button>
+    </div>
+  );
+}

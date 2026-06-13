@@ -1,7 +1,9 @@
 import axios from "axios";
 
+// Local dev defaults to the local server. For production, set VITE_API_URL
+// (e.g. https://dentalappserver.onrender.com/api) in the build environment.
 const api = axios.create({
-  baseURL: "https://dentalappserver.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
 });
 
 api.interceptors.request.use((config) => {
