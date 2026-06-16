@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
+import { Skeleton, SkeletonTable } from "../components/Skeleton";
 
 export default function DentistDashboard() {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ export default function DentistDashboard() {
     treatments: 0,
   });
   const [upcoming, setUpcoming] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -33,28 +35,44 @@ export default function DentistDashboard() {
         setUpcoming(upcomingAppts.slice(0, 5));
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
 
+  if (loading)
+    return (
+      <div className="page">
+        <h1>Welcome, Dr. {user.name}</h1>
+        <div className="summary">
+          {[0, 1, 2].map((i) => (
+            <div className="summary-item" key={i}>
+              <Skeleton width={36} height={26} />
+              <Skeleton width={70} height={12} />
+            </div>
+          ))}
+        </div>
+        <h2 className="icon"><Icon name="event_upcoming" /> Next appointments</h2>
+        <SkeletonTable rows={4} cols={4} />
+      </div>
+    );
+
   return (
     <div className="page">
       <h1>Welcome, Dr. {user.name}</h1>
-      <div className="stats">
-        <Link to="/clients" className="stat-card">
-          <Icon name="group" size={36} className="stat-icon" />
-          <div className="stat-value">{stats.clients}</div>
-          <div className="stat-label">Clients</div>
+      <div className="summary">
+        <Link to="/clients" className="summary-item">
+          <span className="summary-value">{stats.clients}</span>
+          <span className="summary-label">Clients</span>
         </Link>
-        <Link to="/appointments" className="stat-card">
-          <Icon name="calendar_month" size={36} className="stat-icon" />
-          <div className="stat-value">{stats.upcoming}</div>
-          <div className="stat-label">Upcoming appointments</div>
+        <Link to="/appointments" className="summary-item">
+          <span className="summary-value">{stats.upcoming}</span>
+          <span className="summary-label">Upcoming</span>
         </Link>
-        <Link to="/treatments" className="stat-card">
-          <Icon name="medical_services" size={36} className="stat-icon" />
-          <div className="stat-value">{stats.treatments}</div>
-          <div className="stat-label">Treatments recorded</div>
+        <Link to="/treatments" className="summary-item">
+          <span className="summary-value">{stats.treatments}</span>
+          <span className="summary-label">Treatments</span>
         </Link>
       </div>
 

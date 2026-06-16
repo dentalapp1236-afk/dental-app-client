@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import Icon from "../components/Icon";
+import { useNotifications } from "../context/NotificationsContext";
 
 const empty = {
   name: "",
@@ -12,23 +14,37 @@ const empty = {
 };
 
 export default function Clients() {
+  const { items, refresh: refreshNotifications } = useNotifications();
   const [clients, setClients] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [search, setSearch] = useState("");
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
+  const [created, setCreated] = useState(null); // { client, credentials, shareMessage }
+  const [copied, setCopied] = useState(false);
 
   const load = async () => {
     const { data } = await api.get("/clients", { params: { search } });
     setClients(data);
   };
+  const loadRequests = async () => {
+    const { data } = await api.get("/associations/requests");
+    setRequests(data);
+  };
 
   useEffect(() => {
     load();
+    loadRequests();
   }, []);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // Refresh the pending-requests list whenever notifications change (new request arrived)
+  useEffect(() => {
+    loadRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const resetForm = () => {
     setForm(empty);
@@ -42,10 +58,13 @@ export default function Clients() {
     try {
       if (editingId) {
         await api.put(`/clients/${editingId}`, form);
+        resetForm();
       } else {
-        await api.post("/clients", form);
+        const { data } = await api.post("/clients", form);
+        setCreated(data);
+        setCopied(false);
+        resetForm();
       }
-      resetForm();
       load();
     } catch (err) {
       setError(err.response?.data?.message || "Save failed");
@@ -71,9 +90,91 @@ export default function Clients() {
     load();
   };
 
+  const respond = async (id, action) => {
+    await api.post(`/associations/${id}/${action}`);
+    await loadRequests();
+    await load();
+    refreshNotifications();
+  };
+
+  const copyCreds = async () => {
+    try {
+      await navigator.clipboard.writeText(created.shareMessage);
+      setCopied(true);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const waLink = created
+    ? `https://wa.me/?text=${encodeURIComponent(created.shareMessage)}`
+    : "#";
+
   return (
     <div className="page">
       <h1>Clients</h1>
+
+      {/* Pending association requests */}
+      {requests.length > 0 && (
+        <div className="card" style={{ maxWidth: "none" }}>
+          <h3 className="icon">
+            <Icon name="person_add" size={18} /> Association requests ({requests.length})
+          </h3>
+          {requests.map((r) => (
+            <div
+              key={r._id}
+              className="row gap"
+              style={{ justifyContent: "space-between", flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: 10 }}
+            >
+              <div>
+                <strong>{r.client?.name}</strong>
+                <div className="muted" style={{ fontSize: 13 }}>
+                  {r.client?.email}
+                  {r.client?.phone ? ` · ${r.client.phone}` : ""}
+                </div>
+              </div>
+              <div className="row gap">
+                <button className="icon" onClick={() => respond(r._id, "approve")}>
+                  <Icon name="check" size={18} /> Approve
+                </button>
+                <button className="btn-secondary icon" onClick={() => respond(r._id, "reject")}>
+                  <Icon name="close" size={18} /> Decline
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Credentials sharing panel after creating a client */}
+      {created && (
+        <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+          <h3 className="icon">
+            <Icon name="check_circle" size={18} /> Account created for {created.client.name}
+          </h3>
+          <textarea readOnly rows={6} value={created.shareMessage} />
+          <div className="row gap" style={{ flexWrap: "wrap" }}>
+            <button type="button" className="icon" onClick={copyCreds}>
+              <Icon name="content_copy" size={18} /> {copied ? "Copied!" : "Copy credentials"}
+            </button>
+            <a
+              className="btn-secondary icon"
+              href={waLink}
+              target="_blank"
+              rel="noreferrer"
+              style={{ textDecoration: "none" }}
+            >
+              <Icon name="chat" size={18} /> Share via WhatsApp
+            </a>
+            <button type="button" className="btn-link" onClick={() => setCreated(null)}>
+              Dismiss
+            </button>
+          </div>
+          <p className="muted" style={{ margin: 0 }}>
+            Credentials were also emailed to {created.credentials.email}.
+          </p>
+        </div>
+      )}
 
       <div className="row gap">
         <input
@@ -170,16 +271,11 @@ export default function Clients() {
               <td>{c.email}</td>
               <td>{c.phone || "—"}</td>
               <td>
-                {c.dateOfBirth
-                  ? new Date(c.dateOfBirth).toLocaleDateString()
-                  : "—"}
+                {c.dateOfBirth ? new Date(c.dateOfBirth).toLocaleDateString() : "—"}
               </td>
               <td className="row gap">
                 <button onClick={() => handleEdit(c)}>Edit</button>
-                <button
-                  className="btn-danger"
-                  onClick={() => handleDelete(c._id)}
-                >
+                <button className="btn-danger" onClick={() => handleDelete(c._id)}>
                   Delete
                 </button>
               </td>

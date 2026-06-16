@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api/axios";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
+import { SkeletonCards } from "../components/Skeleton";
 
 export default function FindDentist() {
   const [dentists, setDentists] = useState([]);
@@ -49,7 +50,7 @@ export default function FindDentist() {
       <p className="muted">{locStatus}</p>
 
       {loading ? (
-        <p className="muted">Loading…</p>
+        <SkeletonCards count={6} />
       ) : dentists.length === 0 ? (
         <p className="muted">No dentists registered yet.</p>
       ) : (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import Icon from "../components/Icon";
+import { SkeletonStats, SkeletonTable } from "../components/Skeleton";
 
 const money = (n) => `$${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -26,7 +27,14 @@ export default function Finances() {
     await load();
   };
 
-  if (loading) return <div className="page"><p className="muted">Loading…</p></div>;
+  if (loading)
+    return (
+      <div className="page">
+        <h1 className="icon"><Icon name="payments" /> Finances</h1>
+        <SkeletonStats count={4} />
+        <SkeletonTable rows={5} cols={5} />
+      </div>
+    );
   if (!data) return <div className="page"><p className="muted">Could not load finances.</p></div>;
 
   const { totals, monthly, unpaid } = data;
@@ -40,28 +48,33 @@ export default function Finances() {
 
       <div className="stats">
         <div className="stat-card">
-          <Icon name="account_balance_wallet" size={36} className="stat-icon" />
+          <Icon name="account_balance_wallet" size={26} className="stat-icon" />
           <div className="stat-value">{money(totals.totalCollected)}</div>
           <div className="stat-label">Collected ({totals.paidCount} paid)</div>
         </div>
         <div className="stat-card">
-          <Icon name="pending_actions" size={36} className="stat-icon" />
+          <Icon name="pending_actions" size={26} className="stat-icon" />
           <div className="stat-value">{money(totals.outstanding)}</div>
           <div className="stat-label">Outstanding ({totals.unpaidCount} unpaid)</div>
         </div>
         <div className="stat-card">
-          <Icon name="shopping_cart_checkout" size={36} className="stat-icon" />
+          <Icon name="shopping_cart_checkout" size={26} className="stat-icon" />
           <div className="stat-value">{money(totals.totalSpent)}</div>
           <div className="stat-label">Supply spend ({totals.orderCount} orders)</div>
         </div>
         <div className="stat-card">
-          <Icon name="trending_up" size={36} className="stat-icon" />
+          <Icon name="handyman" size={26} className="stat-icon" />
+          <div className="stat-value">{money(totals.totalMaintenance)}</div>
+          <div className="stat-label">Maintenance ({totals.maintenanceCount} items)</div>
+        </div>
+        <div className="stat-card">
+          <Icon name="trending_up" size={26} className="stat-icon" />
           <div className="stat-value">{money(totals.net)}</div>
-          <div className="stat-label">Net (collected − supplies)</div>
+          <div className="stat-label">Net (collected − expenses)</div>
         </div>
       </div>
 
-      <h2 className="icon"><Icon name="bar_chart" /> Monthly income vs. supply spend</h2>
+      <h2 className="icon"><Icon name="bar_chart" /> Monthly income vs. expenses</h2>
       {monthly.length === 0 ? (
         <p className="muted">No financial activity yet.</p>
       ) : (
@@ -78,7 +91,7 @@ export default function Finances() {
                   <div
                     className="bar bar-expense"
                     style={{ height: `${(m.expense / maxBar) * 140}px` }}
-                    title={`Spend: ${money(m.expense)}`}
+                    title={`Expenses: ${money(m.expense)}`}
                   />
                 </div>
                 <div className="chart-label muted">{m.label}</div>
@@ -87,7 +100,7 @@ export default function Finances() {
           </div>
           <div className="row gap chart-legend">
             <span className="icon"><span className="swatch bar-income" /> Income</span>
-            <span className="icon"><span className="swatch bar-expense" /> Supply spend</span>
+            <span className="icon"><span className="swatch bar-expense" /> Expenses (supplies + maintenance)</span>
           </div>
         </div>
       )}

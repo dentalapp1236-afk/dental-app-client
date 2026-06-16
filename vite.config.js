@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.js",
       registerType: "autoUpdate",
+      injectRegister: "auto",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "MyDentalBooking",
@@ -30,12 +34,10 @@ export default defineConfig({
           },
         ],
       },
-      // Cache app shell only; API calls always hit the network
-      workbox: {
-        navigateFallbackDenylist: [/^\/api/],
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
       },
-      devOptions: { enabled: true },
+      devOptions: { enabled: true, type: "module" },
     }),
   ],
   server: {

@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
-import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, Link } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Sidebar from "./components/Sidebar";
+import MobileNav from "./components/MobileNav";
+import ProfileMenu from "./components/ProfileMenu";
+import NotificationBell from "./components/NotificationBell";
 import Icon from "./components/Icon";
+import GlobalLoader from "./components/GlobalLoader";
+import FullScreenLoader from "./components/FullScreenLoader";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -18,9 +22,11 @@ import DentistProfile from "./pages/DentistProfile";
 import VendorDashboard from "./pages/VendorDashboard";
 import Marketplace from "./pages/Marketplace";
 import Finances from "./pages/Finances";
+import Maintenance from "./pages/Maintenance";
 
 function Home() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <FullScreenLoader />;
   if (!user) return <Navigate to="/login" replace />;
   const home =
     user.role === "dentist"
@@ -31,48 +37,38 @@ function Home() {
   return <Navigate to={home} replace />;
 }
 
-// App chrome: fixed sidebar on desktop, slide-in drawer + top bar on mobile.
-// Auth pages (no user) render full-screen without chrome.
+// App chrome: fixed sidebar on desktop; top bar (brand + profile) and a
+// bottom tab bar on mobile. Auth pages (no user) render full-screen, no chrome.
 function Shell({ children }) {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
-  const location = useLocation();
-
-  // Close the mobile drawer whenever the route changes
-  useEffect(() => setOpen(false), [location.pathname]);
-
   if (!user) return children;
 
   return (
     <div className="app-shell">
-      <Sidebar open={open} onNavigate={() => setOpen(false)} />
-      <div
-        className={`sidebar-backdrop ${open ? "show" : ""}`}
-        onClick={() => setOpen(false)}
-      />
+      <Sidebar />
       <div className="app-main">
         <header className="topbar">
-          <button
-            className="nav-toggle"
-            aria-label="Toggle menu"
-            onClick={() => setOpen((o) => !o)}
-          >
-            <Icon name="menu" />
-          </button>
           <Link to="/" className="topbar-brand icon">
             <Icon name="dentistry" /> MyDentalBooking
           </Link>
+          <div className="row gap">
+            <NotificationBell />
+            <ProfileMenu />
+          </div>
         </header>
         {children}
       </div>
+      <MobileNav role={user.role} />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <Shell>
-      <Routes>
+    <>
+      <GlobalLoader />
+      <Shell>
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -158,8 +154,17 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/maintenance"
+          element={
+            <ProtectedRoute role="dentist">
+              <Maintenance />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Shell>
+        </Routes>
+      </Shell>
+    </>
   );
 }

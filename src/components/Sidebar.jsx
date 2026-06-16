@@ -1,30 +1,15 @@
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ROLE_LINKS } from "../navLinks";
+import NotificationBell from "./NotificationBell";
 import Icon from "./Icon";
-
-// Role-based navigation items
-const LINKS = {
-  dentist: [
-    { to: "/dentist", icon: "dashboard", label: "Dashboard" },
-    { to: "/clients", icon: "group", label: "Clients" },
-    { to: "/appointments", icon: "calendar_month", label: "Appointments" },
-    { to: "/treatments", icon: "medical_services", label: "Treatments" },
-    { to: "/supplies", icon: "shopping_cart", label: "Supplies" },
-    { to: "/finances", icon: "payments", label: "Finances" },
-  ],
-  client: [
-    { to: "/client", icon: "dashboard", label: "My Dashboard" },
-    { to: "/find-dentist", icon: "person_search", label: "Find a dentist" },
-  ],
-  vendor: [{ to: "/vendor", icon: "storefront", label: "My Store" }],
-};
 
 export default function Sidebar({ open, onNavigate }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   if (!user) return null;
 
-  const links = LINKS[user.role] || [];
+  const links = ROLE_LINKS[user.role] || [];
 
   const handleLogout = () => {
     onNavigate?.();
@@ -39,6 +24,7 @@ export default function Sidebar({ open, onNavigate }) {
           <Icon name="dentistry" />
           <span>MyDentalBooking</span>
         </Link>
+        <NotificationBell />
       </div>
 
       <nav className="sidebar-nav">

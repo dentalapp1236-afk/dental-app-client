@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import Icon from "../components/Icon";
+import { SkeletonCards } from "../components/Skeleton";
 
 const STATUS_COLORS = {
   pending: "badge-pending",
@@ -20,13 +21,19 @@ export default function Marketplace() {
   const [orders, setOrders] = useState([]);
   const [placing, setPlacing] = useState(false);
   const [message, setMessage] = useState("");
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   const loadProducts = async () => {
-    const params = {};
-    if (search) params.search = search;
-    if (category) params.category = category;
-    const { data } = await api.get("/products", { params });
-    setProducts(data);
+    setLoadingProducts(true);
+    try {
+      const params = {};
+      if (search) params.search = search;
+      if (category) params.category = category;
+      const { data } = await api.get("/products", { params });
+      setProducts(data);
+    } finally {
+      setLoadingProducts(false);
+    }
   };
   const loadOrders = async () => {
     const { data } = await api.get("/orders");
@@ -137,7 +144,9 @@ export default function Marketplace() {
               </select>
             </div>
 
-            {products.length === 0 ? (
+            {loadingProducts ? (
+              <SkeletonCards count={6} />
+            ) : products.length === 0 ? (
               <p className="muted">No products match.</p>
             ) : (
               <div className="dentist-grid">

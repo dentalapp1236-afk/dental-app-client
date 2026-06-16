@@ -19,6 +19,11 @@ export default function DentistProfile() {
   const [submitting, setSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState("");
 
+  // Association (clients only)
+  const [assoc, setAssoc] = useState(null); // { dentist, pending }
+  const [assocMsg, setAssocMsg] = useState("");
+  const [requesting, setRequesting] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
@@ -33,6 +38,26 @@ export default function DentistProfile() {
       }
     })();
   }, [id]);
+
+  useEffect(() => {
+    if (user?.role === "client") {
+      api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
+    }
+  }, [user]);
+
+  const requestAssociation = async () => {
+    setAssocMsg("");
+    setRequesting(true);
+    try {
+      await api.post("/associations/request", { dentistId: id });
+      setAssoc((a) => ({ ...(a || {}), pending: { dentist: { _id: id, name: dentist.name } } }));
+      setAssocMsg("Request sent — the dentist will be notified.");
+    } catch (err) {
+      setAssocMsg(err.response?.data?.message || "Could not send request.");
+    } finally {
+      setRequesting(false);
+    }
+  };
 
   const submitReview = async (e) => {
     e.preventDefault();
@@ -89,6 +114,23 @@ export default function DentistProfile() {
             </span>
           )}
         </div>
+
+        {user?.role === "client" && (
+          <div className="assoc-bar">
+            {assoc?.dentist?._id === id ? (
+              <span className="badge icon"><Icon name="verified" size={16} /> You're associated with this dentist</span>
+            ) : assoc?.dentist ? (
+              <span className="muted">You're already with Dr. {assoc.dentist.name}. Leave them first to switch.</span>
+            ) : assoc?.pending ? (
+              <span className="badge-pending">Request pending…</span>
+            ) : (
+              <button onClick={requestAssociation} disabled={requesting} className="icon">
+                <Icon name="person_add" size={18} /> {requesting ? "Sending…" : "Request to associate"}
+              </button>
+            )}
+            {assocMsg && <span className="muted" style={{ marginLeft: 8 }}>{assocMsg}</span>}
+          </div>
+        )}
 
         {dentist.about && (
           <>
