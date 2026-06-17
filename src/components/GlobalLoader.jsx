@@ -27,11 +27,8 @@ export default function GlobalLoader() {
       <div className={`global-loader ${active ? "active" : ""}`} aria-hidden="true">
         <div className="global-loader-bar" />
       </div>
-      {active && (
-        <div className="global-spinner" role="status" aria-label="Loading">
-          <span className="spinner" />
-        </div>
-      )}
+      {/* Dim + block interaction while a request is in flight */}
+      {active && <div className="global-dim" aria-hidden="true" />}
     </>
   );
 }

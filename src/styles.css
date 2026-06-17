@@ -424,7 +424,7 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
   100% { background-position: 150% 0; }
 }
 
-/* --- Global fetch indicator (top bar + corner spinner) --- */
+/* --- Global fetch indicator (top bar) + dim overlay --- */
 .global-loader {
   position: fixed;
   top: 0;
@@ -455,21 +455,13 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
   100% { left: 100%; width: 30%; }
 }
 
-.global-spinner {
+/* Dim the page and block interaction while a request is loading */
+.global-dim {
   position: fixed;
-  top: 14px;
-  right: 16px;
-  z-index: 2000;
-  pointer-events: none;
-}
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2.5px solid var(--b-200);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  inset: 0;
+  z-index: 1900;
+  background: rgba(31, 45, 61, 0.14);
+  cursor: progress;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 

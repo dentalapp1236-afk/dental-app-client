@@ -11,9 +11,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Hand the splash screen over to the app once bootstrap completes
+    const done = () => {
+      setLoading(false);
+      window.finishSplash?.();
+    };
     const token = localStorage.getItem("token");
     if (!token) {
-      setLoading(false);
+      done();
       return;
     }
     api
@@ -27,7 +32,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("user");
         setUser(null);
       })
-      .finally(() => setLoading(false));
+      .finally(done);
   }, []);
 
   const login = async (identifier, password) => {
