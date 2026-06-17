@@ -70,7 +70,7 @@ export default function ForgotPassword() {
             <button type="submit" disabled={loading}>
               {loading ? "Sending…" : "Send reset link"}
             </button>
-            <p className="muted">
+            <p className="auth-alt">
               Remembered it? <Link to="/login">Sign in</Link>
             </p>
           </form>

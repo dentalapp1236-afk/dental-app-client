@@ -94,15 +94,13 @@ export default function Login() {
           />
           {errors.password && <span className="field-error">{errors.password}</span>}
         </label>
-        <div style={{ textAlign: "right", marginTop: -6 }}>
-          <Link to="/forgot-password" className="muted" style={{ fontSize: 13 }}>
-            Forgot password?
-          </Link>
+        <div className="auth-forgot">
+          <Link to="/forgot-password">Forgot password?</Link>
         </div>
         <button type="submit" disabled={loading}>
           {loading ? "Signing in…" : "Sign in"}
         </button>
-        <p className="muted">
+        <p className="auth-alt">
           No account? <Link to="/register">Register</Link>
         </p>
       </form>

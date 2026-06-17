@@ -336,6 +336,30 @@ a:hover { text-decoration: underline; }
 }
 .auth-subtitle { color: var(--muted); font-size: 13px; margin-top: 2px; }
 
+/* Auth footer + helper links */
+.auth-alt {
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+.auth-alt a {
+  color: var(--primary);
+  font-weight: 600;
+  margin-left: 3px;
+}
+.auth-alt a:hover { text-decoration: underline; }
+.auth-forgot {
+  text-align: right;
+  margin-top: -4px;
+}
+.auth-forgot a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.auth-forgot a:hover { color: var(--primary); }
+
 /* Inputs with a leading icon */
 .input-wrap { position: relative; display: flex; width: 100%; }
 .input-wrap input { width: 100%; }

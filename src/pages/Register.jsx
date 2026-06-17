@@ -352,7 +352,7 @@ export default function Register() {
         <button type="submit" disabled={loading}>
           {loading ? "Creating…" : "Create account"}
         </button>
-        <p className="muted">
+        <p className="auth-alt">
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </form>
