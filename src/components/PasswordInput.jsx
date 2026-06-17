@@ -11,10 +11,12 @@ export default function PasswordInput({
   minLength,
   autoComplete = "off",
   invalid = false,
+  leadingIcon,
 }) {
   const [show, setShow] = useState(false);
   return (
-    <div className="password-field">
+    <div className={`password-field ${leadingIcon ? "has-leading" : ""}`}>
+      {leadingIcon && <Icon name={leadingIcon} size={20} className="field-leading" />}
       <input
         type={show ? "text" : "password"}
         name={name}

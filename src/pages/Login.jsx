@@ -59,18 +59,27 @@ export default function Login() {
   return (
     <div className="page auth-page">
       <form className="card" onSubmit={handleSubmit} noValidate>
-        <h2 className="icon"><Icon name="login" /> Sign in</h2>
+        <div className="auth-brand">
+          <img src="/favicon.svg" alt="MyDentalBooking" className="auth-logo" />
+          <div>
+            <div className="auth-title">MyDentalBooking</div>
+            <div className="auth-subtitle">Sign in to your account</div>
+          </div>
+        </div>
         {error && <div className="error">{error}</div>}
         <label>
           Email or phone
-          <input
-            type="text"
-            name="identifier"
-            placeholder="you@example.com or 03001234567"
-            className={errors.identifier ? "invalid" : ""}
-            value={form.identifier}
-            onChange={handleChange}
-          />
+          <div className="input-wrap has-leading">
+            <Icon name="alternate_email" size={20} className="field-leading" />
+            <input
+              type="text"
+              name="identifier"
+              placeholder="you@example.com or 03001234567"
+              className={errors.identifier ? "invalid" : ""}
+              value={form.identifier}
+              onChange={handleChange}
+            />
+          </div>
           {errors.identifier && <span className="field-error">{errors.identifier}</span>}
         </label>
         <label>
@@ -78,6 +87,7 @@ export default function Login() {
           <PasswordInput
             name="password"
             autoComplete="current-password"
+            leadingIcon="lock"
             invalid={!!errors.password}
             value={form.password}
             onChange={handleChange}

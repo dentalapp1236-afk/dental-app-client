@@ -315,6 +315,41 @@ a:hover { text-decoration: underline; }
   padding: 24px 16px;
 }
 
+/* Auth (sign in / register) brand header */
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.auth-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(79, 128, 232, 0.25);
+}
+.auth-title {
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.auth-subtitle { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+/* Inputs with a leading icon */
+.input-wrap { position: relative; display: flex; width: 100%; }
+.input-wrap input { width: 100%; }
+.field-leading {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.input-wrap.has-leading input,
+.password-field.has-leading input { padding-left: 40px; }
+
 /* Password field with show/hide eye toggle */
 .password-field { position: relative; display: flex; width: 100%; }
 .password-field input { width: 100%; padding-right: 44px; }
