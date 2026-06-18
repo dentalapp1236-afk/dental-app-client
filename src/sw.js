@@ -18,8 +18,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "MyDentalBooking";
   const options = {
     body: data.body || "",
-    icon: "/pwa-192x192.png",
-    badge: "/pwa-192x192.png",
+    icon: "/pwa-192x192.png", // full-color tooth logo (large image)
+    badge: "/badge-96x96.png", // monochrome tooth silhouette (status bar)
     vibrate: [200, 100, 200],
     data: { url: data.url || "/" },
   };

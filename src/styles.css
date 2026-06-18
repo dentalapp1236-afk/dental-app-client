@@ -279,6 +279,23 @@ a:hover { text-decoration: underline; }
   box-shadow: 0 16px 48px rgba(31, 45, 61, 0.28);
 }
 .modal-lg { max-width: 560px; }
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.modal-head h3 { margin: 0; }
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+}
+.modal-close:hover:not(:disabled) { background: var(--b-50); color: var(--text); }
 
 /* Notification bell */
 .bell { position: relative; }
@@ -314,13 +331,13 @@ a:hover { text-decoration: underline; }
   line-height: 1;
 }
 .bell-dropdown {
-  position: fixed;
-  top: 64px;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Desktop: drop below the bell, aligned to its right edge */
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
   z-index: 41;
-  width: calc(100vw - 24px);
-  max-width: 380px;
+  width: 340px;
+  max-width: 86vw;
   max-height: 75vh;
   overflow-y: auto;
   background: var(--surface);
@@ -353,20 +370,52 @@ a:hover { text-decoration: underline; }
 .bell-toggle[aria-pressed="false"] { color: var(--muted); }
 .bell-toggle:hover:not(:disabled) { background: var(--b-100); }
 .bell-empty { padding: 18px 14px; color: var(--muted); font-size: 14px; }
-.bell-item {
-  display: block;
-  width: 100%;
-  text-align: left;
+
+/* Actions bar (Mark all read / Clear all) */
+.bell-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.bell-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: transparent;
   border: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.bell-action:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
+
+.bell-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   border-bottom: 1px solid var(--border);
   padding: 12px 14px;
   cursor: pointer;
-  border-radius: 0;
 }
 .bell-item:last-child { border-bottom: none; }
 .bell-item.unread { background: var(--b-50); }
-.bell-item:hover:not(:disabled) { background: var(--b-100); }
+.bell-item:hover { background: var(--b-100); }
+.bell-item-main { flex: 1; min-width: 0; }
+.bell-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.bell-dismiss:hover:not(:disabled) { background: var(--surface); color: var(--text); }
 .bell-title { font-weight: 600; font-size: 14px; color: var(--text); }
 .bell-body { color: var(--muted); font-size: 13px; margin-top: 2px; }
 .bell-time { color: var(--muted); font-size: 11px; margin-top: 4px; }
@@ -1096,6 +1145,17 @@ h2.icon { gap: 8px; }
 
   /* leave room for the sticky top bar + fixed bottom nav */
   .app-main { margin-left: 0; padding-bottom: 68px; }
+
+  /* Notifications dropdown centered in the viewport on mobile */
+  .bell-dropdown {
+    position: fixed;
+    top: 58px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100vw - 24px);
+    max-width: 380px;
+  }
 
   /* Wide tables (e.g. Clients) scroll inside themselves instead of widening the page */
   .table {

@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
+import PasswordInput from "../components/PasswordInput";
 import { useNotifications } from "../context/NotificationsContext";
 
 const empty = {
   name: "",
   email: "",
   password: "",
+  confirmPassword: "",
   phone: "",
   dateOfBirth: "",
   address: "",
@@ -38,9 +40,16 @@ export default function Clients() {
   };
 
   useEffect(() => {
-    load();
     loadRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live search by name / email / phone (debounced)
+  useEffect(() => {
+    const t = setTimeout(() => load(), 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   // Refresh the pending-requests list whenever notifications change (new request arrived)
   useEffect(() => {
@@ -67,6 +76,12 @@ export default function Clients() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!editingId) {
+      if (form.password.length < 8)
+        return setError("Password must be at least 8 characters.");
+      if (form.password !== form.confirmPassword)
+        return setError("Passwords do not match.");
+    }
     try {
       if (editingId) {
         await api.put(`/clients/${editingId}`, form);
@@ -198,7 +213,7 @@ export default function Clients() {
 
       <div className="search-row">
         <input
-          placeholder="Search clients…"
+          placeholder="Search by name, email, or phone…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -211,15 +226,20 @@ export default function Clients() {
       <div className="modal-backdrop" onClick={resetForm}>
         <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} style={{ display: "contents" }}>
-        <h3>{editingId ? "Edit client" : "Add new client"}</h3>
+        <div className="modal-head">
+          <h3>{editingId ? "Edit client" : "Add new client"}</h3>
+          <button type="button" className="modal-close" aria-label="Close" onClick={resetForm}>
+            <Icon name="close" />
+          </button>
+        </div>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
           <label>
-            Name
+            <span className="lbl">Name <span className="req">*</span></span>
             <input name="name" required value={form.name} onChange={handleChange} />
           </label>
           <label>
-            Email
+            <span className="lbl">Email <span className="req">*</span></span>
             <input
               type="email"
               name="email"
@@ -229,22 +249,15 @@ export default function Clients() {
               onChange={handleChange}
             />
           </label>
-          {!editingId && (
-            <label>
-              Password (min 8)
-              <input
-                type="password"
-                name="password"
-                required
-                minLength={8}
-                value={form.password}
-                onChange={handleChange}
-              />
-            </label>
-          )}
           <label>
-            Phone
-            <input name="phone" value={form.phone} onChange={handleChange} />
+            <span className="lbl">Phone <span className="req">*</span></span>
+            <input
+              name="phone"
+              required
+              placeholder="e.g. 03001234567"
+              value={form.phone}
+              onChange={handleChange}
+            />
           </label>
           <label>
             Date of birth
@@ -255,6 +268,32 @@ export default function Clients() {
               onChange={handleChange}
             />
           </label>
+          {!editingId && (
+            <label>
+              <span className="lbl">Password (min 8) <span className="req">*</span></span>
+              <PasswordInput
+                name="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                value={form.password}
+                onChange={handleChange}
+              />
+            </label>
+          )}
+          {!editingId && (
+            <label>
+              <span className="lbl">Confirm password <span className="req">*</span></span>
+              <PasswordInput
+                name="confirmPassword"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                value={form.confirmPassword}
+                onChange={handleChange}
+              />
+            </label>
+          )}
           <label>
             Address
             <input name="address" value={form.address} onChange={handleChange} />

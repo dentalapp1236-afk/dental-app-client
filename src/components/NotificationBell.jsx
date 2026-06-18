@@ -27,24 +27,20 @@ const routeFor = (n) => {
 };
 
 export default function NotificationBell() {
-  const { items, unreadCount, markAllRead, enabled, setEnabled } = useNotifications();
+  const { items, unreadCount, markAllRead, markRead, dismiss, clearAll, enabled, setEnabled } =
+    useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    if (next && unreadCount > 0) markAllRead();
-  };
-
   const openItem = (n) => {
+    if (!n.read) markRead(n._id);
     setOpen(false);
     navigate(routeFor(n));
   };
 
   return (
     <div className="bell">
-      <button className="bell-btn" aria-label="Notifications" onClick={toggle}>
+      <button className="bell-btn" aria-label="Notifications" onClick={() => setOpen((o) => !o)}>
         <Icon name="notifications" />
         {unreadCount > 0 && (
           <span className="bell-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>
@@ -66,19 +62,45 @@ export default function NotificationBell() {
                 {enabled ? "On" : "Off"}
               </button>
             </div>
+
+            {items.length > 0 && (
+              <div className="bell-actions">
+                {unreadCount > 0 && (
+                  <button className="bell-action" onClick={markAllRead}>
+                    <Icon name="done_all" size={16} /> Mark all read
+                  </button>
+                )}
+                <button className="bell-action" onClick={clearAll}>
+                  <Icon name="delete_sweep" size={16} /> Clear all
+                </button>
+              </div>
+            )}
+
             {items.length === 0 ? (
-              <div className="bell-empty">No notifications yet.</div>
+              <div className="bell-empty">No notifications.</div>
             ) : (
               items.map((n) => (
-                <button
+                <div
                   key={n._id}
                   className={`bell-item ${n.read ? "" : "unread"}`}
                   onClick={() => openItem(n)}
                 >
-                  <div className="bell-title">{n.title}</div>
-                  {n.body && <div className="bell-body">{n.body}</div>}
-                  <div className="bell-time">{timeAgo(n.createdAt)}</div>
-                </button>
+                  <div className="bell-item-main">
+                    <div className="bell-title">{n.title}</div>
+                    {n.body && <div className="bell-body">{n.body}</div>}
+                    <div className="bell-time">{timeAgo(n.createdAt)}</div>
+                  </div>
+                  <button
+                    className="bell-dismiss"
+                    aria-label="Dismiss"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dismiss(n._id);
+                    }}
+                  >
+                    <Icon name="close" size={16} />
+                  </button>
+                </div>
               ))
             )}
           </div>

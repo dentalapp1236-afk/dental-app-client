@@ -101,9 +101,50 @@ export const NotificationsProvider = ({ children }) => {
     prevUnread.current = 0;
   };
 
+  const markRead = async (id) => {
+    try {
+      await api.post(`/notifications/${id}/read`, null, { skipLoader: true });
+    } catch {
+      /* ignore */
+    }
+    setItems((prev) => {
+      const next = prev.map((i) => (i._id === id ? { ...i, read: true } : i));
+      const unread = next.filter((i) => !i.read).length;
+      setUnreadCount(unread);
+      prevUnread.current = unread;
+      return next;
+    });
+  };
+
+  const dismiss = async (id) => {
+    try {
+      await api.delete(`/notifications/${id}`, { skipLoader: true });
+    } catch {
+      /* ignore */
+    }
+    setItems((prev) => {
+      const next = prev.filter((i) => i._id !== id);
+      const unread = next.filter((i) => !i.read).length;
+      setUnreadCount(unread);
+      prevUnread.current = unread;
+      return next;
+    });
+  };
+
+  const clearAll = async () => {
+    try {
+      await api.delete("/notifications", { skipLoader: true });
+    } catch {
+      /* ignore */
+    }
+    setItems([]);
+    setUnreadCount(0);
+    prevUnread.current = 0;
+  };
+
   return (
     <NotificationsContext.Provider
-      value={{ items, unreadCount, refresh, markAllRead, enabled, setEnabled }}
+      value={{ items, unreadCount, refresh, markAllRead, markRead, dismiss, clearAll, enabled, setEnabled }}
     >
       {children}
     </NotificationsContext.Provider>
