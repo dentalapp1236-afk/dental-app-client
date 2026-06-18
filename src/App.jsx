@@ -23,6 +23,7 @@ import VendorDashboard from "./pages/VendorDashboard";
 import Marketplace from "./pages/Marketplace";
 import Finances from "./pages/Finances";
 import Maintenance from "./pages/Maintenance";
+import Profile from "./pages/Profile";
 
 function Home() {
   const { user, loading } = useAuth();
@@ -127,6 +128,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DentistProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

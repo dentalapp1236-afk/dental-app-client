@@ -23,6 +23,7 @@ export default function Clients() {
   const [error, setError] = useState("");
   const [created, setCreated] = useState(null); // { client, credentials, shareMessage }
   const [copied, setCopied] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const load = async () => {
     const { data } = await api.get("/clients", { params: { search } });
@@ -50,6 +51,14 @@ export default function Clients() {
     setForm(empty);
     setEditingId(null);
     setError("");
+    setShowForm(false);
+  };
+
+  const openCreate = () => {
+    setForm(empty);
+    setEditingId(null);
+    setError("");
+    setShowForm(true);
   };
 
   const handleSubmit = async (e) => {
@@ -73,6 +82,7 @@ export default function Clients() {
 
   const handleEdit = (c) => {
     setEditingId(c._id);
+    setShowForm(true);
     setForm({
       name: c.name || "",
       email: c.email || "",
@@ -112,7 +122,14 @@ export default function Clients() {
 
   return (
     <div className="page">
-      <h1>Clients</h1>
+      <div className="page-head">
+        <h1 className="icon"><Icon name="group" /> Clients</h1>
+        {!showForm && (
+          <button className="icon" onClick={openCreate}>
+            <Icon name="person_add" size={18} /> Add client
+          </button>
+        )}
+      </div>
 
       {/* Pending association requests */}
       {requests.length > 0 && (
@@ -176,16 +193,21 @@ export default function Clients() {
         </div>
       )}
 
-      <div className="row gap">
+      <div className="search-row">
         <input
-          placeholder="Search by name, email, phone"
+          placeholder="Search clients…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <button onClick={load}>Search</button>
+        <button className="icon search-btn" onClick={load} aria-label="Search">
+          <Icon name="search" size={18} />
+        </button>
       </div>
 
-      <form className="card" onSubmit={handleSubmit}>
+      {showForm && (
+      <div className="modal-backdrop" onClick={resetForm}>
+        <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+        <form onSubmit={handleSubmit} style={{ display: "contents" }}>
         <h3>{editingId ? "Edit client" : "Add new client"}</h3>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
@@ -246,13 +268,14 @@ export default function Clients() {
         </label>
         <div className="row gap">
           <button type="submit">{editingId ? "Update" : "Add client"}</button>
-          {editingId && (
-            <button type="button" className="btn-secondary" onClick={resetForm}>
-              Cancel
-            </button>
-          )}
+          <button type="button" className="btn-secondary" onClick={resetForm}>
+            Cancel
+          </button>
         </div>
-      </form>
+        </form>
+        </div>
+      </div>
+      )}
 
       <table className="table">
         <thead>
@@ -273,10 +296,12 @@ export default function Clients() {
               <td>
                 {c.dateOfBirth ? new Date(c.dateOfBirth).toLocaleDateString() : "—"}
               </td>
-              <td className="row gap">
-                <button onClick={() => handleEdit(c)}>Edit</button>
-                <button className="btn-danger" onClick={() => handleDelete(c._id)}>
-                  Delete
+              <td className="row gap" style={{ justifyContent: "flex-end" }}>
+                <button className="btn-secondary icon" onClick={() => handleEdit(c)}>
+                  <Icon name="edit" size={18} /> Edit
+                </button>
+                <button className="btn-danger icon" onClick={() => handleDelete(c._id)}>
+                  <Icon name="delete" size={18} /> Delete
                 </button>
               </td>
             </tr>

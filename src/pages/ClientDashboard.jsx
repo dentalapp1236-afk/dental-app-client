@@ -60,7 +60,7 @@ export default function ClientDashboard() {
   if (loading)
     return (
       <div className="page">
-        <h1>Hello, {user.name}</h1>
+        <h1 className="icon"><Icon name="waving_hand" /> Hello, {user.name}</h1>
         <h2 className="icon"><Icon name="calendar_month" /> My appointments</h2>
         <SkeletonTable rows={4} cols={5} />
         <h2 className="icon"><Icon name="medical_services" /> My treatment history</h2>
@@ -70,7 +70,7 @@ export default function ClientDashboard() {
 
   return (
     <div className="page">
-      <h1>Hello, {user.name}</h1>
+      <h1 className="icon"><Icon name="waving_hand" /> Hello, {user.name}</h1>
 
       {/* My dentist / association status */}
       <div className="card" style={{ maxWidth: "none" }}>

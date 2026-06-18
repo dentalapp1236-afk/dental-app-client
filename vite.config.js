@@ -17,8 +17,8 @@ export default defineConfig({
         short_name: "MyDentalBooking",
         description:
           "Find dentists nearby, book appointments, manage clients, supplies and finances.",
-        theme_color: "#4f80e8",
-        background_color: "#f4f7fc",
+        theme_color: "#ffffff",
+        background_color: "#f2f6fc",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",

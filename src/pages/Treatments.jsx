@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import Icon from "../components/Icon";
 
 const empty = {
   client: "",
@@ -59,10 +60,10 @@ export default function Treatments() {
 
   return (
     <div className="page">
-      <h1>Treatments</h1>
+      <h1 className="icon"><Icon name="medical_services" /> Treatments</h1>
 
       <form className="card" onSubmit={handleSubmit}>
-        <h3>Record new treatment</h3>
+        <h3 className="icon"><Icon name="add_circle" size={18} /> Record new treatment</h3>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
           <label>
@@ -146,7 +147,7 @@ export default function Treatments() {
           />
           Paid
         </label>
-        <button type="submit">Save treatment</button>
+        <button type="submit" className="icon"><Icon name="save" size={18} /> Save treatment</button>
       </form>
 
       <div className="row gap">
@@ -189,10 +190,10 @@ export default function Treatments() {
               <td>{t.paid ? "Yes" : "No"}</td>
               <td>
                 <button
-                  className="btn-danger"
+                  className="btn-danger icon"
                   onClick={() => handleDelete(t._id)}
                 >
-                  Delete
+                  <Icon name="delete" size={18} /> Delete
                 </button>
               </td>
             </tr>

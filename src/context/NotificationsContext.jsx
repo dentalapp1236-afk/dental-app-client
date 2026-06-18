@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import api from "../api/axios";
 import { useAuth } from "./AuthContext";
-import { subscribeToPush } from "../push";
+import { subscribeToPush, unsubscribeFromPush } from "../push";
 
 const NotificationsContext = createContext(null);
 
@@ -40,16 +40,23 @@ export const NotificationsProvider = ({ children }) => {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [enabled, setEnabledState] = useState(
+    () => localStorage.getItem("notifEnabled") !== "false"
+  );
   const prevUnread = useRef(0);
   const firstLoad = useRef(true);
+  const enabledRef = useRef(enabled);
+  useEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
 
   const refresh = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications", { skipLoader: true });
       setItems(data.items);
       setUnreadCount(data.unreadCount);
-      // Alert (vibrate + beep) only when a NEW unread arrives after the first load
-      if (!firstLoad.current && data.unreadCount > prevUnread.current) {
+      // Alert (vibrate + beep) only when enabled AND a new unread arrives after first load
+      if (enabledRef.current && !firstLoad.current && data.unreadCount > prevUnread.current) {
         buzz();
         playBeep();
       }
@@ -69,10 +76,19 @@ export const NotificationsProvider = ({ children }) => {
       return;
     }
     refresh();
-    subscribeToPush(); // register background push (best-effort)
+    if (enabled) subscribeToPush(); // register background push (best-effort)
     const id = setInterval(refresh, 20000);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, refresh]);
+
+  // Turn notifications on/off: controls alerts (sound/vibration) and background push
+  const setEnabled = (value) => {
+    setEnabledState(value);
+    localStorage.setItem("notifEnabled", value ? "true" : "false");
+    if (value) subscribeToPush();
+    else unsubscribeFromPush();
+  };
 
   const markAllRead = async () => {
     try {
@@ -86,7 +102,9 @@ export const NotificationsProvider = ({ children }) => {
   };
 
   return (
-    <NotificationsContext.Provider value={{ items, unreadCount, refresh, markAllRead }}>
+    <NotificationsContext.Provider
+      value={{ items, unreadCount, refresh, markAllRead, enabled, setEnabled }}
+    >
       {children}
     </NotificationsContext.Provider>
   );

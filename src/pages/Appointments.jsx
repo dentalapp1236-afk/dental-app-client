@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import Icon from "../components/Icon";
 
 const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled" };
 
@@ -67,10 +68,13 @@ export default function Appointments() {
 
   return (
     <div className="page">
-      <h1>Appointments</h1>
+      <h1 className="icon"><Icon name="calendar_month" /> Appointments</h1>
 
       <form className="card" onSubmit={handleSubmit}>
-        <h3>{editingId ? "Edit appointment" : "Schedule appointment"}</h3>
+        <h3 className="icon">
+          <Icon name={editingId ? "edit_calendar" : "event"} size={18} />
+          {editingId ? "Edit appointment" : "Schedule appointment"}
+        </h3>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
           <label>
@@ -130,7 +134,10 @@ export default function Appointments() {
           />
         </label>
         <div className="row gap">
-          <button type="submit">{editingId ? "Update" : "Create"}</button>
+          <button type="submit" className="icon">
+            <Icon name={editingId ? "save" : "add"} size={18} />
+            {editingId ? "Update" : "Create"}
+          </button>
           {editingId && (
             <button type="button" className="btn-secondary" onClick={resetForm}>
               Cancel
@@ -157,12 +164,14 @@ export default function Appointments() {
               <td>{a.reason}</td>
               <td>{a.status}</td>
               <td className="row gap">
-                <button onClick={() => handleEdit(a)}>Edit</button>
+                <button className="btn-secondary icon" onClick={() => handleEdit(a)}>
+                  <Icon name="edit" size={18} /> Edit
+                </button>
                 <button
-                  className="btn-danger"
+                  className="btn-danger icon"
                   onClick={() => handleDelete(a._id)}
                 >
-                  Delete
+                  <Icon name="delete" size={18} /> Delete
                 </button>
               </td>
             </tr>

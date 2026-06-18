@@ -44,7 +44,7 @@ export default function DentistDashboard() {
   if (loading)
     return (
       <div className="page">
-        <h1>Welcome, Dr. {user.name}</h1>
+        <h1 className="icon"><Icon name="waving_hand" /> Welcome, Dr. {user.name}</h1>
         <div className="summary">
           {[0, 1, 2].map((i) => (
             <div className="summary-item" key={i}>
@@ -60,7 +60,7 @@ export default function DentistDashboard() {
 
   return (
     <div className="page">
-      <h1>Welcome, Dr. {user.name}</h1>
+      <h1 className="icon"><Icon name="waving_hand" /> Welcome, Dr. {user.name}</h1>
       <div className="summary">
         <Link to="/clients" className="summary-item">
           <span className="summary-value">{stats.clients}</span>

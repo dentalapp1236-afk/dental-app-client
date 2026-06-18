@@ -17,6 +17,11 @@ export default function ProfileMenu() {
     navigate("/login");
   };
 
+  const goProfile = () => {
+    setOpen(false);
+    navigate("/profile");
+  };
+
   return (
     <div className="profile-menu">
       <button
@@ -31,10 +36,10 @@ export default function ProfileMenu() {
         <>
           <div className="profile-backdrop" onClick={() => setOpen(false)} />
           <div className="profile-dropdown">
-            <div className="profile-head">
+            <button className="profile-head profile-head-btn" onClick={goProfile}>
               <div className="profile-name">{user.name}</div>
               <div className="profile-role">{user.role}</div>
-            </div>
+            </button>
             <button className="profile-item" onClick={handleLogout}>
               <Icon name="logout" size={20} /> Logout
             </button>

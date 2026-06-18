@@ -41,3 +41,18 @@ export async function subscribeToPush() {
     /* ignore — push is a best-effort enhancement */
   }
 }
+
+// Remove this device's push subscription (used when the user turns notifications off).
+export async function unsubscribeFromPush() {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await api.post("/push/unsubscribe", { endpoint: sub.endpoint }, { skipLoader: true });
+      await sub.unsubscribe();
+    }
+  } catch {
+    /* ignore */
+  }
+}
