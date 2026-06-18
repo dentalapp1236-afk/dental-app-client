@@ -31,7 +31,7 @@ const routeFor = (n) => {
 };
 
 export default function NotificationBell() {
-  const { items, unreadCount, markAllRead, markRead, dismiss, clearAll, enabled, setEnabled } =
+  const { items, unreadCount, markAllRead, markRead, markUnread, dismiss, clearAll, enabled, setEnabled } =
     useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -94,16 +94,30 @@ export default function NotificationBell() {
                     {n.body && <div className="bell-body">{n.body}</div>}
                     <div className="bell-time">{timeAgo(n.createdAt)}</div>
                   </div>
-                  <button
-                    className="bell-dismiss"
-                    aria-label="Dismiss"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      dismiss(n._id);
-                    }}
-                  >
-                    <Icon name="close" size={16} />
-                  </button>
+                  <div className="bell-item-actions">
+                    <button
+                      className="bell-dismiss"
+                      aria-label={n.read ? "Mark as unread" : "Mark as read"}
+                      title={n.read ? "Mark as unread" : "Mark as read"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        n.read ? markUnread(n._id) : markRead(n._id);
+                      }}
+                    >
+                      <Icon name={n.read ? "mark_email_unread" : "mark_email_read"} size={16} />
+                    </button>
+                    <button
+                      className="bell-dismiss"
+                      aria-label="Dismiss"
+                      title="Dismiss"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dismiss(n._id);
+                      }}
+                    >
+                      <Icon name="close" size={16} />
+                    </button>
+                  </div>
                 </div>
               ))
             )}

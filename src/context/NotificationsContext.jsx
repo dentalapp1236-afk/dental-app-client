@@ -116,6 +116,21 @@ export const NotificationsProvider = ({ children }) => {
     });
   };
 
+  const markUnread = async (id) => {
+    try {
+      await api.post(`/notifications/${id}/unread`, null, { skipLoader: true });
+    } catch {
+      /* ignore */
+    }
+    setItems((prev) => {
+      const next = prev.map((i) => (i._id === id ? { ...i, read: false } : i));
+      const unread = next.filter((i) => !i.read).length;
+      setUnreadCount(unread);
+      prevUnread.current = unread;
+      return next;
+    });
+  };
+
   const dismiss = async (id) => {
     try {
       await api.delete(`/notifications/${id}`, { skipLoader: true });
@@ -144,7 +159,7 @@ export const NotificationsProvider = ({ children }) => {
 
   return (
     <NotificationsContext.Provider
-      value={{ items, unreadCount, refresh, markAllRead, markRead, dismiss, clearAll, enabled, setEnabled }}
+      value={{ items, unreadCount, refresh, markAllRead, markRead, markUnread, dismiss, clearAll, enabled, setEnabled }}
     >
       {children}
     </NotificationsContext.Provider>

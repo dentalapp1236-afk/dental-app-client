@@ -405,6 +405,7 @@ a:hover { text-decoration: underline; }
 .bell-item.unread { background: var(--b-50); }
 .bell-item:hover { background: var(--b-100); }
 .bell-item-main { flex: 1; min-width: 0; }
+.bell-item-actions { display: flex; flex-direction: column; gap: 2px; flex: 0 0 auto; }
 .bell-dismiss {
   background: transparent;
   border: none;
@@ -775,6 +776,16 @@ input, select, textarea { max-width: 100%; }
   flex-wrap: wrap;
 }
 .timeline-item .material-symbols-outlined { color: var(--primary); }
+.timeline-actions { margin-left: auto; display: flex; gap: 2px; }
+.timeline-action {
+  padding: 4px;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 6px;
+}
+.timeline-action:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
+.timeline-action.danger:hover:not(:disabled) { background: #fdecea; color: var(--danger); }
+.timeline-action .material-symbols-outlined { color: inherit !important; }
 
 /* Search row: input flexes (no mobile overflow) */
 .search-row {

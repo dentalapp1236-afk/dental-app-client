@@ -25,6 +25,9 @@ export default function ClientLedger() {
   const [payTarget, setPayTarget] = useState(null);
   const [payForm, setPayForm] = useState({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
   const [payError, setPayError] = useState("");
+  // Edit-payment modal
+  const [editPay, setEditPay] = useState(null); // { treatId, paymentId, amount, note, date }
+  const [editPayError, setEditPayError] = useState("");
   // Record-treatment modal
   const TREAT_EMPTY = {
     procedure: "",
@@ -160,6 +163,8 @@ export default function ClientLedger() {
     setPayError("");
     if (!payForm.amount || Number(payForm.amount) <= 0)
       return setPayError("Enter a valid amount.");
+    if (Number(payForm.amount) > payTarget.balance)
+      return setPayError(`Amount cannot exceed the remaining balance (${money(payTarget.balance)}).`);
     try {
       await api.post(`/treatments/${payTarget._id}/payments`, {
         amount: Number(payForm.amount),
@@ -170,6 +175,62 @@ export default function ClientLedger() {
       await loadTreatments();
     } catch (err) {
       setPayError(err.response?.data?.message || "Could not record payment.");
+    }
+  };
+
+  const deleteTreat = async (t) => {
+    if (!confirm(`Delete the "${t.procedure}" treatment and all its payments?`)) return;
+    try {
+      await api.delete(`/treatments/${t._id}`);
+      await loadTreatments();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not delete treatment.");
+    }
+  };
+
+  const openEditPayment = (treatId, p) => {
+    setEditPay({
+      treatId,
+      paymentId: p._id,
+      amount: p.amount ?? "",
+      note: p.note || "",
+      date: p.date ? new Date(p.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+    });
+    setEditPayError("");
+  };
+
+  const submitEditPayment = async (e) => {
+    e.preventDefault();
+    setEditPayError("");
+    if (!editPay.amount || Number(editPay.amount) <= 0)
+      return setEditPayError("Enter a valid amount.");
+    const tr = treatments.find((t) => t._id === editPay.treatId);
+    if (tr && tr.cost > 0) {
+      const others = (tr.paidAmount || 0) - (tr.payments.find((p) => p._id === editPay.paymentId)?.amount || 0);
+      const maxAllowed = tr.cost - others;
+      if (Number(editPay.amount) > maxAllowed)
+        return setEditPayError(`Amount cannot exceed the remaining balance (${money(maxAllowed)}).`);
+    }
+    try {
+      await api.put(`/treatments/${editPay.treatId}/payments/${editPay.paymentId}`, {
+        amount: Number(editPay.amount),
+        note: editPay.note,
+        date: editPay.date,
+      });
+      setEditPay(null);
+      await loadTreatments();
+    } catch (err) {
+      setEditPayError(err.response?.data?.message || "Could not update payment.");
+    }
+  };
+
+  const deletePayment = async (treatId, paymentId) => {
+    if (!confirm("Delete this payment?")) return;
+    try {
+      await api.delete(`/treatments/${treatId}/payments/${paymentId}`);
+      await loadTreatments();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not delete payment.");
     }
   };
 
@@ -299,6 +360,9 @@ export default function ClientLedger() {
                 <button className="btn-secondary icon" onClick={() => openEditTreat(t)}>
                   <Icon name="edit" size={18} /> Edit
                 </button>
+                <button className="btn-danger-soft icon" onClick={() => deleteTreat(t)}>
+                  <Icon name="delete" size={18} /> Delete
+                </button>
               </div>
             </div>
 
@@ -307,11 +371,33 @@ export default function ClientLedger() {
                 {[...t.payments]
                   .sort((a, b) => new Date(a.date) - new Date(b.date))
                   .map((p, i) => (
-                    <div className="timeline-item" key={i}>
+                    <div className="timeline-item" key={p._id || i}>
                       <Icon name="payments" size={16} />
                       <span className="muted">{fmtDate(p.date)}</span>
                       <strong>{money(p.amount)}</strong>
                       {p.note && <span className="muted">· {p.note}</span>}
+                      {p._id && (
+                        <span className="timeline-actions">
+                          <button
+                            type="button"
+                            className="timeline-action"
+                            title="Edit payment"
+                            aria-label="Edit payment"
+                            onClick={() => openEditPayment(t._id, p)}
+                          >
+                            <Icon name="edit" size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="timeline-action danger"
+                            title="Delete payment"
+                            aria-label="Delete payment"
+                            onClick={() => deletePayment(t._id, p._id)}
+                          >
+                            <Icon name="delete" size={16} />
+                          </button>
+                        </span>
+                      )}
                     </div>
                   ))}
               </div>
@@ -468,6 +554,7 @@ export default function ClientLedger() {
                   <input
                     type="number"
                     min="0"
+                    max={payTarget.balance}
                     step="0.01"
                     placeholder="e.g. 2000"
                     value={payForm.amount}
@@ -495,6 +582,57 @@ export default function ClientLedger() {
               <div className="row gap">
                 <button type="submit" className="icon"><Icon name="check" size={18} /> Save payment</button>
                 <button type="button" className="btn-secondary" onClick={() => setPayTarget(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit-payment modal */}
+      {editPay && (
+        <div className="modal-backdrop" onClick={() => setEditPay(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitEditPayment} style={{ display: "contents" }}>
+              <div className="modal-head">
+                <h3 className="icon"><Icon name="edit" size={18} /> Edit payment</h3>
+                <button type="button" className="modal-close" aria-label="Close" onClick={() => setEditPay(null)}>
+                  <Icon name="close" />
+                </button>
+              </div>
+              {editPayError && <div className="error">{editPayError}</div>}
+              <div className="grid-2">
+                <label>
+                  Amount
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editPay.amount}
+                    onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+                    onChange={(e) => setEditPay({ ...editPay, amount: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Date
+                  <input
+                    type="date"
+                    value={editPay.date}
+                    onChange={(e) => setEditPay({ ...editPay, date: e.target.value })}
+                  />
+                </label>
+              </div>
+              <label>
+                Note (optional)
+                <input
+                  value={editPay.note}
+                  onChange={(e) => setEditPay({ ...editPay, note: e.target.value })}
+                />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon"><Icon name="save" size={18} /> Save changes</button>
+                <button type="button" className="btn-secondary" onClick={() => setEditPay(null)}>
                   Cancel
                 </button>
               </div>
