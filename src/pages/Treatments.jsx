@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
+
+const money = (n) =>
+  `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 const empty = {
   client: "",
@@ -8,8 +12,8 @@ const empty = {
   toothNumber: "",
   diagnosis: "",
   description: "",
-  cost: 0,
-  paid: false,
+  cost: "",
+  upfront: "",
   date: new Date().toISOString().slice(0, 10),
 };
 
@@ -19,6 +23,11 @@ export default function Treatments() {
   const [form, setForm] = useState(empty);
   const [filterClient, setFilterClient] = useState("");
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  // Record-payment modal
+  const [payTarget, setPayTarget] = useState(null); // treatment being paid
+  const [payForm, setPayForm] = useState({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+  const [payError, setPayError] = useState("");
 
   const load = async () => {
     const params = filterClient ? { client: filterClient } : {};
@@ -40,12 +49,24 @@ export default function Treatments() {
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
 
+  const resetForm = () => {
+    setForm(empty);
+    setError("");
+    setShowForm(false);
+  };
+
+  const openCreate = () => {
+    setForm(empty);
+    setError("");
+    setShowForm(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
       await api.post("/treatments", { ...form, cost: Number(form.cost) || 0 });
-      setForm(empty);
+      resetForm();
       load();
     } catch (err) {
       setError(err.response?.data?.message || "Save failed");
@@ -58,11 +79,45 @@ export default function Treatments() {
     load();
   };
 
+  const openPayment = (t) => {
+    setPayTarget(t);
+    setPayForm({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+    setPayError("");
+  };
+
+  const submitPayment = async (e) => {
+    e.preventDefault();
+    setPayError("");
+    if (!payForm.amount || Number(payForm.amount) <= 0)
+      return setPayError("Enter a valid amount.");
+    try {
+      await api.post(`/treatments/${payTarget._id}/payments`, {
+        amount: Number(payForm.amount),
+        note: payForm.note,
+        date: payForm.date,
+      });
+      setPayTarget(null);
+      load();
+    } catch (err) {
+      setPayError(err.response?.data?.message || "Could not record payment.");
+    }
+  };
+
   return (
     <div className="page">
-      <h1 className="icon"><Icon name="medical_services" /> Treatments</h1>
+      <div className="page-head">
+        <h1 className="icon"><Icon name="medical_services" /> Treatments</h1>
+        {!showForm && (
+          <button className="icon" onClick={openCreate}>
+            <Icon name="add_circle" size={18} /> Record treatment
+          </button>
+        )}
+      </div>
 
-      <form className="card" onSubmit={handleSubmit}>
+      {showForm && (
+      <div className="modal-backdrop" onClick={resetForm}>
+        <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+        <form onSubmit={handleSubmit} style={{ display: "contents" }}>
         <h3 className="icon"><Icon name="add_circle" size={18} /> Record new treatment</h3>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
@@ -109,13 +164,28 @@ export default function Treatments() {
             />
           </label>
           <label>
-            Cost
+            Total amount
             <input
               type="number"
               min="0"
               step="0.01"
               name="cost"
+              placeholder="e.g. 50000"
               value={form.cost}
+              onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+              onChange={handleChange}
+            />
+          </label>
+          <label>
+            Upfront payment (optional)
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              name="upfront"
+              placeholder="e.g. 25000"
+              value={form.upfront}
+              onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
               onChange={handleChange}
             />
           </label>
@@ -138,17 +208,14 @@ export default function Treatments() {
             onChange={handleChange}
           />
         </label>
-        <label className="row gap">
-          <input
-            type="checkbox"
-            name="paid"
-            checked={form.paid}
-            onChange={handleChange}
-          />
-          Paid
-        </label>
-        <button type="submit" className="icon"><Icon name="save" size={18} /> Save treatment</button>
-      </form>
+        <div className="row gap">
+          <button type="submit" className="icon"><Icon name="save" size={18} /> Save treatment</button>
+          <button type="button" className="btn-secondary" onClick={resetForm}>Cancel</button>
+        </div>
+        </form>
+        </div>
+      </div>
+      )}
 
       <div className="row gap">
         <label>
@@ -173,22 +240,27 @@ export default function Treatments() {
             <th>Date</th>
             <th>Client</th>
             <th>Procedure</th>
-            <th>Tooth</th>
-            <th>Cost</th>
+            <th>Total</th>
             <th>Paid</th>
+            <th>Balance</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           {treatments.map((t) => (
             <tr key={t._id}>
-              <td>{new Date(t.date).toLocaleDateString()}</td>
+              <td>{formatDate(t.date)}</td>
               <td>{t.client?.name}</td>
               <td>{t.procedure}</td>
-              <td>{t.toothNumber || "—"}</td>
-              <td>{t.cost}</td>
-              <td>{t.paid ? "Yes" : "No"}</td>
-              <td>
+              <td>{money(t.cost)}</td>
+              <td>{money(t.paidAmount)}</td>
+              <td>{t.balance > 0 ? money(t.balance) : "—"}</td>
+              <td className="row gap" style={{ justifyContent: "flex-end" }}>
+                {t.balance > 0 && (
+                  <button className="btn-secondary icon" onClick={() => openPayment(t)}>
+                    <Icon name="payments" size={18} /> Record payment
+                  </button>
+                )}
                 <button
                   className="btn-danger icon"
                   onClick={() => handleDelete(t._id)}
@@ -207,6 +279,58 @@ export default function Treatments() {
           )}
         </tbody>
       </table>
+
+      {/* Record-payment modal */}
+      {payTarget && (
+        <div className="modal-backdrop" onClick={() => setPayTarget(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitPayment} style={{ display: "contents" }}>
+              <h3 className="icon"><Icon name="payments" size={18} /> Record payment</h3>
+              <p className="muted" style={{ margin: 0 }}>
+                {payTarget.procedure} · {payTarget.client?.name} — balance{" "}
+                <strong>{money(payTarget.balance)}</strong>
+              </p>
+              {payError && <div className="error">{payError}</div>}
+              <div className="grid-2">
+                <label>
+                  Amount
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 2000"
+                    value={payForm.amount}
+                    onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+                    onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Date
+                  <input
+                    type="date"
+                    value={payForm.date}
+                    onChange={(e) => setPayForm({ ...payForm, date: e.target.value })}
+                  />
+                </label>
+              </div>
+              <label>
+                Note (optional)
+                <input
+                  placeholder="e.g. Visit 3 adjustment"
+                  value={payForm.note}
+                  onChange={(e) => setPayForm({ ...payForm, note: e.target.value })}
+                />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon"><Icon name="check" size={18} /> Save payment</button>
+                <button type="button" className="btn-secondary" onClick={() => setPayTarget(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

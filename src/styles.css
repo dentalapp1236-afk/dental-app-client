@@ -701,6 +701,24 @@ input, select, textarea { max-width: 100%; }
 }
 .page-head h1 { margin: 0; }
 
+/* Payment timeline (client ledger) */
+.timeline {
+  margin-top: 12px;
+  padding-left: 14px;
+  border-left: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.timeline-item .material-symbols-outlined { color: var(--primary); }
+
 /* Search row: input flexes (no mobile overflow) */
 .search-row {
   display: flex;
@@ -742,6 +760,30 @@ input, select, textarea { max-width: 100%; }
 .table tr:last-child td { border-bottom: none; }
 
 .muted { color: var(--muted); }
+
+/* Sticky back button (e.g. client ledger) — top-left, follows scroll */
+.ledger-back {
+  position: sticky;
+  top: 64px;
+  z-index: 10;
+  align-self: flex-start;
+  margin-bottom: 12px;
+}
+
+/* Inline sort control */
+.sort-label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.sort-label select { width: auto; }
+
+/* Clickable table rows */
+.table tbody tr.row-click { cursor: pointer; }
+.table tbody tr.row-click:hover { background: var(--b-50); }
 
 .error {
   background: var(--b-50);

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 import { SkeletonCards } from "../components/Skeleton";
 
@@ -165,7 +166,7 @@ export default function Marketplace() {
                       style={{ justifyContent: "space-between", marginTop: 6 }}
                     >
                       <strong>
-                        ${p.price.toFixed(2)}{" "}
+                        Rs {p.price.toFixed(2)}{" "}
                         <span className="muted" style={{ fontWeight: 400 }}>
                           / {p.unit}
                         </span>
@@ -194,7 +195,7 @@ export default function Marketplace() {
                     <div style={{ flex: 1 }}>
                       <div>{product.name}</div>
                       <div className="muted" style={{ fontSize: 13 }}>
-                        ${product.price.toFixed(2)} / {product.unit}
+                        Rs {product.price.toFixed(2)} / {product.unit}
                       </div>
                     </div>
                     <input
@@ -209,7 +210,7 @@ export default function Marketplace() {
                 <hr className="divider" />
                 <div className="row gap" style={{ justifyContent: "space-between" }}>
                   <strong>Total</strong>
-                  <strong>${cartTotal.toFixed(2)}</strong>
+                  <strong>Rs {cartTotal.toFixed(2)}</strong>
                 </div>
                 <button onClick={placeOrder} disabled={placing}>
                   {placing ? "Placing…" : "Place order"}
@@ -231,7 +232,7 @@ export default function Marketplace() {
                   <div>
                     <strong>{o.vendor?.companyName || o.vendor?.name}</strong>
                     <div className="muted" style={{ fontSize: 13 }}>
-                      {new Date(o.createdAt).toLocaleString()}
+                      {formatDateTime(o.createdAt)}
                     </div>
                   </div>
                   <span className={STATUS_COLORS[o.status] || "badge"}>{o.status}</span>
@@ -242,7 +243,7 @@ export default function Marketplace() {
                       <tr key={i}>
                         <td>{it.name}</td>
                         <td className="muted">×{it.quantity}</td>
-                        <td>${(it.price * it.quantity).toFixed(2)}</td>
+                        <td>Rs {(it.price * it.quantity).toFixed(2)}</td>
                       </tr>
                     ))}
                     <tr>
@@ -250,7 +251,7 @@ export default function Marketplace() {
                         <strong>Total</strong>
                       </td>
                       <td>
-                        <strong>${o.total.toFixed(2)}</strong>
+                        <strong>Rs {o.total.toFixed(2)}</strong>
                       </td>
                     </tr>
                   </tbody>

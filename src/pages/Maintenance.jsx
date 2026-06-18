@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
 
@@ -15,7 +16,7 @@ const CATEGORIES = [
 ];
 
 const money = (n) =>
-  `$${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `Rs ${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -148,7 +149,7 @@ export default function Maintenance() {
           <tbody>
             {expenses.map((e) => (
               <tr key={e._id}>
-                <td>{new Date(e.date).toLocaleDateString()}</td>
+                <td>{formatDate(e.date)}</td>
                 <td>
                   {e.title}
                   {e.notes && <div className="muted" style={{ fontSize: 13 }}>{e.notes}</div>}

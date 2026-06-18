@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 
 const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled" };
@@ -10,6 +11,7 @@ export default function Appointments() {
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const load = async () => {
     const [a, c] = await Promise.all([
@@ -31,6 +33,14 @@ export default function Appointments() {
     setForm(empty);
     setEditingId(null);
     setError("");
+    setShowForm(false);
+  };
+
+  const openCreate = () => {
+    setForm(empty);
+    setEditingId(null);
+    setError("");
+    setShowForm(true);
   };
 
   const handleSubmit = async (e) => {
@@ -51,6 +61,7 @@ export default function Appointments() {
 
   const handleEdit = (a) => {
     setEditingId(a._id);
+    setShowForm(true);
     setForm({
       client: a.client?._id || "",
       date: a.date ? new Date(a.date).toISOString().slice(0, 16) : "",
@@ -68,9 +79,19 @@ export default function Appointments() {
 
   return (
     <div className="page">
-      <h1 className="icon"><Icon name="calendar_month" /> Appointments</h1>
+      <div className="page-head">
+        <h1 className="icon"><Icon name="calendar_month" /> Appointments</h1>
+        {!showForm && (
+          <button className="icon" onClick={openCreate}>
+            <Icon name="event" size={18} /> Schedule appointment
+          </button>
+        )}
+      </div>
 
-      <form className="card" onSubmit={handleSubmit}>
+      {showForm && (
+      <div className="modal-backdrop" onClick={resetForm}>
+        <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+        <form onSubmit={handleSubmit} style={{ display: "contents" }}>
         <h3 className="icon">
           <Icon name={editingId ? "edit_calendar" : "event"} size={18} />
           {editingId ? "Edit appointment" : "Schedule appointment"}
@@ -138,13 +159,14 @@ export default function Appointments() {
             <Icon name={editingId ? "save" : "add"} size={18} />
             {editingId ? "Update" : "Create"}
           </button>
-          {editingId && (
-            <button type="button" className="btn-secondary" onClick={resetForm}>
-              Cancel
-            </button>
-          )}
+          <button type="button" className="btn-secondary" onClick={resetForm}>
+            Cancel
+          </button>
         </div>
-      </form>
+        </form>
+        </div>
+      </div>
+      )}
 
       <table className="table">
         <thead>
@@ -159,11 +181,11 @@ export default function Appointments() {
         <tbody>
           {appointments.map((a) => (
             <tr key={a._id}>
-              <td>{new Date(a.date).toLocaleString()}</td>
+              <td>{formatDateTime(a.date)}</td>
               <td>{a.client?.name}</td>
               <td>{a.reason}</td>
               <td>{a.status}</td>
-              <td className="row gap">
+              <td className="row gap" style={{ justifyContent: "flex-end" }}>
                 <button className="btn-secondary icon" onClick={() => handleEdit(a)}>
                   <Icon name="edit" size={18} /> Edit
                 </button>

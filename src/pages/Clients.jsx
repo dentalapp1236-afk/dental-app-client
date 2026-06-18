@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 import { useNotifications } from "../context/NotificationsContext";
 
@@ -15,6 +17,7 @@ const empty = {
 
 export default function Clients() {
   const { items, refresh: refreshNotifications } = useNotifications();
+  const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [requests, setRequests] = useState([]);
   const [search, setSearch] = useState("");
@@ -289,18 +292,34 @@ export default function Clients() {
         </thead>
         <tbody>
           {clients.map((c) => (
-            <tr key={c._id}>
+            <tr
+              key={c._id}
+              className="row-click"
+              onClick={() => navigate(`/clients/${c._id}`)}
+            >
               <td>{c.name}</td>
               <td>{c.email}</td>
               <td>{c.phone || "—"}</td>
               <td>
-                {c.dateOfBirth ? new Date(c.dateOfBirth).toLocaleDateString() : "—"}
+                {c.dateOfBirth ? formatDate(c.dateOfBirth) : "—"}
               </td>
               <td className="row gap" style={{ justifyContent: "flex-end" }}>
-                <button className="btn-secondary icon" onClick={() => handleEdit(c)}>
+                <button
+                  className="btn-secondary icon"
+                  onClick={(e) => { e.stopPropagation(); navigate(`/clients/${c._id}`); }}
+                >
+                  <Icon name="history" size={18} /> History
+                </button>
+                <button
+                  className="btn-secondary icon"
+                  onClick={(e) => { e.stopPropagation(); handleEdit(c); }}
+                >
                   <Icon name="edit" size={18} /> Edit
                 </button>
-                <button className="btn-danger icon" onClick={() => handleDelete(c._id)}>
+                <button
+                  className="btn-danger icon"
+                  onClick={(e) => { e.stopPropagation(); handleDelete(c._id); }}
+                >
                   <Icon name="delete" size={18} /> Delete
                 </button>
               </td>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import { Skeleton, SkeletonTable } from "../components/Skeleton";
@@ -94,7 +95,7 @@ export default function DentistDashboard() {
           <tbody>
             {upcoming.map((a) => (
               <tr key={a._id}>
-                <td>{new Date(a.date).toLocaleString()}</td>
+                <td>{formatDateTime(a.date)}</td>
                 <td>{a.client?.name}</td>
                 <td>{a.reason}</td>
                 <td>{a.status}</td>

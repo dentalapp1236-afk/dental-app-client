@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 import { SkeletonStats, SkeletonTable } from "../components/Skeleton";
 
-const money = (n) => `$${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function Finances() {
   const [data, setData] = useState(null);
@@ -122,7 +123,7 @@ export default function Finances() {
           <tbody>
             {unpaid.map((t) => (
               <tr key={t._id}>
-                <td>{new Date(t.date).toLocaleDateString()}</td>
+                <td>{formatDate(t.date)}</td>
                 <td>{t.client?.name || "—"}</td>
                 <td>{t.procedure}</td>
                 <td>{money(t.cost)}</td>

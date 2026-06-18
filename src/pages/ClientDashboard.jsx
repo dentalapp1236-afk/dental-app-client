@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
@@ -145,7 +146,7 @@ export default function ClientDashboard() {
             <tbody>
               {appointments.map((a) => (
                 <tr key={a._id}>
-                  <td>{new Date(a.date).toLocaleString()}</td>
+                  <td>{formatDateTime(a.date)}</td>
                   <td>{a.dentist?.name}</td>
                   <td>{a.reason}</td>
                   <td>{a.status}</td>
@@ -178,7 +179,7 @@ export default function ClientDashboard() {
             <tbody>
               {treatments.map((t) => (
                 <tr key={t._id}>
-                  <td>{new Date(t.date).toLocaleDateString()}</td>
+                  <td>{formatDate(t.date)}</td>
                   <td>{t.procedure}</td>
                   <td>{t.toothNumber || "—"}</td>
                   <td>{t.diagnosis || "—"}</td>

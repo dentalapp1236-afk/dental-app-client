@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 
@@ -201,7 +202,7 @@ export default function VendorDashboard() {
                     <td>{p.name}</td>
                     <td>{p.category || "—"}</td>
                     <td>
-                      ${p.price.toFixed(2)} <span className="muted">/ {p.unit}</span>
+                      Rs {p.price.toFixed(2)} <span className="muted">/ {p.unit}</span>
                     </td>
                     <td>{p.stock}</td>
                     <td>
@@ -239,7 +240,7 @@ export default function VendorDashboard() {
                       <span className="muted"> · {o.dentist.clinicName}</span>
                     )}
                     <div className="muted" style={{ fontSize: 13 }}>
-                      {new Date(o.createdAt).toLocaleString()}
+                      {formatDateTime(o.createdAt)}
                     </div>
                   </div>
                   <span className={STATUS_COLORS[o.status] || "badge"}>{o.status}</span>
@@ -250,7 +251,7 @@ export default function VendorDashboard() {
                       <tr key={i}>
                         <td>{it.name}</td>
                         <td className="muted">×{it.quantity}</td>
-                        <td>${(it.price * it.quantity).toFixed(2)}</td>
+                        <td>Rs {(it.price * it.quantity).toFixed(2)}</td>
                       </tr>
                     ))}
                     <tr>
@@ -258,7 +259,7 @@ export default function VendorDashboard() {
                         <strong>Total</strong>
                       </td>
                       <td>
-                        <strong>${o.total.toFixed(2)}</strong>
+                        <strong>Rs {o.total.toFixed(2)}</strong>
                       </td>
                     </tr>
                   </tbody>

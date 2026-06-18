@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import DentistDashboard from "./pages/DentistDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import Clients from "./pages/Clients";
+import ClientLedger from "./pages/ClientLedger";
 import Appointments from "./pages/Appointments";
 import Treatments from "./pages/Treatments";
 import FindDentist from "./pages/FindDentist";
@@ -96,6 +97,14 @@ export default function App() {
           element={
             <ProtectedRoute role="dentist">
               <Clients />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/clients/:id"
+          element={
+            <ProtectedRoute role="dentist">
+              <ClientLedger />
             </ProtectedRoute>
           }
         />
