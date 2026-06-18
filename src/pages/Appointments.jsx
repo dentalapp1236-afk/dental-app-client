@@ -249,7 +249,7 @@ export default function Appointments() {
                   <Icon name="edit" size={18} /> Edit
                 </button>
                 <button
-                  className="btn-danger icon"
+                  className="btn-danger-soft icon"
                   onClick={() => handleDelete(a._id)}
                 >
                   <Icon name="delete" size={18} /> Delete

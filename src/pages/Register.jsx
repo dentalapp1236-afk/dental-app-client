@@ -52,8 +52,6 @@ export default function Register() {
   };
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const PHONE_RE = /^\+?[0-9][0-9\s-]{6,14}$/;
-
   // Per-field validation -> returns { field: message }
   const validate = () => {
     const e = {};
@@ -64,8 +62,8 @@ export default function Register() {
     else if (!EMAIL_RE.test(form.email.trim())) e.email = "Enter a valid email address.";
 
     if (!form.phone.trim()) e.phone = "Phone number is required.";
-    else if (!PHONE_RE.test(form.phone.trim()))
-      e.phone = "Enter a valid phone number (7–15 digits).";
+    else if (!/^\d{11}$/.test(form.phone.trim()))
+      e.phone = "Mobile number must be exactly 11 digits.";
 
     if (!form.password) e.password = "Password is required.";
     else if (form.password.length < 8) e.password = "Use at least 8 characters.";
@@ -208,10 +206,16 @@ export default function Register() {
           <span className="lbl">Phone <span className="req">*</span></span>
           <input
             name="phone"
+            type="tel"
+            inputMode="numeric"
+            maxLength={11}
             placeholder="e.g. 03001234567"
             className={errors.phone ? "invalid" : ""}
             value={form.phone}
-            onChange={handleChange}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+              handleChange({ target: { name: "phone", value: digits } });
+            }}
           />
           {errors.phone && <span className="field-error">{errors.phone}</span>}
         </label>
