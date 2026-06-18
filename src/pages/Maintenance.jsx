@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
-import { formatDate, formatDateTime } from "../utils/date";
+import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
 
@@ -27,6 +27,8 @@ export default function Maintenance() {
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const load = async () => {
     try {
@@ -46,6 +48,33 @@ export default function Maintenance() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const resetForm = () => {
+    setForm(EMPTY);
+    setEditingId(null);
+    setError("");
+    setShowForm(false);
+  };
+
+  const openCreate = () => {
+    setForm(EMPTY);
+    setEditingId(null);
+    setError("");
+    setShowForm(true);
+  };
+
+  const openEdit = (ex) => {
+    setEditingId(ex._id);
+    setForm({
+      title: ex.title || "",
+      category: ex.category || "Other",
+      amount: ex.amount ?? "",
+      date: ex.date ? ex.date.slice(0, 10) : todayISO(),
+      notes: ex.notes || "",
+    });
+    setError("");
+    setShowForm(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -53,8 +82,13 @@ export default function Maintenance() {
     if (form.amount === "" || Number(form.amount) < 0)
       return setError("Enter a valid amount.");
     try {
-      await api.post("/expenses", { ...form, amount: Number(form.amount) });
-      setForm({ ...EMPTY, date: form.date });
+      const payload = { ...form, amount: Number(form.amount) };
+      if (editingId) {
+        await api.put(`/expenses/${editingId}`, payload);
+      } else {
+        await api.post("/expenses", payload);
+      }
+      resetForm();
       await load();
     } catch (err) {
       setError(err.response?.data?.message || "Could not save expense.");
@@ -71,60 +105,85 @@ export default function Maintenance() {
 
   return (
     <div className="page">
-      <h1 className="icon">
-        <Icon name="handyman" /> Maintenance &amp; expenses
-      </h1>
+      <div className="page-head">
+        <h1 className="icon"><Icon name="receipt_long" /> Expenses</h1>
+        {!showForm && (
+          <button className="icon" onClick={openCreate}>
+            <Icon name="add_circle" size={18} /> Add expense
+          </button>
+        )}
+      </div>
 
-      <form className="card" onSubmit={handleSubmit}>
-        <h3 className="icon">
-          <Icon name="add_box" size={18} /> Record an expense
-        </h3>
-        {error && <div className="error">{error}</div>}
-        <div className="grid-2">
-          <label>
-            Title
-            <input
-              name="title"
-              placeholder="e.g. Autoclave annual service"
-              value={form.title}
-              onChange={handleChange}
-            />
-          </label>
-          <label>
-            Category
-            <select name="category" value={form.category} onChange={handleChange}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Amount
-            <input
-              type="number"
-              name="amount"
-              min="0"
-              step="0.01"
-              value={form.amount}
-              onKeyDown={(e) => {
-                if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
-              }}
-              onChange={handleChange}
-            />
-          </label>
-          <label>
-            Date
-            <input type="date" name="date" value={form.date} onChange={handleChange} />
-          </label>
+      {showForm && (
+        <div className="modal-backdrop" onClick={resetForm}>
+          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={handleSubmit} style={{ display: "contents" }}>
+              <div className="modal-head">
+                <h3 className="icon">
+                  <Icon name={editingId ? "edit" : "add_circle"} size={18} />{" "}
+                  {editingId ? "Edit expense" : "Record an expense"}
+                </h3>
+                <button type="button" className="modal-close" aria-label="Close" onClick={resetForm}>
+                  <Icon name="close" />
+                </button>
+              </div>
+              {error && <div className="error">{error}</div>}
+              <div className="grid-2">
+                <label>
+                  <span className="lbl">Title <span className="req">*</span></span>
+                  <input
+                    name="title"
+                    placeholder="e.g. Autoclave annual service"
+                    value={form.title}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label>
+                  Category
+                  <select name="category" value={form.category} onChange={handleChange}>
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span className="lbl">Amount <span className="req">*</span></span>
+                  <input
+                    type="number"
+                    name="amount"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 1500"
+                    value={form.amount}
+                    onKeyDown={(e) => {
+                      if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
+                    }}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label>
+                  Date
+                  <input type="date" name="date" value={form.date} onChange={handleChange} />
+                </label>
+              </div>
+              <label>
+                Notes
+                <textarea name="notes" rows={2} value={form.notes} onChange={handleChange} />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon">
+                  <Icon name="save" size={18} /> {editingId ? "Update expense" : "Save expense"}
+                </button>
+                <button type="button" className="btn-secondary" onClick={resetForm}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <label>
-          Notes
-          <textarea name="notes" rows={2} value={form.notes} onChange={handleChange} />
-        </label>
-        <button type="submit">Add expense</button>
-      </form>
+      )}
 
       <div className="row gap" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
         <h2 className="icon"><Icon name="receipt_long" /> Logged expenses</h2>
@@ -134,7 +193,7 @@ export default function Maintenance() {
       {loading ? (
         <SkeletonTable rows={5} cols={5} />
       ) : expenses.length === 0 ? (
-        <p className="muted">No maintenance expenses recorded yet.</p>
+        <p className="muted">No expenses recorded yet.</p>
       ) : (
         <table className="table">
           <thead>
@@ -156,9 +215,12 @@ export default function Maintenance() {
                 </td>
                 <td><span className="tag">{e.category || "Other"}</span></td>
                 <td className="money">{money(e.amount)}</td>
-                <td>
-                  <button className="btn-link icon" onClick={() => remove(e._id)}>
-                    <Icon name="delete" size={18} />
+                <td className="row gap" style={{ justifyContent: "flex-end" }}>
+                  <button className="btn-secondary icon" onClick={() => openEdit(e)}>
+                    <Icon name="edit" size={18} /> Edit
+                  </button>
+                  <button className="btn-danger-soft icon" onClick={() => remove(e._id)}>
+                    <Icon name="delete" size={18} /> Delete
                   </button>
                 </td>
               </tr>

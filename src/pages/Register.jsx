@@ -85,6 +85,8 @@ export default function Register() {
         e.yearsOfExperience = "Required.";
       else if (Number(form.yearsOfExperience) < 0 || Number.isNaN(Number(form.yearsOfExperience)))
         e.yearsOfExperience = "Enter a valid number.";
+      else if (!Number.isInteger(Number(form.yearsOfExperience)))
+        e.yearsOfExperience = "Whole years only (no decimals).";
       if (days.length === 0) e.days = "Select at least one available day.";
       if (form.start >= form.end) e.hours = "Closing time must be after opening time.";
       if (!coords) e.location = "Set your clinic location so patients can find you.";
@@ -278,7 +280,7 @@ export default function Register() {
                   className={errors.yearsOfExperience ? "invalid" : ""}
                   value={form.yearsOfExperience}
                   onKeyDown={(e) => {
-                    if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
+                    if (["-", "+", "e", "E", "."].includes(e.key)) e.preventDefault();
                   }}
                   onChange={(e) => {
                     if (e.target.value === "" || Number(e.target.value) >= 0)

@@ -6,7 +6,7 @@ export const ROLE_LINKS = {
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/finances", icon: "payments", label: "Finances" },
     { to: "/supplies", icon: "shopping_cart", label: "Supplies" },
-    { to: "/maintenance", icon: "handyman", label: "Maintenance" },
+    { to: "/expenses", icon: "receipt_long", label: "Expenses" },
   ],
   client: [
     { to: "/client", icon: "dashboard", label: "Dashboard" },

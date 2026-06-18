@@ -7,7 +7,7 @@
   --muted: #6480a6;         /* blue-gray tone */
   --primary: #3a72e3;       /* base blue */
   --primary-hover: #2f60c6; /* shade */
-  --danger: #244e9e;        /* deep blue shade for destructive actions */
+  --danger: #dc2626;        /* red for errors / destructive actions */
   --success: #3a72e3;       /* base blue */
   /* Blue ramp: light tints → dark shades */
   --b-50: #eef4fd;
@@ -610,7 +610,7 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
 
 /* Required-field marker (inline with the label caption) */
 .lbl { display: inline; }
-.req { color: var(--primary); font-weight: 600; }
+.req { color: var(--danger); font-weight: 600; }
 
 /* Inline field validation */
 .field-error {
@@ -715,7 +715,15 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-secondary:hover { background: var(--b-50) !important; }
 
 .btn-danger { background: var(--danger); }
-.btn-danger:hover { background: var(--b-700); }
+.btn-danger:hover { background: #b91c1c; }
+
+/* Softer destructive action for table rows: outlined red, fills on hover. */
+.btn-danger-soft {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.btn-danger-soft:hover { background: var(--danger); color: #fff !important; }
 
 .btn-link {
   background: transparent;
@@ -835,9 +843,9 @@ input, select, textarea { max-width: 100%; }
 .table tbody tr.row-click:hover { background: var(--b-50); }
 
 .error {
-  background: var(--b-50);
-  color: var(--text);
-  border-left: 3px solid var(--primary);
+  background: #fdecea;
+  color: #b42318;
+  border-left: 3px solid var(--danger);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;

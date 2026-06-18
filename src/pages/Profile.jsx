@@ -127,7 +127,7 @@ export default function Profile() {
           <div className="grid-2">
             <label>
               Date of birth
-              <input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={handleChange} />
+              <input type="date" name="dateOfBirth" max={new Date().toISOString().slice(0, 10)} value={form.dateOfBirth} onChange={handleChange} />
             </label>
             <label>
               Address
@@ -162,8 +162,9 @@ export default function Profile() {
                   type="number"
                   name="yearsOfExperience"
                   min="0"
+                  step="1"
                   value={form.yearsOfExperience}
-                  onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+                  onKeyDown={(e) => ["-", "+", "e", "E", "."].includes(e.key) && e.preventDefault()}
                   onChange={handleChange}
                 />
               </label>

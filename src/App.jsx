@@ -173,7 +173,7 @@ export default function App() {
           }
         />
         <Route
-          path="/maintenance"
+          path="/expenses"
           element={
             <ProtectedRoute role="dentist">
               <Maintenance />

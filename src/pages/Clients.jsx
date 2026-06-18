@@ -76,6 +76,8 @@ export default function Clients() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.dateOfBirth && form.dateOfBirth > new Date().toISOString().slice(0, 10))
+      return setError("Date of birth cannot be in the future.");
     if (!editingId) {
       if (form.password.length < 8)
         return setError("Password must be at least 8 characters.");
@@ -264,6 +266,7 @@ export default function Clients() {
             <input
               type="date"
               name="dateOfBirth"
+              max={new Date().toISOString().slice(0, 10)}
               value={form.dateOfBirth}
               onChange={handleChange}
             />
