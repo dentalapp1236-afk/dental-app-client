@@ -21,6 +21,8 @@ export default function Appointments() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [scheduled, setScheduled] = useState(null); // { shareMessage, whatsappUrl } after creating
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("date-desc");
   const { items } = useNotifications();
 
   const load = async () => {
@@ -110,6 +112,30 @@ export default function Appointments() {
     await api.delete(`/appointments/${id}`);
     load();
   };
+
+  // Filter by client name/email, then sort by the chosen key.
+  const visible = appointments
+    .filter((a) => {
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        a.client?.name?.toLowerCase().includes(q) ||
+        a.client?.email?.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "date-asc":
+          return new Date(a.date) - new Date(b.date);
+        case "name":
+          return (a.client?.name || "").localeCompare(b.client?.name || "");
+        case "status":
+          return (a.status || "").localeCompare(b.status || "");
+        case "date-desc":
+        default:
+          return new Date(b.date) - new Date(a.date);
+      }
+    });
 
   return (
     <div className="page">
@@ -227,6 +253,28 @@ export default function Appointments() {
       </div>
       )}
 
+      <div className="row gap" style={{ flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="search-row" style={{ flex: 1, minWidth: 220, marginBottom: 0 }}>
+          <input
+            placeholder="Search by client name or email…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <span className="search-btn icon" aria-hidden="true">
+            <Icon name="search" size={18} />
+          </span>
+        </div>
+        <label className="sort-label">
+          <Icon name="sort" size={18} />
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="date-desc">Date (newest first)</option>
+            <option value="date-asc">Date (oldest first)</option>
+            <option value="name">Client name (A–Z)</option>
+            <option value="status">Status</option>
+          </select>
+        </label>
+      </div>
+
       <table className="table">
         <thead>
           <tr>
@@ -238,11 +286,11 @@ export default function Appointments() {
           </tr>
         </thead>
         <tbody>
-          {appointments.map((a) => (
+          {visible.map((a) => (
             <tr key={a._id}>
               <td>{formatDateTime(a.date)}</td>
               <td>{a.client?.name}</td>
-              <td>{a.reason}</td>
+              <td>{a.reason || "—"}</td>
               <td>{a.status}</td>
               <td className="row gap" style={{ justifyContent: "flex-end" }}>
                 <button className="btn-secondary icon" onClick={() => handleEdit(a)}>
@@ -257,10 +305,12 @@ export default function Appointments() {
               </td>
             </tr>
           ))}
-          {appointments.length === 0 && (
+          {visible.length === 0 && (
             <tr>
               <td colSpan="5" className="muted">
-                No appointments scheduled.
+                {search.trim()
+                  ? "No appointments match your search."
+                  : "No appointments scheduled."}
               </td>
             </tr>
           )}

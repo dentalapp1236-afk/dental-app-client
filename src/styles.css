@@ -853,6 +853,11 @@ input, select, textarea { max-width: 100%; }
 .table tbody tr.row-click { cursor: pointer; }
 .table tbody tr.row-click:hover { background: var(--b-50); }
 
+/* Read-only detail list (e.g. appointment details modal) */
+.detail-list { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 8px; }
+.detail-row { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text); }
+.detail-row .material-symbols-outlined { color: var(--primary); flex: 0 0 auto; }
+
 .error {
   background: #fdecea;
   color: #b42318;
@@ -1148,10 +1153,10 @@ h2.icon { gap: 8px; }
 
 /* Star rating */
 .star-rating { display: inline-flex; align-items: center; gap: 2px; }
-.star-rating .star { color: var(--b-200); }
-.star-rating .star.filled { color: var(--primary); }
+.star-rating .star { color: #d1d5db; }
+.star-rating .star.filled { color: #f5b301; }
 .star-rating .star.clickable { cursor: pointer; }
-.star-rating .star.clickable:hover { color: var(--primary); }
+.star-rating .star.clickable:hover { color: #f5b301; }
 
 /* Softer card shadows to match the gentle palette */
 .card, .stat-card, .dentist-card, .table {
