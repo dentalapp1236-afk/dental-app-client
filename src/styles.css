@@ -3,7 +3,7 @@
   --bg: #f2f6fc;            /* lightest tint (page) */
   --surface: #ffffff;
   --border: #d9e4f4;        /* light blue-gray tint */
-  --table-border: #dfe3e8;  /* neutral grey for table lines */
+  --table-border: #c4cad2;  /* neutral grey for the table's outer border */
   --text: #1b2c49;          /* dark blue shade */
   --muted: #6480a6;         /* blue-gray tone */
   --primary: #3a72e3;       /* base blue */
