@@ -12,6 +12,7 @@ export default function Appointments() {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [scheduled, setScheduled] = useState(null); // { shareMessage, whatsappUrl } after creating
 
   const load = async () => {
     const [a, c] = await Promise.all([
@@ -49,10 +50,12 @@ export default function Appointments() {
     try {
       if (editingId) {
         await api.put(`/appointments/${editingId}`, form);
+        resetForm();
       } else {
-        await api.post("/appointments", form);
+        const { data } = await api.post("/appointments", form);
+        resetForm();
+        setScheduled(data);
       }
-      resetForm();
       load();
     } catch (err) {
       setError(err.response?.data?.message || "Save failed");
@@ -87,6 +90,31 @@ export default function Appointments() {
           </button>
         )}
       </div>
+
+      {scheduled && (
+        <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+          <h3 className="icon">
+            <Icon name="event_available" size={18} /> Appointment scheduled
+          </h3>
+          <p className="muted" style={{ margin: 0 }}>
+            The client has been notified in-app and by email. You can also send a WhatsApp reminder:
+          </p>
+          <div className="row gap" style={{ flexWrap: "wrap" }}>
+            <a
+              className="btn-secondary icon"
+              href={scheduled.whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ textDecoration: "none" }}
+            >
+              <Icon name="chat" size={18} /> Share via WhatsApp
+            </a>
+            <button type="button" className="btn-link" onClick={() => setScheduled(null)}>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {showForm && (
       <div className="modal-backdrop" onClick={resetForm}>

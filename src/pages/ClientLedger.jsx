@@ -20,6 +20,20 @@ export default function ClientLedger() {
   const [payTarget, setPayTarget] = useState(null);
   const [payForm, setPayForm] = useState({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
   const [payError, setPayError] = useState("");
+  // Record-treatment modal
+  const TREAT_EMPTY = {
+    procedure: "",
+    toothNumber: "",
+    diagnosis: "",
+    description: "",
+    cost: "",
+    upfront: "",
+    date: new Date().toISOString().slice(0, 10),
+  };
+  const [showTreat, setShowTreat] = useState(false);
+  const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
+  const [treatError, setTreatError] = useState("");
+  const [editingTreatId, setEditingTreatId] = useState(null);
 
   const loadTreatments = () =>
     api.get("/treatments", { params: { client: id } }).then((t) => setTreatments(t.data));
@@ -46,6 +60,63 @@ export default function ClientLedger() {
     setPayTarget(t);
     setPayForm({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
     setPayError("");
+  };
+
+  const openTreat = () => {
+    setEditingTreatId(null);
+    setTreatForm(TREAT_EMPTY);
+    setTreatError("");
+    setShowTreat(true);
+  };
+
+  const openEditTreat = (t) => {
+    setEditingTreatId(t._id);
+    setTreatForm({
+      procedure: t.procedure || "",
+      toothNumber: t.toothNumber || "",
+      diagnosis: t.diagnosis || "",
+      description: t.description || "",
+      cost: t.cost ?? "",
+      upfront: "",
+      date: t.date ? new Date(t.date).toISOString().slice(0, 10) : TREAT_EMPTY.date,
+    });
+    setTreatError("");
+    setShowTreat(true);
+  };
+
+  const treatChange = (e) => setTreatForm({ ...treatForm, [e.target.name]: e.target.value });
+
+  const submitTreat = async (e) => {
+    e.preventDefault();
+    setTreatError("");
+    if (!treatForm.procedure.trim()) return setTreatError("Procedure is required.");
+    try {
+      if (editingTreatId) {
+        await api.put(`/treatments/${editingTreatId}`, {
+          procedure: treatForm.procedure,
+          toothNumber: treatForm.toothNumber,
+          diagnosis: treatForm.diagnosis,
+          description: treatForm.description,
+          cost: Number(treatForm.cost) || 0,
+          date: treatForm.date,
+        });
+      } else {
+        await api.post("/treatments", {
+          client: id,
+          procedure: treatForm.procedure,
+          toothNumber: treatForm.toothNumber,
+          diagnosis: treatForm.diagnosis,
+          description: treatForm.description,
+          cost: Number(treatForm.cost) || 0,
+          upfront: Number(treatForm.upfront) || 0,
+          date: treatForm.date,
+        });
+      }
+      setShowTreat(false);
+      await loadTreatments();
+    } catch (err) {
+      setTreatError(err.response?.data?.message || "Could not save treatment.");
+    }
   };
 
   const submitPayment = async (e) => {
@@ -123,15 +194,20 @@ export default function ClientLedger() {
 
       <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
         <h2 className="icon" style={{ margin: 0 }}><Icon name="medical_services" /> Treatments &amp; payments</h2>
-        {treatments.length > 1 && (
-          <label className="sort-label">
-            <Icon name="sort" size={18} />
-            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-              <option value="desc">Newest first</option>
-              <option value="asc">Oldest first</option>
-            </select>
-          </label>
-        )}
+        <div className="row gap" style={{ flexWrap: "wrap" }}>
+          {treatments.length > 1 && (
+            <label className="sort-label">
+              <Icon name="sort" size={18} />
+              <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                <option value="desc">Newest first</option>
+                <option value="asc">Oldest first</option>
+              </select>
+            </label>
+          )}
+          <button className="icon" onClick={openTreat}>
+            <Icon name="add_circle" size={18} /> Record treatment
+          </button>
+        </div>
       </div>
       {treatments.length === 0 ? (
         <p className="muted">No treatments recorded for this client yet.</p>
@@ -158,6 +234,9 @@ export default function ClientLedger() {
                     <Icon name="payments" size={18} /> Record payment
                   </button>
                 )}
+                <button className="btn-secondary icon" onClick={() => openEditTreat(t)}>
+                  <Icon name="edit" size={18} /> Edit
+                </button>
               </div>
             </div>
 
@@ -177,6 +256,90 @@ export default function ClientLedger() {
             )}
           </div>
         ))
+      )}
+
+      {/* Record-treatment modal */}
+      {showTreat && (
+        <div className="modal-backdrop" onClick={() => setShowTreat(false)}>
+          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitTreat} style={{ display: "contents" }}>
+              <div className="modal-head">
+                <h3 className="icon">
+                  <Icon name={editingTreatId ? "edit" : "add_circle"} size={18} />
+                  {editingTreatId ? "Edit treatment" : `Record treatment for ${client.name}`}
+                </h3>
+                <button type="button" className="modal-close" aria-label="Close" onClick={() => setShowTreat(false)}>
+                  <Icon name="close" />
+                </button>
+              </div>
+              {treatError && <div className="error">{treatError}</div>}
+              <div className="grid-2">
+                <label>
+                  <span className="lbl">Procedure <span className="req">*</span></span>
+                  <input
+                    name="procedure"
+                    required
+                    placeholder="e.g. Braces"
+                    value={treatForm.procedure}
+                    onChange={treatChange}
+                  />
+                </label>
+                <label>
+                  Tooth #
+                  <input name="toothNumber" value={treatForm.toothNumber} onChange={treatChange} />
+                </label>
+                <label>
+                  Total amount
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="cost"
+                    placeholder="e.g. 50000"
+                    value={treatForm.cost}
+                    onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+                    onChange={treatChange}
+                  />
+                </label>
+                {!editingTreatId && (
+                  <label>
+                    Upfront payment (optional)
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      name="upfront"
+                      placeholder="e.g. 25000"
+                      value={treatForm.upfront}
+                      onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+                      onChange={treatChange}
+                    />
+                  </label>
+                )}
+                <label>
+                  Diagnosis
+                  <input name="diagnosis" value={treatForm.diagnosis} onChange={treatChange} />
+                </label>
+                <label>
+                  Date
+                  <input type="date" name="date" value={treatForm.date} onChange={treatChange} />
+                </label>
+              </div>
+              <label>
+                Description
+                <textarea name="description" rows={2} value={treatForm.description} onChange={treatChange} />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon">
+                  <Icon name="save" size={18} /> {editingTreatId ? "Save changes" : "Save treatment"}
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setShowTreat(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Record-payment modal */}
