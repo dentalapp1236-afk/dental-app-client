@@ -20,8 +20,37 @@ export default function ClientDashboard() {
   const [leaveComment, setLeaveComment] = useState("");
   const [leaving, setLeaving] = useState(false);
 
+  // Reschedule
+  const [reschedTarget, setReschedTarget] = useState(null);
+  const [reschedDate, setReschedDate] = useState("");
+  const [reschedError, setReschedError] = useState("");
+  const [reschedBusy, setReschedBusy] = useState(false);
+
+  const loadAppointments = () =>
+    api.get("/appointments").then((r) => setAppointments(r.data)).catch(() => {});
   const loadAssoc = () =>
     api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
+
+  const openReschedule = (a) => {
+    setReschedTarget(a);
+    setReschedDate(a.date ? new Date(a.date).toISOString().slice(0, 16) : "");
+    setReschedError("");
+  };
+
+  const submitReschedule = async (e) => {
+    e.preventDefault();
+    if (!reschedDate) return setReschedError("Pick a new date and time.");
+    setReschedBusy(true);
+    try {
+      await api.patch(`/appointments/${reschedTarget._id}/reschedule`, { date: reschedDate });
+      setReschedTarget(null);
+      await loadAppointments();
+    } catch (err) {
+      setReschedError(err.response?.data?.message || "Could not reschedule.");
+    } finally {
+      setReschedBusy(false);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -126,6 +155,37 @@ export default function ClientDashboard() {
         </div>
       )}
 
+      {reschedTarget && (
+        <div className="modal-backdrop" onClick={() => setReschedTarget(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitReschedule} style={{ display: "contents" }}>
+              <h3 className="icon"><Icon name="edit_calendar" size={18} /> Reschedule appointment</h3>
+              <p className="muted" style={{ margin: 0 }}>
+                {reschedTarget.reason} with Dr. {reschedTarget.dentist?.name} — currently{" "}
+                {formatDateTime(reschedTarget.date)}
+              </p>
+              {reschedError && <div className="error">{reschedError}</div>}
+              <label>
+                New date &amp; time
+                <input
+                  type="datetime-local"
+                  value={reschedDate}
+                  onChange={(e) => setReschedDate(e.target.value)}
+                />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon" disabled={reschedBusy}>
+                  <Icon name="check" size={18} /> {reschedBusy ? "Saving…" : "Confirm reschedule"}
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setReschedTarget(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <section>
         <h2 className="icon">
           <Icon name="calendar_month" /> My appointments
@@ -141,6 +201,7 @@ export default function ClientDashboard() {
                 <th>Reason</th>
                 <th>Status</th>
                 <th>Notes</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -151,6 +212,13 @@ export default function ClientDashboard() {
                   <td>{a.reason}</td>
                   <td>{a.status}</td>
                   <td>{a.notes || "—"}</td>
+                  <td className="row gap" style={{ justifyContent: "flex-end" }}>
+                    {a.status === "scheduled" && new Date(a.date) > new Date() && (
+                      <button className="btn-secondary icon" onClick={() => openReschedule(a)}>
+                        <Icon name="edit_calendar" size={18} /> Reschedule
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
