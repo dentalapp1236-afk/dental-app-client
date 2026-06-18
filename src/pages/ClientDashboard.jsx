@@ -120,10 +120,30 @@ export default function ClientDashboard() {
             <div>
               <strong>Dr. {assoc.dentist.name}</strong>
               {assoc.dentist.clinicName && <span className="muted"> · {assoc.dentist.clinicName}</span>}
+              {assoc.dentist.specialization && (
+                <div className="muted" style={{ fontSize: 13 }}>{assoc.dentist.specialization}</div>
+              )}
+              {assoc.dentist.reviewCount > 0 && (
+                <div className="row gap" style={{ alignItems: "center", marginTop: 4 }}>
+                  <StarRating value={assoc.dentist.rating || 0} size={16} />
+                  <span className="muted" style={{ fontSize: 13 }}>
+                    {Number(assoc.dentist.rating || 0).toFixed(1)} ({assoc.dentist.reviewCount})
+                  </span>
+                </div>
+              )}
             </div>
-            <button className="btn-secondary icon" onClick={() => setShowLeave(true)}>
-              <Icon name="logout" size={18} /> Leave / switch dentist
-            </button>
+            <div className="row gap" style={{ flexWrap: "wrap" }}>
+              <Link
+                to={`/dentists/${assoc.dentist._id}`}
+                className="btn-secondary icon"
+                style={{ textDecoration: "none" }}
+              >
+                <Icon name="info" size={18} /> View details
+              </Link>
+              <button className="btn-secondary icon" onClick={() => setShowLeave(true)}>
+                <Icon name="logout" size={18} /> Leave / switch dentist
+              </button>
+            </div>
           </div>
         ) : assoc?.pending ? (
           <p className="muted">

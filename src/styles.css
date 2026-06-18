@@ -1153,8 +1153,8 @@ h2.icon { gap: 8px; }
 
 /* Star rating */
 .star-rating { display: inline-flex; align-items: center; gap: 2px; }
-.star-rating .star { color: #d1d5db; }
-.star-rating .star.filled { color: #f5b301; }
+.star-rating .star { color: #d1d5db; font-variation-settings: "FILL" 0; }
+.star-rating .star.filled { color: #f5b301; font-variation-settings: "FILL" 1; }
 .star-rating .star.clickable { cursor: pointer; }
 .star-rating .star.clickable:hover { color: #f5b301; }
 
