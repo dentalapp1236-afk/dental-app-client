@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
+import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 
 const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled" };
+
+// Date -> value for <input type="datetime-local"> in LOCAL time
+const toLocalInput = (d) => {
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return "";
+  return new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
@@ -13,6 +21,7 @@ export default function Appointments() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [scheduled, setScheduled] = useState(null); // { shareMessage, whatsappUrl } after creating
+  const { items } = useNotifications();
 
   const load = async () => {
     const [a, c] = await Promise.all([
@@ -22,9 +31,27 @@ export default function Appointments() {
     setAppointments(a.data);
     setClients(c.data);
   };
+  const loadAppointments = () =>
+    api.get("/appointments").then((r) => setAppointments(r.data)).catch(() => {});
 
   useEffect(() => {
     load();
+  }, []);
+
+  // Reflect reschedules made by clients: refetch when a notification arrives or the tab regains focus
+  useEffect(() => {
+    loadAppointments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
+
+  useEffect(() => {
+    const onFocus = () => loadAppointments();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
   }, []);
 
   const handleChange = (e) =>
@@ -48,11 +75,13 @@ export default function Appointments() {
     e.preventDefault();
     setError("");
     try {
+      // Send the picked local time as a precise ISO instant
+      const payload = { ...form, date: form.date ? new Date(form.date).toISOString() : form.date };
       if (editingId) {
-        await api.put(`/appointments/${editingId}`, form);
+        await api.put(`/appointments/${editingId}`, payload);
         resetForm();
       } else {
-        const { data } = await api.post("/appointments", form);
+        const { data } = await api.post("/appointments", payload);
         resetForm();
         setScheduled(data);
       }
@@ -67,7 +96,7 @@ export default function Appointments() {
     setShowForm(true);
     setForm({
       client: a.client?._id || "",
-      date: a.date ? new Date(a.date).toISOString().slice(0, 16) : "",
+      date: toLocalInput(a.date),
       reason: a.reason || "",
       notes: a.notes || "",
       status: a.status,

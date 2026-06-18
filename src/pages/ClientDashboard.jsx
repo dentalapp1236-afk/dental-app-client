@@ -31,9 +31,15 @@ export default function ClientDashboard() {
   const loadAssoc = () =>
     api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
 
+  const toLocalInput = (d) => {
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return "";
+    return new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  };
+
   const openReschedule = (a) => {
     setReschedTarget(a);
-    setReschedDate(a.date ? new Date(a.date).toISOString().slice(0, 16) : "");
+    setReschedDate(toLocalInput(a.date));
     setReschedError("");
   };
 
@@ -42,7 +48,9 @@ export default function ClientDashboard() {
     if (!reschedDate) return setReschedError("Pick a new date and time.");
     setReschedBusy(true);
     try {
-      await api.patch(`/appointments/${reschedTarget._id}/reschedule`, { date: reschedDate });
+      await api.patch(`/appointments/${reschedTarget._id}/reschedule`, {
+        date: new Date(reschedDate).toISOString(),
+      });
       setReschedTarget(null);
       await loadAppointments();
     } catch (err) {

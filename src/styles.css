@@ -870,10 +870,10 @@ input, select, textarea { max-width: 100%; }
 .summary-item:hover { text-decoration: none; }
 .summary-item:hover .summary-value { color: var(--primary); }
 .summary-value {
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--heading);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 .summary-label {
   color: var(--muted);

@@ -34,6 +34,11 @@ export default function ClientLedger() {
   const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
   const [treatError, setTreatError] = useState("");
   const [editingTreatId, setEditingTreatId] = useState(null);
+  // Schedule-appointment modal
+  const [showAppt, setShowAppt] = useState(false);
+  const [apptForm, setApptForm] = useState({ reason: "", date: "", notes: "" });
+  const [apptError, setApptError] = useState("");
+  const [apptShare, setApptShare] = useState(null); // { whatsappUrl } after scheduling
 
   const loadTreatments = () =>
     api.get("/treatments", { params: { client: id } }).then((t) => setTreatments(t.data));
@@ -85,6 +90,31 @@ export default function ClientLedger() {
   };
 
   const treatChange = (e) => setTreatForm({ ...treatForm, [e.target.name]: e.target.value });
+
+  const openAppt = () => {
+    setApptForm({ reason: "", date: "", notes: "" });
+    setApptError("");
+    setShowAppt(true);
+  };
+
+  const submitAppt = async (e) => {
+    e.preventDefault();
+    setApptError("");
+    if (!apptForm.reason.trim()) return setApptError("Reason is required.");
+    if (!apptForm.date) return setApptError("Pick a date and time.");
+    try {
+      const { data } = await api.post("/appointments", {
+        client: id,
+        reason: apptForm.reason,
+        notes: apptForm.notes,
+        date: new Date(apptForm.date).toISOString(),
+      });
+      setShowAppt(false);
+      setApptShare(data);
+    } catch (err) {
+      setApptError(err.response?.data?.message || "Could not schedule appointment.");
+    }
+  };
 
   const submitTreat = async (e) => {
     e.preventDefault();
@@ -171,7 +201,33 @@ export default function ClientLedger() {
       </button>
       <div className="page-head">
         <h1 className="icon"><Icon name="account_circle" /> {client.name}</h1>
+        <button className="icon" onClick={openAppt}>
+          <Icon name="event" size={18} /> Schedule appointment
+        </button>
       </div>
+
+      {apptShare && (
+        <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+          <h3 className="icon"><Icon name="event_available" size={18} /> Appointment scheduled</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            {client.name} has been notified in-app and by email. You can also send a WhatsApp reminder:
+          </p>
+          <div className="row gap" style={{ flexWrap: "wrap" }}>
+            <a
+              className="btn-secondary icon"
+              href={apptShare.whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ textDecoration: "none" }}
+            >
+              <Icon name="chat" size={18} /> Share via WhatsApp
+            </a>
+            <button type="button" className="btn-link" onClick={() => setApptShare(null)}>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
       <p className="muted" style={{ marginTop: -8 }}>
         {client.email}
         {client.phone ? ` · ${client.phone}` : ""}
@@ -256,6 +312,53 @@ export default function ClientLedger() {
             )}
           </div>
         ))
+      )}
+
+      {/* Schedule-appointment modal */}
+      {showAppt && (
+        <div className="modal-backdrop" onClick={() => setShowAppt(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitAppt} style={{ display: "contents" }}>
+              <div className="modal-head">
+                <h3 className="icon"><Icon name="event" size={18} /> Schedule appointment for {client.name}</h3>
+                <button type="button" className="modal-close" aria-label="Close" onClick={() => setShowAppt(false)}>
+                  <Icon name="close" />
+                </button>
+              </div>
+              {apptError && <div className="error">{apptError}</div>}
+              <label>
+                <span className="lbl">Reason <span className="req">*</span></span>
+                <input
+                  placeholder="e.g. Checkup, Braces adjustment"
+                  value={apptForm.reason}
+                  onChange={(e) => setApptForm({ ...apptForm, reason: e.target.value })}
+                />
+              </label>
+              <label>
+                <span className="lbl">Date &amp; time <span className="req">*</span></span>
+                <input
+                  type="datetime-local"
+                  value={apptForm.date}
+                  onChange={(e) => setApptForm({ ...apptForm, date: e.target.value })}
+                />
+              </label>
+              <label>
+                Notes
+                <textarea
+                  rows={2}
+                  value={apptForm.notes}
+                  onChange={(e) => setApptForm({ ...apptForm, notes: e.target.value })}
+                />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon"><Icon name="event" size={18} /> Schedule</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowAppt(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Record-treatment modal */}
