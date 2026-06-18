@@ -16,6 +16,13 @@ export default function ClientLedger() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [sortOrder, setSortOrder] = useState("desc"); // newest first by default
+  // Record-payment modal
+  const [payTarget, setPayTarget] = useState(null);
+  const [payForm, setPayForm] = useState({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+  const [payError, setPayError] = useState("");
+
+  const loadTreatments = () =>
+    api.get("/treatments", { params: { client: id } }).then((t) => setTreatments(t.data));
 
   useEffect(() => {
     (async () => {
@@ -34,6 +41,30 @@ export default function ClientLedger() {
       }
     })();
   }, [id]);
+
+  const openPayment = (t) => {
+    setPayTarget(t);
+    setPayForm({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+    setPayError("");
+  };
+
+  const submitPayment = async (e) => {
+    e.preventDefault();
+    setPayError("");
+    if (!payForm.amount || Number(payForm.amount) <= 0)
+      return setPayError("Enter a valid amount.");
+    try {
+      await api.post(`/treatments/${payTarget._id}/payments`, {
+        amount: Number(payForm.amount),
+        note: payForm.note,
+        date: payForm.date,
+      });
+      setPayTarget(null);
+      await loadTreatments();
+    } catch (err) {
+      setPayError(err.response?.data?.message || "Could not record payment.");
+    }
+  };
 
   const billed = treatments.reduce((s, t) => s + (t.cost || 0), 0);
   const collected = treatments.reduce((s, t) => s + (t.paidAmount || 0), 0);
@@ -116,12 +147,17 @@ export default function ClientLedger() {
                   {t.diagnosis ? ` · ${t.diagnosis}` : ""}
                 </div>
               </div>
-              <div className="row gap" style={{ flexWrap: "wrap" }}>
+              <div className="row gap" style={{ flexWrap: "wrap", alignItems: "center" }}>
                 <span className="tag">Total {money(t.cost)}</span>
                 <span className="tag">Paid {money(t.paidAmount)}</span>
                 <span className={t.balance > 0 ? "badge-pending" : "badge"}>
                   {t.balance > 0 ? `Balance ${money(t.balance)}` : "Fully paid"}
                 </span>
+                {t.balance > 0 && (
+                  <button className="btn-secondary icon" onClick={() => openPayment(t)}>
+                    <Icon name="payments" size={18} /> Record payment
+                  </button>
+                )}
               </div>
             </div>
 
@@ -141,6 +177,57 @@ export default function ClientLedger() {
             )}
           </div>
         ))
+      )}
+
+      {/* Record-payment modal */}
+      {payTarget && (
+        <div className="modal-backdrop" onClick={() => setPayTarget(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitPayment} style={{ display: "contents" }}>
+              <h3 className="icon"><Icon name="payments" size={18} /> Record payment</h3>
+              <p className="muted" style={{ margin: 0 }}>
+                {payTarget.procedure} — balance <strong>{money(payTarget.balance)}</strong>
+              </p>
+              {payError && <div className="error">{payError}</div>}
+              <div className="grid-2">
+                <label>
+                  Amount
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 2000"
+                    value={payForm.amount}
+                    onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+                    onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Date
+                  <input
+                    type="date"
+                    value={payForm.date}
+                    onChange={(e) => setPayForm({ ...payForm, date: e.target.value })}
+                  />
+                </label>
+              </div>
+              <label>
+                Note (optional)
+                <input
+                  placeholder="e.g. Visit 3 adjustment"
+                  value={payForm.note}
+                  onChange={(e) => setPayForm({ ...payForm, note: e.target.value })}
+                />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon"><Icon name="check" size={18} /> Save payment</button>
+                <button type="button" className="btn-secondary" onClick={() => setPayTarget(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
