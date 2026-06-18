@@ -3,6 +3,7 @@
   --bg: #f2f6fc;            /* lightest tint (page) */
   --surface: #ffffff;
   --border: #d9e4f4;        /* light blue-gray tint */
+  --table-border: #dfe3e8;  /* neutral grey for table lines */
   --text: #1b2c49;          /* dark blue shade */
   --muted: #6480a6;         /* blue-gray tone */
   --primary: #3a72e3;       /* base blue */
@@ -804,7 +805,7 @@ input, select, textarea { max-width: 100%; }
   width: 100%;
   border-collapse: collapse;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--table-border);
   border-radius: 14px;
   overflow: hidden;
   margin-top: 16px;
@@ -813,7 +814,7 @@ input, select, textarea { max-width: 100%; }
 .table th, .table td {
   text-align: left;
   padding: 13px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--table-border);
   font-size: 14px;
 }
 
