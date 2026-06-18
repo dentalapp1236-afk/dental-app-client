@@ -46,6 +46,8 @@ export default function ClientDashboard() {
   const submitReschedule = async (e) => {
     e.preventDefault();
     if (!reschedDate) return setReschedError("Pick a new date and time.");
+    if (new Date(reschedDate).getTime() < Date.now())
+      return setReschedError("Appointment cannot be in the past.");
     setReschedBusy(true);
     try {
       await api.patch(`/appointments/${reschedTarget._id}/reschedule`, {
@@ -177,6 +179,7 @@ export default function ClientDashboard() {
                 New date &amp; time
                 <input
                   type="datetime-local"
+                  min={toLocalInput(new Date())}
                   value={reschedDate}
                   onChange={(e) => setReschedDate(e.target.value)}
                 />

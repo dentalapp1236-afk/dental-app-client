@@ -74,6 +74,8 @@ export default function Appointments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.date && new Date(form.date).getTime() < Date.now())
+      return setError("Appointment cannot be in the past.");
     try {
       // Send the picked local time as a precise ISO instant
       const payload = { ...form, date: form.date ? new Date(form.date).toISOString() : form.date };
@@ -178,15 +180,15 @@ export default function Appointments() {
               type="datetime-local"
               name="date"
               required
+              min={toLocalInput(new Date())}
               value={form.date}
               onChange={handleChange}
             />
           </label>
           <label>
-            Reason
+            Reason <span className="muted">(optional)</span>
             <input
               name="reason"
-              required
               value={form.reason}
               onChange={handleChange}
             />
