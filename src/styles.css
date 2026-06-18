@@ -814,7 +814,7 @@ input, select, textarea { max-width: 100%; }
 .table th, .table td {
   text-align: left;
   padding: 13px 16px;
-  border-bottom: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--border);
   font-size: 14px;
 }
 
