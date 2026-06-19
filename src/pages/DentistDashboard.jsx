@@ -1,79 +1,191 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { formatDateTime } from "../utils/date";
+import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
 
+const pad = (n) => String(n).padStart(2, "0");
+const dayStr = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const JS_DAY_TO_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const STEP = 15;
+
+const fmt12 = (s) => {
+  const [h, m] = s.split(":").map(Number);
+  return `${((h + 11) % 12) + 1}:${pad(m)} ${h < 12 ? "AM" : "PM"}`;
+};
+const toMin = (s) => {
+  const [h, m] = String(s).split(":").map(Number);
+  return h * 60 + (m || 0);
+};
+const buildSlots = (startMin, endMin, step) => {
+  const out = [];
+  for (let t = startMin; t < endMin; t += step) out.push(`${pad(Math.floor(t / 60))}:${pad(t % 60)}`);
+  return out;
+};
+const statusLabel = (s) => (s === "no_show" ? "No-show" : s);
+
+const STATUS_ACTIONS = [
+  { value: "completed", label: "Mark done", icon: "task_alt" },
+  { value: "cancelled", label: "Cancel", icon: "cancel" },
+  { value: "no_show", label: "No-show", icon: "person_off" },
+  { value: "scheduled", label: "Reopen", icon: "event_repeat" },
+];
+
 export default function DentistDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [upcoming, setUpcoming] = useState([]);
+  const [appts, setAppts] = useState([]);
+  const [availability, setAvailability] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const today = useMemo(() => dayStr(new Date()), []);
+
+  const load = useCallback(async () => {
+    const from = new Date(`${today}T00:00:00`);
+    const to = new Date(`${today}T00:00:00`);
+    to.setDate(to.getDate() + 1);
+    const [all, booked] = await Promise.all([
+      api.get("/appointments", { skipLoader: true }),
+      api.get("/appointments/booked", {
+        params: { from: from.toISOString(), to: to.toISOString() },
+        skipLoader: true,
+      }),
+    ]);
+    setAppts(all.data);
+    setAvailability(booked.data.availability || []);
+  }, [today]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await api.get("/appointments");
-        const now = new Date();
-        const upcomingAppts = data.filter(
-          (a) => new Date(a.date) >= now && a.status === "scheduled"
-        );
-        setUpcoming(upcomingAppts.slice(0, 5));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+    load()
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }, [load]);
+
+  // Refresh when the tab regains focus (assistant/dentist may have changed things)
+  useEffect(() => {
+    const onFocus = () => load().catch(() => {});
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [load]);
+
+  // Today's appointments, keyed by their slot start time (HH:mm)
+  const apptByTime = useMemo(() => {
+    const map = {};
+    for (const a of appts) {
+      const d = new Date(a.date);
+      if (dayStr(d) !== today) continue;
+      if (a.status === "cancelled") continue; // a cancelled slot is free again
+      map[hm(d)] = a; // last write wins; appointments are unique per slot
+    }
+    return map;
+  }, [appts, today]);
+
+  // Clinic hours for today (or null if closed)
+  const hours = useMemo(() => {
+    const label = JS_DAY_TO_LABEL[new Date(`${today}T00:00:00`).getDay()];
+    const entry = availability.find((a) => a.day === label);
+    if (entry?.start && entry?.end) return { start: toMin(entry.start), end: toMin(entry.end) };
+    if (availability.length === 0) return { start: 9 * 60, end: 18 * 60 };
+    return null;
+  }, [availability, today]);
+
+  const slots = useMemo(
+    () => (hours ? buildSlots(hours.start, hours.end, STEP) : []),
+    [hours]
+  );
+
+  const updateStatus = async (status) => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const { data } = await api.put(`/appointments/${selected._id}`, {
+        status,
+        version: selected.__v,
+      });
+      setSelected(data);
+      await load();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not update status.");
+      if (err.response?.status === 409) {
+        await load();
+        setSelected(null);
       }
-    })();
-  }, []);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const respondPending = async (action) => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const { data } = await api.patch(`/appointments/${selected._id}/${action}`);
+      setSelected(data);
+      await load();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not update the request.");
+      await load();
+      setSelected(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const greeting = `Welcome, ${user.role === "dentist" ? "Dr. " : ""}${user.name}`;
 
   if (loading)
     return (
       <div className="page">
-        <h1 className="icon"><Icon name="waving_hand" /> Welcome, {user.role === "dentist" ? "Dr. " : ""}{user.name}</h1>
-        <h2 className="icon"><Icon name="event_upcoming" /> Next appointments</h2>
-        <SkeletonTable rows={4} cols={4} />
+        <h1 className="icon"><Icon name="waving_hand" /> {greeting}</h1>
+        <h2 className="icon"><Icon name="today" /> Today's schedule</h2>
+        <SkeletonTable rows={4} cols={3} />
       </div>
     );
 
+  const bookedCount = slots.filter((s) => apptByTime[s]).length;
+
   return (
     <div className="page">
-      <h1 className="icon"><Icon name="waving_hand" /> Welcome, {user.role === "dentist" ? "Dr. " : ""}{user.name}</h1>
+      <h1 className="icon"><Icon name="waving_hand" /> {greeting}</h1>
 
-      <h2 className="icon">
-        <Icon name="event_upcoming" /> Next appointments
-      </h2>
-      {upcoming.length === 0 ? (
-        <p className="muted">No upcoming appointments.</p>
+      <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "baseline" }}>
+        <h2 className="icon" style={{ margin: 0 }}><Icon name="today" /> Today's schedule</h2>
+        <span className="muted">{formatDate(new Date())} · {bookedCount} booked</span>
+      </div>
+
+      {!hours ? (
+        <p className="muted">The clinic is closed today.</p>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Client</th>
-              <th>Reason</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {upcoming.map((a) => (
-              <tr
-                key={a._id}
-                className="row-click"
-                onClick={() => setSelected(a)}
-                title="View appointment details"
+        <div className="day-grid">
+          {slots.map((slot) => {
+            const appt = apptByTime[slot];
+            if (!appt) {
+              return (
+                <div key={slot} className="day-slot available" title="Available">
+                  <span className="slot-time">{fmt12(slot)}</span>
+                  <span>Available</span>
+                </div>
+              );
+            }
+            return (
+              <div
+                key={slot}
+                className="day-slot booked"
+                onClick={() => setSelected(appt)}
+                title="View details"
               >
-                <td>{formatDateTime(a.date)}</td>
-                <td>{a.client?.name}</td>
-                <td>{a.reason || "—"}</td>
-                <td>{a.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                <span className="slot-time">{fmt12(slot)}</span>
+                <span className="slot-patient">{appt.client?.name || "—"}</span>
+                <span className={`st st-${appt.status}`}>{statusLabel(appt.status)}</span>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {selected && (
@@ -108,26 +220,49 @@ export default function DentistDashboard() {
               )}
               <div className="detail-row">
                 <Icon name="medical_services" size={18} />
-                <span>{selected.reason || "No reason given"}</span>
+                <span>{selected.reason || "No purpose given"}</span>
               </div>
-              {selected.notes && (
-                <div className="detail-row">
-                  <Icon name="notes" size={18} />
-                  <span>{selected.notes}</span>
-                </div>
-              )}
               <div className="detail-row">
                 <Icon name="info" size={18} />
-                <span className={selected.status === "scheduled" ? "badge" : "tag"}>{selected.status}</span>
+                <span className={`st st-${selected.status}`}>{statusLabel(selected.status)}</span>
               </div>
             </div>
-            <div className="row gap">
+
+            {selected.status === "pending" ? (
+              <>
+                <div className="lbl" style={{ marginTop: 4 }}>This is a patient request</div>
+                <div className="row gap" style={{ flexWrap: "wrap" }}>
+                  <button type="button" className="icon" disabled={busy} onClick={() => respondPending("confirm")}>
+                    <Icon name="check_circle" size={18} /> Confirm
+                  </button>
+                  <button type="button" className="btn-danger-soft icon" disabled={busy} onClick={() => respondPending("decline")}>
+                    <Icon name="cancel" size={18} /> Decline
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="lbl" style={{ marginTop: 4 }}>Update status</div>
+                <div className="row gap" style={{ flexWrap: "wrap" }}>
+                  {STATUS_ACTIONS.filter((a) => a.value !== selected.status).map((a) => (
+                    <button
+                      key={a.value}
+                      type="button"
+                      className="btn-secondary icon"
+                      disabled={busy}
+                      onClick={() => updateStatus(a.value)}
+                    >
+                      <Icon name={a.icon} size={18} /> {a.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="row gap" style={{ marginTop: 4 }}>
               {selected.client?._id && (
-                <button
-                  className="icon"
-                  onClick={() => navigate(`/clients/${selected.client._id}`)}
-                >
-                  <Icon name="history" size={18} /> View client record
+                <button className="icon" onClick={() => navigate(`/clients/${selected.client._id}`)}>
+                  <Icon name="history" size={18} /> View patient record
                 </button>
               )}
               <button type="button" className="btn-secondary" onClick={() => setSelected(null)}>

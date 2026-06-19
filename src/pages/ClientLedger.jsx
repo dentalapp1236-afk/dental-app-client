@@ -3,15 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
+import SlotPicker from "../components/SlotPicker";
 import { SkeletonTable } from "../components/Skeleton";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
-// Earliest selectable value for <input type="datetime-local"> = now, in local time.
-const nowLocalInput = () => {
-  const d = new Date();
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
 
 export default function ClientLedger() {
   const { id } = useParams();
@@ -118,7 +114,7 @@ export default function ClientLedger() {
         client: id,
         reason: apptForm.reason,
         notes: apptForm.notes,
-        date: new Date(apptForm.date).toISOString(),
+        date: apptForm.date, // already an ISO instant from the slot picker
       });
       setShowAppt(false);
       setApptShare(data);
@@ -295,7 +291,12 @@ export default function ClientLedger() {
             >
               <Icon name="chat" size={18} /> Share via WhatsApp
             </a>
-            <button type="button" className="btn-link" onClick={() => setApptShare(null)}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
+              onClick={() => setApptShare(null)}
+            >
               Dismiss
             </button>
           </div>
@@ -431,30 +432,17 @@ export default function ClientLedger() {
               </div>
               {apptError && <div className="error">{apptError}</div>}
               <label>
-                <span className="lbl">Reason <span className="muted">(optional)</span></span>
+                <span className="lbl">Purpose <span className="muted">(optional)</span></span>
                 <input
                   placeholder="e.g. Checkup, Braces adjustment"
                   value={apptForm.reason}
                   onChange={(e) => setApptForm({ ...apptForm, reason: e.target.value })}
                 />
               </label>
-              <label>
-                <span className="lbl">Date &amp; time <span className="req">*</span></span>
-                <input
-                  type="datetime-local"
-                  min={nowLocalInput()}
-                  value={apptForm.date}
-                  onChange={(e) => setApptForm({ ...apptForm, date: e.target.value })}
-                />
-              </label>
-              <label>
-                Notes
-                <textarea
-                  rows={2}
-                  value={apptForm.notes}
-                  onChange={(e) => setApptForm({ ...apptForm, notes: e.target.value })}
-                />
-              </label>
+              <SlotPicker
+                value={apptForm.date}
+                onChange={(iso) => setApptForm({ ...apptForm, date: iso })}
+              />
               <div className="row gap">
                 <button type="submit" className="icon"><Icon name="event" size={18} /> Schedule</button>
                 <button type="button" className="btn-secondary" onClick={() => setShowAppt(false)}>

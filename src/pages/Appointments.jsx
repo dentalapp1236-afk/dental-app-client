@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { formatDate, formatDateTime } from "../utils/date";
+import { formatDateTime } from "../utils/date";
 import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
+import SlotPicker from "../components/SlotPicker";
 
 const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled" };
-
-// Date -> value for <input type="datetime-local"> in LOCAL time
-const toLocalInput = (d) => {
-  const dt = new Date(d);
-  if (Number.isNaN(dt.getTime())) return "";
-  return new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
+const statusLabel = (s) => (s === "no_show" ? "No-show" : s === "pending" ? "Pending" : s);
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
@@ -23,7 +19,9 @@ export default function Appointments() {
   const [scheduled, setScheduled] = useState(null); // { shareMessage, whatsappUrl } after creating
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date-desc");
-  const { items } = useNotifications();
+  const [selected, setSelected] = useState(null);
+  const { items, refresh: refreshNotifications } = useNotifications();
+  const navigate = useNavigate();
 
   const load = async () => {
     const [a, c] = await Promise.all([
@@ -83,11 +81,12 @@ export default function Appointments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (form.date && new Date(form.date).getTime() < Date.now())
+    if (!form.date) return setError("Please pick a time slot.");
+    if (new Date(form.date).getTime() < Date.now())
       return setError("Appointment cannot be in the past.");
     try {
-      // Send the picked local time as a precise ISO instant
-      const payload = { ...form, date: form.date ? new Date(form.date).toISOString() : form.date };
+      // form.date is already an ISO instant from the slot picker
+      const payload = { ...form };
       if (editingId) {
         await api.put(`/appointments/${editingId}`, payload);
         resetForm();
@@ -110,7 +109,7 @@ export default function Appointments() {
     setShowForm(true);
     setForm({
       client: a.client?._id || "",
-      date: toLocalInput(a.date),
+      date: a.date, // ISO; SlotPicker derives day + slot from it
       reason: a.reason || "",
       notes: a.notes || "",
       status: a.status,
@@ -124,14 +123,30 @@ export default function Appointments() {
     load();
   };
 
+  const respondToRequest = async (id, action) => {
+    try {
+      await api.patch(`/appointments/${id}/${action}`);
+      await loadAppointments();
+      refreshNotifications();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not update the request.");
+      loadAppointments();
+    }
+  };
+
+  const pendingRequests = appointments.filter((a) => a.status === "pending");
+
   // Filter by client name/email, then sort by the chosen key.
+  // Pending requests are shown in their own panel, not the main table.
   const visible = appointments
+    .filter((a) => a.status !== "pending")
     .filter((a) => {
       const q = search.trim().toLowerCase();
       if (!q) return true;
       return (
         a.client?.name?.toLowerCase().includes(q) ||
-        a.client?.email?.toLowerCase().includes(q)
+        a.client?.email?.toLowerCase().includes(q) ||
+        a.client?.phone?.toLowerCase().includes(q)
       );
     })
     .sort((a, b) => {
@@ -159,6 +174,38 @@ export default function Appointments() {
         )}
       </div>
 
+      {pendingRequests.length > 0 && (
+        <div className="card" style={{ maxWidth: "none" }}>
+          <h3 className="icon">
+            <Icon name="pending_actions" size={18} /> Appointment requests ({pendingRequests.length})
+          </h3>
+          {pendingRequests
+            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .map((a) => (
+              <div
+                key={a._id}
+                className="row gap"
+                style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center", padding: "8px 0", borderTop: "1px solid var(--border)" }}
+              >
+                <div>
+                  <strong>{a.client?.name}</strong>
+                  <div className="muted" style={{ fontSize: 13 }}>
+                    {formatDateTime(a.date)}{a.reason ? ` · ${a.reason}` : ""}
+                  </div>
+                </div>
+                <div className="row gap" style={{ flexWrap: "wrap" }}>
+                  <button className="icon" onClick={() => respondToRequest(a._id, "confirm")}>
+                    <Icon name="check_circle" size={18} /> Confirm
+                  </button>
+                  <button className="btn-danger-soft icon" onClick={() => respondToRequest(a._id, "decline")}>
+                    <Icon name="cancel" size={18} /> Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+
       {scheduled && (
         <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
           <h3 className="icon">
@@ -176,7 +223,12 @@ export default function Appointments() {
             >
               <Icon name="chat" size={18} /> Share via WhatsApp
             </a>
-            <button type="button" className="btn-link" onClick={() => setScheduled(null)}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
+              onClick={() => setScheduled(null)}
+            >
               Dismiss
             </button>
           </div>
@@ -210,19 +262,15 @@ export default function Appointments() {
               ))}
             </select>
           </label>
-          <label>
-            Date & time
-            <input
-              type="datetime-local"
-              name="date"
-              required
-              min={toLocalInput(new Date())}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <SlotPicker
               value={form.date}
-              onChange={handleChange}
+              excludeId={editingId}
+              onChange={(iso) => setForm((f) => ({ ...f, date: iso }))}
             />
-          </label>
+          </div>
           <label>
-            Reason <span className="muted">(optional)</span>
+            Purpose <span className="muted">(optional)</span>
             <input
               name="reason"
               value={form.reason}
@@ -236,19 +284,11 @@ export default function Appointments() {
                 <option value="scheduled">Scheduled</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
+                <option value="no_show">No-show</option>
               </select>
             </label>
           )}
         </div>
-        <label>
-          Notes
-          <textarea
-            name="notes"
-            rows={2}
-            value={form.notes}
-            onChange={handleChange}
-          />
-        </label>
         <div className="row gap">
           <button type="submit" className="icon">
             <Icon name={editingId ? "save" : "add"} size={18} />
@@ -266,7 +306,7 @@ export default function Appointments() {
       <div className="row gap" style={{ flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
         <div className="search-row" style={{ flex: 1, minWidth: 220, marginBottom: 0 }}>
           <input
-            placeholder="Search by client name or email…"
+            placeholder="Search by name, email, or phone…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -290,25 +330,30 @@ export default function Appointments() {
           <tr>
             <th>Date</th>
             <th>Client</th>
-            <th>Reason</th>
+            <th>Phone</th>
+            <th>Purpose</th>
             <th>Status</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           {visible.map((a) => (
-            <tr key={a._id}>
+            <tr key={a._id} className="row-click" onClick={() => setSelected(a)} title="View details">
               <td>{formatDateTime(a.date)}</td>
               <td>{a.client?.name}</td>
+              <td>{a.client?.phone || "—"}</td>
               <td>{a.reason || "—"}</td>
-              <td>{a.status}</td>
+              <td><span className={`st st-${a.status}`}>{statusLabel(a.status)}</span></td>
               <td className="row gap" style={{ justifyContent: "flex-end" }}>
-                <button className="btn-secondary icon" onClick={() => handleEdit(a)}>
+                <button
+                  className="btn-secondary icon"
+                  onClick={(e) => { e.stopPropagation(); handleEdit(a); }}
+                >
                   <Icon name="edit" size={18} /> Edit
                 </button>
                 <button
                   className="btn-danger-soft icon"
-                  onClick={() => handleDelete(a._id)}
+                  onClick={(e) => { e.stopPropagation(); handleDelete(a._id); }}
                 >
                   <Icon name="delete" size={18} /> Delete
                 </button>
@@ -317,7 +362,7 @@ export default function Appointments() {
           ))}
           {visible.length === 0 && (
             <tr>
-              <td colSpan="5" className="muted">
+              <td colSpan="6" className="muted">
                 {search.trim()
                   ? "No appointments match your search."
                   : "No appointments scheduled."}
@@ -326,6 +371,65 @@ export default function Appointments() {
           )}
         </tbody>
       </table>
+
+      {selected && (
+        <div className="modal-backdrop" onClick={() => setSelected(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3 className="icon"><Icon name="event" size={18} /> Appointment details</h3>
+              <button type="button" className="modal-close" aria-label="Close" onClick={() => setSelected(null)}>
+                <Icon name="close" />
+              </button>
+            </div>
+            <div className="detail-list">
+              <div className="detail-row">
+                <Icon name="schedule" size={18} />
+                <span>{formatDateTime(selected.date)}</span>
+              </div>
+              <div className="detail-row">
+                <Icon name="person" size={18} />
+                <span>{selected.client?.name || "—"}</span>
+              </div>
+              {selected.client?.phone && (
+                <div className="detail-row">
+                  <Icon name="call" size={18} />
+                  <span>{selected.client.phone}</span>
+                </div>
+              )}
+              {selected.client?.email && (
+                <div className="detail-row">
+                  <Icon name="mail" size={18} />
+                  <span>{selected.client.email}</span>
+                </div>
+              )}
+              <div className="detail-row">
+                <Icon name="medical_services" size={18} />
+                <span>{selected.reason || "No purpose given"}</span>
+              </div>
+              <div className="detail-row">
+                <Icon name="info" size={18} />
+                <span className={`st st-${selected.status}`}>{statusLabel(selected.status)}</span>
+              </div>
+            </div>
+            <div className="row gap" style={{ flexWrap: "wrap" }}>
+              {selected.client?._id && (
+                <button className="icon" onClick={() => navigate(`/clients/${selected.client._id}`)}>
+                  <Icon name="badge" size={18} /> Patient details
+                </button>
+              )}
+              <button
+                className="btn-secondary icon"
+                onClick={() => { const a = selected; setSelected(null); handleEdit(a); }}
+              >
+                <Icon name="edit" size={18} /> Edit
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setSelected(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

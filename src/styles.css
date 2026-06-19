@@ -734,6 +734,57 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .btn-link:hover { background: var(--b-50); color: var(--primary); }
 
+/* Interactive appointment slot picker */
+.slot-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 10px 0 8px;
+}
+.slot-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.slot-dot-free { background: var(--surface); border: 1px solid var(--border); }
+.slot-dot-booked { background: #fdecea; border: 1px solid #f3c0bb; }
+.slot-dot-sel { background: var(--primary); border: 1px solid var(--primary); }
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.slot {
+  padding: 9px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.slot:hover:not(:disabled) { border-color: var(--primary); background: var(--b-50); }
+.slot.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+.slot.selected:hover:not(:disabled) { background: var(--primary-hover); color: #fff; border-color: var(--primary-hover); }
+.slot.booked {
+  background: #fdecea;
+  color: #b42318;
+  border-color: #f3c0bb;
+  text-decoration: line-through;
+  cursor: not-allowed;
+  opacity: 1;
+}
+.slot:disabled:not(.booked) { opacity: 0.4; cursor: not-allowed; }
+
 /* WhatsApp share: brand-green button (works on <button> and <a>) */
 .btn-whatsapp {
   display: inline-flex;
@@ -1130,6 +1181,45 @@ h2.icon { gap: 8px; }
   padding: 3px 8px; border-radius: 6px; font-size: 13px; font-weight: 500;
   background: transparent; color: var(--muted); border: 1px solid var(--border);
 }
+
+/* Appointment status chips */
+.st {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  text-transform: capitalize;
+}
+.st-pending { background: #fff4e5; color: #a85b00; }
+.st-scheduled { background: var(--b-100); color: var(--primary); }
+.st-completed { background: #e7f6ec; color: #1a7f37; }
+.st-cancelled { background: #fdecea; color: #b42318; }
+.st-no_show { background: #fff4e5; color: #a85b00; }
+
+/* Today's schedule slot board (dentist dashboard) */
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.day-slot {
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 64px;
+}
+.day-slot .slot-time { font-weight: 700; font-size: 13px; color: var(--heading); }
+.day-slot.available { border-style: dashed; color: var(--muted); }
+.day-slot.booked { cursor: pointer; border-left: 3px solid var(--primary); }
+.day-slot.booked:hover { background: var(--b-50); }
+.day-slot .slot-patient { font-size: 13px; color: var(--text); }
 
 /* --- Finances chart (CSS-only bars) --- */
 .chart {

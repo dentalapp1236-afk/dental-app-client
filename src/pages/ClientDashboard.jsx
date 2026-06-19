@@ -5,7 +5,11 @@ import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
+import SlotPicker from "../components/SlotPicker";
 import { SkeletonTable } from "../components/Skeleton";
+
+const statusLabel = (s) =>
+  s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
 
 export default function ClientDashboard() {
   const { user } = useAuth();
@@ -26,21 +30,48 @@ export default function ClientDashboard() {
   const [reschedError, setReschedError] = useState("");
   const [reschedBusy, setReschedBusy] = useState(false);
 
+  // Request a new appointment
+  const [showRequest, setShowRequest] = useState(false);
+  const [reqDate, setReqDate] = useState("");
+  const [reqReason, setReqReason] = useState("");
+  const [reqError, setReqError] = useState("");
+  const [reqBusy, setReqBusy] = useState(false);
+  const [reqSent, setReqSent] = useState(false);
+
   const loadAppointments = () =>
     api.get("/appointments").then((r) => setAppointments(r.data)).catch(() => {});
   const loadAssoc = () =>
     api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
 
-  const toLocalInput = (d) => {
-    const dt = new Date(d);
-    if (Number.isNaN(dt.getTime())) return "";
-    return new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-  };
-
   const openReschedule = (a) => {
     setReschedTarget(a);
-    setReschedDate(toLocalInput(a.date));
+    setReschedDate(a.date); // ISO; SlotPicker derives day + slot
     setReschedError("");
+  };
+
+  const openRequest = () => {
+    setReqDate("");
+    setReqReason("");
+    setReqError("");
+    setReqSent(false);
+    setShowRequest(true);
+  };
+
+  const submitRequest = async (e) => {
+    e.preventDefault();
+    setReqError("");
+    if (!reqDate) return setReqError("Please pick a time slot.");
+    setReqBusy(true);
+    try {
+      await api.post("/appointments/request", { date: reqDate, reason: reqReason });
+      setShowRequest(false);
+      setReqSent(true);
+      await loadAppointments();
+    } catch (err) {
+      setReqError(err.response?.data?.message || "Could not send request.");
+    } finally {
+      setReqBusy(false);
+    }
   };
 
   const submitReschedule = async (e) => {
@@ -51,7 +82,7 @@ export default function ClientDashboard() {
     setReschedBusy(true);
     try {
       await api.patch(`/appointments/${reschedTarget._id}/reschedule`, {
-        date: new Date(reschedDate).toISOString(),
+        date: reschedDate, // already an ISO instant from the slot picker
       });
       setReschedTarget(null);
       await loadAppointments();
@@ -195,15 +226,11 @@ export default function ClientDashboard() {
                 {formatDateTime(reschedTarget.date)}
               </p>
               {reschedError && <div className="error">{reschedError}</div>}
-              <label>
-                New date &amp; time
-                <input
-                  type="datetime-local"
-                  min={toLocalInput(new Date())}
-                  value={reschedDate}
-                  onChange={(e) => setReschedDate(e.target.value)}
-                />
-              </label>
+              <SlotPicker
+                value={reschedDate}
+                excludeId={reschedTarget._id}
+                onChange={(iso) => setReschedDate(iso)}
+              />
               <div className="row gap">
                 <button type="submit" className="icon" disabled={reschedBusy}>
                   <Icon name="check" size={18} /> {reschedBusy ? "Saving…" : "Confirm reschedule"}
@@ -217,10 +244,64 @@ export default function ClientDashboard() {
         </div>
       )}
 
+      {showRequest && (
+        <div className="modal-backdrop" onClick={() => setShowRequest(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitRequest} style={{ display: "contents" }}>
+              <div className="modal-head">
+                <h3 className="icon">
+                  <Icon name="event" size={18} /> Request an appointment
+                </h3>
+                <button type="button" className="modal-close" aria-label="Close" onClick={() => setShowRequest(false)}>
+                  <Icon name="close" />
+                </button>
+              </div>
+              <p className="muted" style={{ margin: 0 }}>
+                Pick an available slot with Dr. {assoc?.dentist?.name}. They'll confirm your request.
+              </p>
+              {reqError && <div className="error">{reqError}</div>}
+              <label>
+                <span className="lbl">Purpose <span className="muted">(optional)</span></span>
+                <input
+                  placeholder="e.g. Checkup, Toothache"
+                  value={reqReason}
+                  onChange={(e) => setReqReason(e.target.value)}
+                />
+              </label>
+              <SlotPicker value={reqDate} onChange={(iso) => setReqDate(iso)} />
+              <div className="row gap">
+                <button type="submit" className="icon" disabled={reqBusy}>
+                  <Icon name="schedule_send" size={18} /> {reqBusy ? "Sending…" : "Send request"}
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setShowRequest(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <section>
-        <h2 className="icon">
-          <Icon name="calendar_month" /> My appointments
-        </h2>
+        <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
+          <h2 className="icon" style={{ margin: 0 }}>
+            <Icon name="calendar_month" /> My appointments
+          </h2>
+          {assoc?.dentist && (
+            <button className="icon" onClick={openRequest}>
+              <Icon name="event" size={18} /> Request appointment
+            </button>
+          )}
+        </div>
+
+        {reqSent && (
+          <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+            <p className="icon" style={{ margin: 0 }}>
+              <Icon name="schedule_send" size={18} /> Request sent — you'll be notified once your dentist confirms.
+            </p>
+          </div>
+        )}
+
         {appointments.length === 0 ? (
           <p className="muted">No appointments yet.</p>
         ) : (
@@ -229,7 +310,7 @@ export default function ClientDashboard() {
               <tr>
                 <th>Date</th>
                 <th>Dentist</th>
-                <th>Reason</th>
+                <th>Purpose</th>
                 <th>Status</th>
                 <th>Notes</th>
                 <th></th>
@@ -240,8 +321,8 @@ export default function ClientDashboard() {
                 <tr key={a._id}>
                   <td>{formatDateTime(a.date)}</td>
                   <td>{a.dentist?.name}</td>
-                  <td>{a.reason}</td>
-                  <td>{a.status}</td>
+                  <td>{a.reason || "—"}</td>
+                  <td><span className={`st st-${a.status}`}>{statusLabel(a.status)}</span></td>
                   <td>{a.notes || "—"}</td>
                   <td className="row gap" style={{ justifyContent: "flex-end" }}>
                     {a.status === "scheduled" && new Date(a.date) > new Date() && (

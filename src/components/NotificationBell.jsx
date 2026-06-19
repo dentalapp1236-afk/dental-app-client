@@ -18,10 +18,13 @@ const routeFor = (n) => {
     case "association_ended":
       return "/clients";
     case "appointment_rescheduled":
+    case "appointment_requested":
       return "/appointments";
     case "association_approved":
     case "appointment_scheduled":
     case "appointment_reminder":
+    case "appointment_confirmed":
+    case "appointment_declined":
       return "/client";
     case "association_rejected":
       return "/find-dentist";

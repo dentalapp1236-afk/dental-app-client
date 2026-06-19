@@ -1,7 +1,7 @@
 // Shared role-based navigation items, used by the desktop sidebar and mobile bottom bar.
 export const ROLE_LINKS = {
   dentist: [
-    { to: "/dentist", icon: "dashboard", label: "Dashboard" },
+    { to: "/dentist", icon: "today", label: "Today's Schedule" },
     { to: "/clients", icon: "group", label: "Patients" },
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/finances", icon: "payments", label: "Finances" },
@@ -12,7 +12,7 @@ export const ROLE_LINKS = {
   ],
   // Assistant: same clinic tools as the dentist, minus staff management.
   assistant: [
-    { to: "/dentist", icon: "dashboard", label: "Dashboard" },
+    { to: "/dentist", icon: "today", label: "Today's Schedule" },
     { to: "/clients", icon: "group", label: "Patients" },
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/finances", icon: "payments", label: "Finances" },
