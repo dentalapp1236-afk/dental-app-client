@@ -13,8 +13,6 @@ const empty = {
   confirmPassword: "",
   phone: "",
   dateOfBirth: "",
-  address: "",
-  medicalNotes: "",
 };
 
 export default function Clients() {
@@ -107,15 +105,14 @@ export default function Clients() {
       name: c.name || "",
       email: c.email || "",
       password: "",
+      confirmPassword: "",
       phone: c.phone || "",
       dateOfBirth: c.dateOfBirth ? c.dateOfBirth.substring(0, 10) : "",
-      address: c.address || "",
-      medicalNotes: c.medicalNotes || "",
     });
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this client?")) return;
+    if (!confirm("Delete this patient?")) return;
     await api.delete(`/clients/${id}`);
     load();
   };
@@ -143,10 +140,10 @@ export default function Clients() {
   return (
     <div className="page">
       <div className="page-head">
-        <h1 className="icon"><Icon name="group" /> Clients</h1>
+        <h1 className="icon"><Icon name="group" /> Patients</h1>
         {!showForm && (
           <button className="icon" onClick={openCreate}>
-            <Icon name="person_add" size={18} /> Add client
+            <Icon name="person_add" size={18} /> Add patient
           </button>
         )}
       </div>
@@ -195,21 +192,27 @@ export default function Clients() {
               <Icon name="content_copy" size={18} /> {copied ? "Copied!" : "Copy credentials"}
             </button>
             <a
-              className="btn-secondary icon"
+              className="btn-whatsapp"
               href={waLink}
               target="_blank"
               rel="noreferrer"
-              style={{ textDecoration: "none" }}
             >
               <Icon name="chat" size={18} /> Share via WhatsApp
             </a>
-            <button type="button" className="btn-link" onClick={() => setCreated(null)}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
+              onClick={() => setCreated(null)}
+            >
               Dismiss
             </button>
           </div>
-          <p className="muted" style={{ margin: 0 }}>
-            Credentials were also emailed to {created.credentials.email}.
-          </p>
+          {created.credentials.email && (
+            <p className="muted" style={{ margin: 0 }}>
+              Credentials were also emailed to {created.credentials.email}.
+            </p>
+          )}
         </div>
       )}
 
@@ -229,7 +232,7 @@ export default function Clients() {
         <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} style={{ display: "contents" }}>
         <div className="modal-head">
-          <h3>{editingId ? "Edit client" : "Add new client"}</h3>
+          <h3>{editingId ? "Edit patient" : "Add new patient"}</h3>
           <button type="button" className="modal-close" aria-label="Close" onClick={resetForm}>
             <Icon name="close" />
           </button>
@@ -241,11 +244,10 @@ export default function Clients() {
             <input name="name" required value={form.name} onChange={handleChange} />
           </label>
           <label>
-            <span className="lbl">Email <span className="req">*</span></span>
+            <span className="lbl">Email <span className="muted">(optional)</span></span>
             <input
               type="email"
               name="email"
-              required
               disabled={!!editingId}
               value={form.email}
               onChange={handleChange}
@@ -297,22 +299,9 @@ export default function Clients() {
               />
             </label>
           )}
-          <label>
-            Address
-            <input name="address" value={form.address} onChange={handleChange} />
-          </label>
         </div>
-        <label>
-          Medical notes
-          <textarea
-            name="medicalNotes"
-            rows={3}
-            value={form.medicalNotes}
-            onChange={handleChange}
-          />
-        </label>
         <div className="row gap">
-          <button type="submit">{editingId ? "Update" : "Add client"}</button>
+          <button type="submit">{editingId ? "Update" : "Add patient"}</button>
           <button type="button" className="btn-secondary" onClick={resetForm}>
             Cancel
           </button>
@@ -340,7 +329,7 @@ export default function Clients() {
               onClick={() => navigate(`/clients/${c._id}`)}
             >
               <td>{c.name}</td>
-              <td>{c.email}</td>
+              <td>{c.email || "—"}</td>
               <td>{c.phone || "—"}</td>
               <td>
                 {c.dateOfBirth ? formatDate(c.dateOfBirth) : "—"}
@@ -370,7 +359,7 @@ export default function Clients() {
           {clients.length === 0 && (
             <tr>
               <td colSpan="5" className="muted">
-                No clients yet.
+                No patients yet.
               </td>
             </tr>
           )}

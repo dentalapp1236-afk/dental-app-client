@@ -281,11 +281,10 @@ export default function ClientLedger() {
           </p>
           <div className="row gap" style={{ flexWrap: "wrap" }}>
             <a
-              className="btn-secondary icon"
+              className="btn-whatsapp"
               href={apptShare.whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              style={{ textDecoration: "none" }}
             >
               <Icon name="chat" size={18} /> Share via WhatsApp
             </a>
@@ -347,15 +346,21 @@ export default function ClientLedger() {
                 </div>
               </div>
               <div className="row gap" style={{ flexWrap: "wrap", alignItems: "center" }}>
-                <span className="tag">Total {money(t.cost)}</span>
-                <span className="tag">Paid {money(t.paidAmount)}</span>
-                <span className={t.balance > 0 ? "badge-pending" : "badge"}>
-                  {t.balance > 0 ? `Balance ${money(t.balance)}` : "Fully paid"}
-                </span>
-                {t.balance > 0 && (
-                  <button className="btn-secondary icon" onClick={() => openPayment(t)}>
-                    <Icon name="payments" size={18} /> Record payment
-                  </button>
+                {t.cost > 0 ? (
+                  <>
+                    <span className="tag">Total {money(t.cost)}</span>
+                    <span className="tag">Paid {money(t.paidAmount)}</span>
+                    <span className={t.balance > 0 ? "badge-pending" : "badge"}>
+                      {t.balance > 0 ? `Balance ${money(t.balance)}` : "Fully paid"}
+                    </span>
+                    {t.balance > 0 && (
+                      <button className="btn-secondary icon" onClick={() => openPayment(t)}>
+                        <Icon name="payments" size={18} /> Record payment
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <span className="badge">No charge</span>
                 )}
                 <button className="btn-secondary icon" onClick={() => openEditTreat(t)}>
                   <Icon name="edit" size={18} /> Edit
@@ -485,7 +490,7 @@ export default function ClientLedger() {
                   <input name="toothNumber" value={treatForm.toothNumber} onChange={treatChange} />
                 </label>
                 <label>
-                  Total amount
+                  Total amount <span className="muted">(0 = free / no charge)</span>
                   <input
                     type="number"
                     min="0"

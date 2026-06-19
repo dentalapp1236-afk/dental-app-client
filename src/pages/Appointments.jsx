@@ -158,11 +158,10 @@ export default function Appointments() {
           </p>
           <div className="row gap" style={{ flexWrap: "wrap" }}>
             <a
-              className="btn-secondary icon"
+              className="btn-whatsapp"
               href={scheduled.whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              style={{ textDecoration: "none" }}
             >
               <Icon name="chat" size={18} /> Share via WhatsApp
             </a>

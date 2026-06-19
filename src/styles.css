@@ -734,6 +734,23 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .btn-link:hover { background: var(--b-50); color: var(--primary); }
 
+/* WhatsApp share: brand-green button (works on <button> and <a>) */
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #25d366;
+  color: #fff !important;
+  border: none;
+  cursor: pointer;
+}
+.btn-whatsapp:hover:not(:disabled) { background: #1da851; text-decoration: none; }
+.btn-whatsapp .material-symbols-outlined { color: inherit; }
+
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

@@ -2,7 +2,7 @@
 export const ROLE_LINKS = {
   dentist: [
     { to: "/dentist", icon: "dashboard", label: "Dashboard" },
-    { to: "/clients", icon: "group", label: "Clients" },
+    { to: "/clients", icon: "group", label: "Patients" },
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/finances", icon: "payments", label: "Finances" },
     { to: "/supplies", icon: "shopping_cart", label: "Supplies" },
