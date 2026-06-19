@@ -33,7 +33,7 @@ export default function DentistDashboard() {
   if (loading)
     return (
       <div className="page">
-        <h1 className="icon"><Icon name="waving_hand" /> Welcome, Dr. {user.name}</h1>
+        <h1 className="icon"><Icon name="waving_hand" /> Welcome, {user.role === "dentist" ? "Dr. " : ""}{user.name}</h1>
         <h2 className="icon"><Icon name="event_upcoming" /> Next appointments</h2>
         <SkeletonTable rows={4} cols={4} />
       </div>
@@ -41,7 +41,7 @@ export default function DentistDashboard() {
 
   return (
     <div className="page">
-      <h1 className="icon"><Icon name="waving_hand" /> Welcome, Dr. {user.name}</h1>
+      <h1 className="icon"><Icon name="waving_hand" /> Welcome, {user.role === "dentist" ? "Dr. " : ""}{user.name}</h1>
 
       <h2 className="icon">
         <Icon name="event_upcoming" /> Next appointments

@@ -56,6 +56,13 @@ export default function Appointments() {
     };
   }, []);
 
+  // Poll periodically so the dentist and assistant see each other's changes
+  // (e.g. a slot booked moments ago) without needing a manual refresh.
+  useEffect(() => {
+    const id = setInterval(loadAppointments, 25000);
+    return () => clearInterval(id);
+  }, []);
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -92,6 +99,9 @@ export default function Appointments() {
       load();
     } catch (err) {
       setError(err.response?.data?.message || "Save failed");
+      // On a conflict (slot taken or record changed by someone else), pull the
+      // latest so the dentist/assistant sees the current state before retrying.
+      if (err.response?.status === 409) loadAppointments();
     }
   };
 
@@ -104,6 +114,7 @@ export default function Appointments() {
       reason: a.reason || "",
       notes: a.notes || "",
       status: a.status,
+      version: a.__v, // for optimistic-concurrency checks on save
     });
   };
 

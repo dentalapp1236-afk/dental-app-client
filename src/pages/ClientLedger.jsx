@@ -42,6 +42,7 @@ export default function ClientLedger() {
   const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
   const [treatError, setTreatError] = useState("");
   const [editingTreatId, setEditingTreatId] = useState(null);
+  const [editTreatVersion, setEditTreatVersion] = useState(undefined);
   // Schedule-appointment modal
   const [showAppt, setShowAppt] = useState(false);
   const [apptForm, setApptForm] = useState({ reason: "", date: "", notes: "" });
@@ -84,6 +85,7 @@ export default function ClientLedger() {
 
   const openEditTreat = (t) => {
     setEditingTreatId(t._id);
+    setEditTreatVersion(t.__v);
     setTreatForm({
       procedure: t.procedure || "",
       toothNumber: t.toothNumber || "",
@@ -138,6 +140,7 @@ export default function ClientLedger() {
           description: treatForm.description,
           cost: Number(treatForm.cost) || 0,
           date: treatForm.date,
+          version: editTreatVersion,
         });
       } else {
         await api.post("/treatments", {
@@ -155,6 +158,7 @@ export default function ClientLedger() {
       await loadTreatments();
     } catch (err) {
       setTreatError(err.response?.data?.message || "Could not save treatment.");
+      if (err.response?.status === 409) loadTreatments();
     }
   };
 
@@ -175,6 +179,7 @@ export default function ClientLedger() {
       await loadTreatments();
     } catch (err) {
       setPayError(err.response?.data?.message || "Could not record payment.");
+      if (err.response?.status === 409) loadTreatments();
     }
   };
 
@@ -221,6 +226,7 @@ export default function ClientLedger() {
       await loadTreatments();
     } catch (err) {
       setEditPayError(err.response?.data?.message || "Could not update payment.");
+      if (err.response?.status === 409) loadTreatments();
     }
   };
 
@@ -231,6 +237,7 @@ export default function ClientLedger() {
       await loadTreatments();
     } catch (err) {
       alert(err.response?.data?.message || "Could not delete payment.");
+      if (err.response?.status === 409) loadTreatments();
     }
   };
 

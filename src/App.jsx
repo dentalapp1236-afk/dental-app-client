@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import DentistDashboard from "./pages/DentistDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import Clients from "./pages/Clients";
+import Staff from "./pages/Staff";
 import ClientLedger from "./pages/ClientLedger";
 import Appointments from "./pages/Appointments";
 import Treatments from "./pages/Treatments";
@@ -31,7 +32,7 @@ function Home() {
   if (loading) return <FullScreenLoader />;
   if (!user) return <Navigate to="/login" replace />;
   const home =
-    user.role === "dentist"
+    user.role === "dentist" || user.role === "assistant"
       ? "/dentist"
       : user.role === "vendor"
       ? "/vendor"
@@ -79,7 +80,7 @@ export default function App() {
         <Route
           path="/dentist"
           element={
-            <ProtectedRoute role="dentist">
+            <ProtectedRoute role={["dentist", "assistant"]}>
               <DentistDashboard />
             </ProtectedRoute>
           }
@@ -95,7 +96,7 @@ export default function App() {
         <Route
           path="/clients"
           element={
-            <ProtectedRoute role="dentist">
+            <ProtectedRoute role={["dentist", "assistant"]}>
               <Clients />
             </ProtectedRoute>
           }
@@ -103,15 +104,23 @@ export default function App() {
         <Route
           path="/clients/:id"
           element={
-            <ProtectedRoute role="dentist">
+            <ProtectedRoute role={["dentist", "assistant"]}>
               <ClientLedger />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute role="dentist">
+              <Staff />
             </ProtectedRoute>
           }
         />
         <Route
           path="/appointments"
           element={
-            <ProtectedRoute role="dentist">
+            <ProtectedRoute role={["dentist", "assistant"]}>
               <Appointments />
             </ProtectedRoute>
           }
@@ -167,7 +176,7 @@ export default function App() {
         <Route
           path="/finances"
           element={
-            <ProtectedRoute role="dentist">
+            <ProtectedRoute role={["dentist", "assistant"]}>
               <Finances />
             </ProtectedRoute>
           }
@@ -175,7 +184,7 @@ export default function App() {
         <Route
           path="/expenses"
           element={
-            <ProtectedRoute role="dentist">
+            <ProtectedRoute role={["dentist", "assistant"]}>
               <Maintenance />
             </ProtectedRoute>
           }
