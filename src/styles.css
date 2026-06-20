@@ -744,6 +744,48 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .btn-link:hover { background: var(--b-50); color: var(--primary); }
 
+/* Centered success/confirmation modal */
+.modal-confirm {
+  text-align: center;
+  align-items: center;
+  max-width: 360px;
+  gap: 12px;
+}
+.modal-confirm .confirm-icon .material-symbols-outlined {
+  font-size: 52px;
+  color: #1a7f37;
+}
+
+/* Per-day clinic hours editor */
+.avail-editor { display: flex; flex-direction: column; gap: 8px; }
+.avail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.avail-row.open { border-left: 3px solid var(--primary); }
+.avail-day {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 96px;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 4px 6px;
+  font-weight: 600;
+}
+.avail-day.on { color: var(--primary); }
+.avail-day .material-symbols-outlined { color: inherit; }
+.avail-times { display: flex; align-items: center; gap: 8px; }
+.avail-times input { width: auto; }
+.avail-dash { color: var(--muted); }
+
 /* Interactive appointment slot picker */
 .slot-legend {
   display: flex;

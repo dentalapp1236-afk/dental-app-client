@@ -3,8 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
+import AvailabilityEditor from "../components/AvailabilityEditor";
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DEFAULT_AVAILABILITY = ["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => ({
+  day,
+  start: "09:00",
+  end: "17:00",
+}));
 
 export default function Register() {
   const { register } = useAuth();
@@ -21,12 +26,10 @@ export default function Register() {
     specialization: "",
     yearsOfExperience: "",
     about: "",
-    start: "09:00",
-    end: "17:00",
     // vendor-only
     companyName: "",
   });
-  const [days, setDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
+  const [availability, setAvailability] = useState(DEFAULT_AVAILABILITY);
   const [coords, setCoords] = useState(null); // { latitude, longitude }
   const [locStatus, setLocStatus] = useState("");
   const [error, setError] = useState("");
@@ -46,9 +49,9 @@ export default function Register() {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const toggleDay = (d) => {
-    setErrors((prev) => ({ ...prev, days: undefined }));
-    setDays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
+  const updateAvailability = (next) => {
+    setErrors((prev) => ({ ...prev, days: undefined, hours: undefined }));
+    setAvailability(next);
   };
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -85,8 +88,9 @@ export default function Register() {
         e.yearsOfExperience = "Enter a valid number.";
       else if (!Number.isInteger(Number(form.yearsOfExperience)))
         e.yearsOfExperience = "Whole years only (no decimals).";
-      if (days.length === 0) e.days = "Select at least one available day.";
-      if (form.start >= form.end) e.hours = "Closing time must be after opening time.";
+      if (availability.length === 0) e.days = "Add hours for at least one day.";
+      else if (availability.some((a) => a.start >= a.end))
+        e.hours = "Each day's closing time must be after its opening time.";
       if (!coords) e.location = "Set your clinic location so patients can find you.";
     }
     return e;
@@ -135,11 +139,7 @@ export default function Register() {
         payload.about = form.about;
         payload.latitude = coords.latitude;
         payload.longitude = coords.longitude;
-        payload.availability = days.map((day) => ({
-          day,
-          start: form.start,
-          end: form.end,
-        }));
+        payload.availability = availability;
       }
       if (isVendor) {
         payload.companyName = form.companyName;
@@ -323,32 +323,14 @@ export default function Register() {
             </label>
 
             <div>
-              <span className="field-label">Available days</span>
-              <div className="day-toggles">
-                {WEEKDAYS.map((d) => (
-                  <button
-                    type="button"
-                    key={d}
-                    className={`chip ${days.includes(d) ? "chip-active" : ""}`}
-                    onClick={() => toggleDay(d)}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
+              <span className="field-label">Clinic hours</span>
+              <p className="muted" style={{ marginTop: 0 }}>
+                Set opening and closing times for each day you're open.
+              </p>
+              <AvailabilityEditor value={availability} onChange={updateAvailability} />
               {errors.days && <span className="field-error">{errors.days}</span>}
+              {errors.hours && <span className="field-error">{errors.hours}</span>}
             </div>
-            <div className="grid-2">
-              <label>
-                Opens at
-                <input type="time" name="start" value={form.start} onChange={handleChange} />
-              </label>
-              <label>
-                Closes at
-                <input type="time" name="end" value={form.end} onChange={handleChange} />
-              </label>
-            </div>
-            {errors.hours && <span className="field-error">{errors.hours}</span>}
 
             <div>
               <span className="field-label">Clinic location</span>

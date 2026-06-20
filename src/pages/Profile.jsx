@@ -3,8 +3,7 @@ import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
-
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+import AvailabilityEditor from "../components/AvailabilityEditor";
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -24,11 +23,11 @@ export default function Profile() {
     specialization: user.specialization || "",
     yearsOfExperience: user.yearsOfExperience ?? "",
     about: user.about || "",
-    start: user.availability?.[0]?.start || "09:00",
-    end: user.availability?.[0]?.end || "17:00",
   });
-  const [days, setDays] = useState(
-    user.availability?.length ? user.availability.map((a) => a.day) : ["Mon", "Tue", "Wed", "Thu", "Fri"]
+  const [availability, setAvailability] = useState(
+    user.availability?.length
+      ? user.availability.map((a) => ({ day: a.day, start: a.start, end: a.end }))
+      : ["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => ({ day, start: "09:00", end: "17:00" }))
   );
   const [coords, setCoords] = useState(
     user.location?.coordinates
@@ -37,19 +36,17 @@ export default function Profile() {
   );
   const [locStatus, setLocStatus] = useState("");
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(""); // shown in a success modal
 
   // Change password
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [pwError, setPwError] = useState("");
-  const [pwSaved, setPwSaved] = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
 
   const changePassword = async (e) => {
     e.preventDefault();
     setPwError("");
-    setPwSaved(false);
     if (pw.next.length < 8) return setPwError("New password must be at least 8 characters.");
     if (pw.next !== pw.confirm) return setPwError("New passwords do not match.");
     setPwSaving(true);
@@ -59,7 +56,7 @@ export default function Profile() {
         newPassword: pw.next,
       });
       setPw({ current: "", next: "", confirm: "" });
-      setPwSaved(true);
+      setSuccessMsg("Password updated.");
     } catch (err) {
       setPwError(err.response?.data?.message || "Could not update password.");
     } finally {
@@ -69,11 +66,7 @@ export default function Profile() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setSaved(false);
   };
-
-  const toggleDay = (d) =>
-    setDays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
 
   const captureLocation = () => {
     if (!navigator.geolocation) return setLocStatus("Geolocation not supported.");
@@ -105,7 +98,7 @@ export default function Profile() {
         payload.yearsOfExperience = form.yearsOfExperience;
         payload.about = form.about;
         payload.address = form.address;
-        payload.availability = days.map((day) => ({ day, start: form.start, end: form.end }));
+        payload.availability = availability;
         if (coords) {
           payload.latitude = coords.latitude;
           payload.longitude = coords.longitude;
@@ -113,7 +106,7 @@ export default function Profile() {
       }
       const { data } = await api.put("/auth/me", payload);
       updateUser(data.user);
-      setSaved(true);
+      setSuccessMsg("Profile saved.");
     } catch (err) {
       setError(err.response?.data?.message || "Could not save profile.");
     } finally {
@@ -130,7 +123,6 @@ export default function Profile() {
       <form className="card" onSubmit={handleSubmit}>
         <h3 className="icon"><Icon name="badge" size={18} /> Account</h3>
         {error && <div className="error">{error}</div>}
-        {saved && <div className="info-banner">Profile saved.</div>}
 
         <div className="grid-2">
           <label>
@@ -207,29 +199,11 @@ export default function Profile() {
             </label>
 
             <div>
-              <span className="field-label">Available days</span>
-              <div className="day-toggles">
-                {WEEKDAYS.map((d) => (
-                  <button
-                    type="button"
-                    key={d}
-                    className={`chip ${days.includes(d) ? "chip-active" : ""}`}
-                    onClick={() => toggleDay(d)}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="grid-2">
-              <label>
-                Opens at
-                <input type="time" name="start" value={form.start} onChange={handleChange} />
-              </label>
-              <label>
-                Closes at
-                <input type="time" name="end" value={form.end} onChange={handleChange} />
-              </label>
+              <span className="field-label">Clinic hours</span>
+              <p className="muted" style={{ marginTop: 0 }}>
+                Set opening and closing times for each day you're open.
+              </p>
+              <AvailabilityEditor value={availability} onChange={setAvailability} />
             </div>
 
             <div>
@@ -257,7 +231,6 @@ export default function Profile() {
       <form className="card" onSubmit={changePassword}>
         <h3 className="icon"><Icon name="lock" size={18} /> Change password</h3>
         {pwError && <div className="error">{pwError}</div>}
-        {pwSaved && <div className="info-banner">Password updated.</div>}
         <label>
           <span className="lbl">Current password</span>
           <PasswordInput
@@ -292,6 +265,20 @@ export default function Profile() {
           </button>
         </div>
       </form>
+
+      {successMsg && (
+        <div className="modal-backdrop" onClick={() => setSuccessMsg("")}>
+          <div className="modal modal-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon"><Icon name="check_circle" /></div>
+            <h3 style={{ margin: 0 }}>{successMsg}</h3>
+            <div className="row" style={{ justifyContent: "center" }}>
+              <button type="button" className="icon" onClick={() => setSuccessMsg("")}>
+                <Icon name="check" size={18} /> Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

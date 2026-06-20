@@ -174,8 +174,13 @@ export default function DentistProfile() {
         )}
       </div>
 
-      {/* Leave a review — clients only */}
-      {user?.role === "client" && (
+      {/* Leave a review — only patients associated with this dentist */}
+      {user?.role === "client" && assoc?.dentist?._id !== id && (
+        <p className="muted" style={{ marginTop: 12 }}>
+          You can leave a review once Dr. {dentist.name} approves your association.
+        </p>
+      )}
+      {user?.role === "client" && assoc?.dentist?._id === id && (
         <form className="card" onSubmit={submitReview}>
           <h3 className="icon"><Icon name="rate_review" size={18} /> Leave a review</h3>
           {reviewError && <div className="error">{reviewError}</div>}
