@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
+import PublicTopbar from "../components/PublicTopbar";
 
 export default function DentistProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [dentist, setDentist] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -44,6 +46,12 @@ export default function DentistProfile() {
       api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
     }
   }, [user]);
+
+  // Logged-out visitor chose this clinic: remember it, then send them to sign up.
+  const startAssociate = () => {
+    sessionStorage.setItem("pendingAssociation", JSON.stringify({ id, name: dentist?.name || "" }));
+    navigate("/register");
+  };
 
   const requestAssociation = async () => {
     setAssocMsg("");
@@ -86,7 +94,9 @@ export default function DentistProfile() {
   if (notFound) return <div className="page"><p className="muted">Dentist not found.</p></div>;
 
   return (
-    <div className="page">
+    <>
+      {!user && <PublicTopbar />}
+      <div className="page">
       <div className="card">
         <div className="row gap" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
@@ -114,6 +124,17 @@ export default function DentistProfile() {
             </span>
           )}
         </div>
+
+        {!user && (
+          <div className="assoc-bar">
+            <button onClick={startAssociate} className="icon">
+              <Icon name="person_add" size={18} /> Associate with this clinic
+            </button>
+            <span className="muted" style={{ marginLeft: 8 }}>
+              You'll create a patient account to connect.
+            </span>
+          </div>
+        )}
 
         {user?.role === "client" && (
           <div className="assoc-bar">
@@ -185,6 +206,7 @@ export default function DentistProfile() {
           </div>
         ))
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -103,6 +103,9 @@ export default function Login() {
         <p className="auth-alt">
           No account? <Link to="/register">Register</Link>
         </p>
+        <p className="auth-alt">
+          <Link to="/find-dentist">Browse dentists near you →</Link>
+        </p>
       </form>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
+import PasswordInput from "../components/PasswordInput";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -38,6 +39,33 @@ export default function Profile() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Change password
+  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
+  const [pwError, setPwError] = useState("");
+  const [pwSaved, setPwSaved] = useState(false);
+  const [pwSaving, setPwSaving] = useState(false);
+
+  const changePassword = async (e) => {
+    e.preventDefault();
+    setPwError("");
+    setPwSaved(false);
+    if (pw.next.length < 8) return setPwError("New password must be at least 8 characters.");
+    if (pw.next !== pw.confirm) return setPwError("New passwords do not match.");
+    setPwSaving(true);
+    try {
+      await api.post("/auth/change-password", {
+        currentPassword: pw.current,
+        newPassword: pw.next,
+      });
+      setPw({ current: "", next: "", confirm: "" });
+      setPwSaved(true);
+    } catch (err) {
+      setPwError(err.response?.data?.message || "Could not update password.");
+    } finally {
+      setPwSaving(false);
+    }
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -222,6 +250,45 @@ export default function Profile() {
         <div className="row">
           <button type="submit" className="icon" disabled={saving}>
             <Icon name="save" size={18} /> {saving ? "Saving…" : "Save profile"}
+          </button>
+        </div>
+      </form>
+
+      <form className="card" onSubmit={changePassword}>
+        <h3 className="icon"><Icon name="lock" size={18} /> Change password</h3>
+        {pwError && <div className="error">{pwError}</div>}
+        {pwSaved && <div className="info-banner">Password updated.</div>}
+        <label>
+          <span className="lbl">Current password</span>
+          <PasswordInput
+            autoComplete="current-password"
+            value={pw.current}
+            onChange={(e) => setPw({ ...pw, current: e.target.value })}
+          />
+        </label>
+        <div className="grid-2">
+          <label>
+            <span className="lbl">New password (min 8)</span>
+            <PasswordInput
+              autoComplete="new-password"
+              minLength={8}
+              value={pw.next}
+              onChange={(e) => setPw({ ...pw, next: e.target.value })}
+            />
+          </label>
+          <label>
+            <span className="lbl">Confirm new password</span>
+            <PasswordInput
+              autoComplete="new-password"
+              minLength={8}
+              value={pw.confirm}
+              onChange={(e) => setPw({ ...pw, confirm: e.target.value })}
+            />
+          </label>
+        </div>
+        <div className="row">
+          <button type="submit" className="icon" disabled={pwSaving}>
+            <Icon name="lock_reset" size={18} /> {pwSaving ? "Updating…" : "Update password"}
           </button>
         </div>
       </form>

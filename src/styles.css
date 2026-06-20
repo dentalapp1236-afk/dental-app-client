@@ -175,6 +175,16 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid var(--border);
   padding: 10px 24px;
 }
+.public-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  margin-bottom: 8px;
+}
 .topbar-brand { font-weight: 800; font-size: 17px; color: var(--heading); }
 .topbar-brand .material-symbols-outlined { color: var(--primary); }
 .topbar .bell-btn,

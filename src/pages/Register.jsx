@@ -153,21 +153,36 @@ export default function Register() {
     }
   };
 
+  let pendingAssoc = null;
+  try {
+    pendingAssoc = JSON.parse(sessionStorage.getItem("pendingAssociation") || "null");
+  } catch {
+    pendingAssoc = null;
+  }
+
   return (
     <div className="page auth-page">
       <form className="card" onSubmit={handleSubmit} noValidate>
         <h2 className="icon">
           <Icon name="person_add" /> Create account
         </h2>
+        {pendingAssoc && (
+          <div className="info-banner">
+            Create your patient account to connect with
+            {pendingAssoc.name ? ` Dr. ${pendingAssoc.name}` : " your selected dentist"}.
+          </div>
+        )}
         {error && <div className="error">{error}</div>}
-        <label>
-          I am a
-          <select name="role" value={form.role} onChange={handleChange}>
-            <option value="client">Patient</option>
-            <option value="dentist">Dentist</option>
-            <option value="vendor">Vendor / Supplier</option>
-          </select>
-        </label>
+        {!pendingAssoc && (
+          <label>
+            I am a
+            <select name="role" value={form.role} onChange={handleChange}>
+              <option value="client">Patient</option>
+              <option value="dentist">Dentist</option>
+              <option value="vendor">Vendor / Supplier</option>
+            </select>
+          </label>
+        )}
         {isVendor && (
           <label>
             <span className="lbl">Company name <span className="req">*</span></span>
@@ -360,6 +375,9 @@ export default function Register() {
         </button>
         <p className="auth-alt">
           Already have an account? <Link to="/login">Sign in</Link>
+        </p>
+        <p className="auth-alt">
+          <Link to="/find-dentist">Browse dentists near you →</Link>
         </p>
       </form>
     </div>

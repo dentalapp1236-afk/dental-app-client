@@ -28,6 +28,53 @@ export default function Clients() {
   const [copied, setCopied] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  // Reset-password flow
+  const [resetTarget, setResetTarget] = useState(null); // the patient being reset
+  const [resetPwd, setResetPwd] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetResult, setResetResult] = useState(null); // { shareMessage } after reset
+  const [resetCopied, setResetCopied] = useState(false);
+
+  const genTempPassword = () => `Dt${Math.random().toString(36).slice(2, 8)}9`;
+
+  const openReset = (c) => {
+    setResetTarget(c);
+    setResetPwd(genTempPassword());
+    setResetError("");
+    setResetResult(null);
+  };
+
+  const submitReset = async (e) => {
+    e.preventDefault();
+    setResetError("");
+    if (resetPwd.length < 8) return setResetError("Password must be at least 8 characters.");
+    setResetBusy(true);
+    try {
+      const { data } = await api.post(`/clients/${resetTarget._id}/reset-password`, { password: resetPwd });
+      setResetResult({ ...data, name: resetTarget.name });
+      setResetCopied(false);
+      setResetTarget(null);
+    } catch (err) {
+      setResetError(err.response?.data?.message || "Could not reset password.");
+    } finally {
+      setResetBusy(false);
+    }
+  };
+
+  const copyResetCreds = async () => {
+    try {
+      await navigator.clipboard.writeText(resetResult.shareMessage);
+      setResetCopied(true);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const resetWaLink = resetResult
+    ? `https://wa.me/?text=${encodeURIComponent(resetResult.shareMessage)}`
+    : "#";
+
   const load = async () => {
     const { data } = await api.get("/clients", { params: { search } });
     setClients(data);
@@ -216,6 +263,76 @@ export default function Clients() {
         </div>
       )}
 
+      {resetResult && (
+        <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+          <h3 className="icon">
+            <Icon name="lock_reset" size={18} /> Password reset for {resetResult.name}
+          </h3>
+          <textarea readOnly rows={6} value={resetResult.shareMessage} />
+          <div className="row gap" style={{ flexWrap: "wrap" }}>
+            <button type="button" className="icon" onClick={copyResetCreds}>
+              <Icon name="content_copy" size={18} /> {resetCopied ? "Copied!" : "Copy credentials"}
+            </button>
+            <a className="btn-whatsapp" href={resetWaLink} target="_blank" rel="noreferrer">
+              <Icon name="chat" size={18} /> Share via WhatsApp
+            </a>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
+              onClick={() => setResetResult(null)}
+            >
+              Dismiss
+            </button>
+          </div>
+          {resetResult.credentials?.email && (
+            <p className="muted" style={{ margin: 0 }}>
+              The new password was not emailed automatically — share it with the patient.
+            </p>
+          )}
+        </div>
+      )}
+
+      {resetTarget && (
+        <div className="modal-backdrop" onClick={() => setResetTarget(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitReset} style={{ display: "contents" }}>
+              <div className="modal-head">
+                <h3 className="icon"><Icon name="lock_reset" size={18} /> Reset password</h3>
+                <button type="button" className="modal-close" aria-label="Close" onClick={() => setResetTarget(null)}>
+                  <Icon name="close" />
+                </button>
+              </div>
+              <p className="muted" style={{ margin: 0 }}>
+                Set a new temporary password for <strong>{resetTarget.name}</strong>. Share it with them; they can change it after signing in.
+              </p>
+              {resetError && <div className="error">{resetError}</div>}
+              <label>
+                <span className="lbl">New password <span className="req">*</span></span>
+                <div className="row gap">
+                  <input
+                    style={{ flex: 1 }}
+                    value={resetPwd}
+                    onChange={(e) => setResetPwd(e.target.value)}
+                  />
+                  <button type="button" className="btn-secondary icon" onClick={() => setResetPwd(genTempPassword())}>
+                    <Icon name="autorenew" size={18} /> Generate
+                  </button>
+                </div>
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon" disabled={resetBusy}>
+                  <Icon name="lock_reset" size={18} /> {resetBusy ? "Resetting…" : "Reset password"}
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setResetTarget(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="search-row">
         <input
           placeholder="Search by name, email, or phone…"
@@ -346,6 +463,13 @@ export default function Clients() {
                   onClick={(e) => { e.stopPropagation(); handleEdit(c); }}
                 >
                   <Icon name="edit" size={18} /> Edit
+                </button>
+                <button
+                  className="btn-secondary icon"
+                  title="Reset password"
+                  onClick={(e) => { e.stopPropagation(); openReset(c); }}
+                >
+                  <Icon name="lock_reset" size={18} /> Reset
                 </button>
                 <button
                   className="btn-danger-soft icon"

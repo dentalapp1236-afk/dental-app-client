@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
+import PublicTopbar from "../components/PublicTopbar";
 import { SkeletonCards } from "../components/Skeleton";
 
 export default function FindDentist() {
+  const { user } = useAuth();
   const [dentists, setDentists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [locStatus, setLocStatus] = useState("Finding dentists near you…");
@@ -43,11 +46,18 @@ export default function FindDentist() {
   }, []);
 
   return (
-    <div className="page">
+    <>
+      {!user && <PublicTopbar />}
+      <div className="page">
       <h1 className="icon">
         <Icon name="person_search" /> Find a dentist
       </h1>
       <p className="muted">{locStatus}</p>
+      {!user && (
+        <p className="muted">
+          Browse clinics near you, then sign in or create an account to connect with one.
+        </p>
+      )}
 
       {loading ? (
         <SkeletonCards count={6} />
@@ -89,6 +99,7 @@ export default function FindDentist() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -133,22 +133,9 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/find-dentist"
-          element={
-            <ProtectedRoute role="client">
-              <FindDentist />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dentists/:id"
-          element={
-            <ProtectedRoute>
-              <DentistProfile />
-            </ProtectedRoute>
-          }
-        />
+        {/* Public discovery: anyone can browse dentists before signing in */}
+        <Route path="/find-dentist" element={<FindDentist />} />
+        <Route path="/dentists/:id" element={<DentistProfile />} />
         <Route
           path="/profile"
           element={

@@ -111,6 +111,33 @@ export default function ClientDashboard() {
     loadAssoc();
   }, []);
 
+  // If the patient arrived here via the public "Associate with this clinic" flow,
+  // send the association request now that they're signed in.
+  const [assocNotice, setAssocNotice] = useState("");
+  useEffect(() => {
+    const raw = sessionStorage.getItem("pendingAssociation");
+    if (!raw) return;
+    sessionStorage.removeItem("pendingAssociation");
+    let pend;
+    try {
+      pend = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    if (!pend?.id) return;
+    api
+      .post("/associations/request", { dentistId: pend.id })
+      .then(() => {
+        setAssocNotice(
+          `Request sent to Dr. ${pend.name || "your selected dentist"} — you'll be notified once they confirm.`
+        );
+        loadAssoc();
+      })
+      .catch((err) =>
+        setAssocNotice(err.response?.data?.message || "Could not send your association request.")
+      );
+  }, []);
+
   const disassociate = async () => {
     setLeaving(true);
     try {
@@ -142,6 +169,14 @@ export default function ClientDashboard() {
   return (
     <div className="page">
       <h1 className="icon"><Icon name="waving_hand" /> Hello, {user.name}</h1>
+
+      {assocNotice && (
+        <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+          <p className="icon" style={{ margin: 0 }}>
+            <Icon name="check_circle" size={18} /> {assocNotice}
+          </p>
+        </div>
+      )}
 
       {/* My dentist / association status */}
       <div className="card" style={{ maxWidth: "none" }}>
