@@ -198,12 +198,29 @@ export default function Register() {
         )}
         <label>
           <span className="lbl">Full name <span className="req">*</span></span>
-          <input
-            name="name"
-            className={errors.name ? "invalid" : ""}
-            value={form.name}
-            onChange={handleChange}
-          />
+          {isDentist ? (
+            <span className={`input-prefix${errors.name ? " invalid" : ""}`}>
+              <span className="prefix">Dr.</span>
+              <input
+                name="name"
+                placeholder="e.g. Ahmad Qureshi"
+                value={form.name}
+                onChange={handleChange}
+              />
+            </span>
+          ) : (
+            <input
+              name="name"
+              className={errors.name ? "invalid" : ""}
+              value={form.name}
+              onChange={handleChange}
+            />
+          )}
+          {isDentist && (
+            <span className="muted" style={{ fontSize: 12 }}>
+              "Dr." is added automatically — no need to type it.
+            </span>
+          )}
           {errors.name && <span className="field-error">{errors.name}</span>}
         </label>
         <label>

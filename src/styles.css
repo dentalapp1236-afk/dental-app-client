@@ -754,6 +754,33 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .btn-link:hover { background: var(--b-50); color: var(--primary); }
 
+/* Input with a fixed leading prefix (e.g. "Dr.") */
+.input-prefix {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.input-prefix.invalid { border-color: var(--danger); }
+.input-prefix .prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background: var(--b-50);
+  color: var(--muted);
+  font-weight: 600;
+  border-right: 1px solid var(--border);
+}
+.input-prefix input {
+  border: none !important;
+  border-radius: 0 !important;
+  flex: 1;
+  min-width: 0;
+}
+.input-prefix input:focus { outline: none; box-shadow: none; }
+
 /* Section divider */
 .divider {
   border: none;

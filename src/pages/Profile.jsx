@@ -127,7 +127,17 @@ export default function Profile() {
         <div className="grid-2">
           <label>
             Full name
-            <input name="name" required value={form.name} onChange={handleChange} />
+            {isDentist ? (
+              <span className="input-prefix">
+                <span className="prefix">Dr.</span>
+                <input name="name" required value={form.name} onChange={handleChange} />
+              </span>
+            ) : (
+              <input name="name" required value={form.name} onChange={handleChange} />
+            )}
+            {isDentist && (
+              <span className="muted" style={{ fontSize: 12 }}>"Dr." is added automatically.</span>
+            )}
           </label>
           <label>
             Email
