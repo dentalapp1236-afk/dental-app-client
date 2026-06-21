@@ -98,6 +98,9 @@ export default function DentistProfile() {
     <>
       {!user && <PublicTopbar />}
       <div className="page">
+      <button className="btn-secondary icon" onClick={() => navigate(-1)} style={{ marginBottom: 12 }}>
+        <Icon name="arrow_back" size={18} /> Back
+      </button>
       <div className="card">
         <div className="row gap" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
