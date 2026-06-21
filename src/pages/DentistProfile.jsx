@@ -4,6 +4,7 @@ import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
+import SlotPicker from "../components/SlotPicker";
 import PublicTopbar from "../components/PublicTopbar";
 
 export default function DentistProfile() {
@@ -155,6 +156,7 @@ export default function DentistProfile() {
 
         {dentist.about && (
           <>
+            <hr className="divider" />
             <h3>About</h3>
             <p>{dentist.about}</p>
           </>
@@ -162,7 +164,15 @@ export default function DentistProfile() {
 
         {dentist.availability?.length > 0 && (
           <>
-            <h3 className="icon"><Icon name="schedule" size={18} /> Available time slots</h3>
+            <hr className="divider" />
+            <h3 className="icon"><Icon name="event_available" size={18} /> Check availability</h3>
+            <p className="muted" style={{ marginTop: -4 }}>
+              Pick a day to see which slots are open.
+            </p>
+            <SlotPicker dentistId={id} availabilityOverride={dentist.availability} readOnly />
+
+            <hr className="divider" />
+            <h3 className="icon"><Icon name="schedule" size={18} /> Clinic hours</h3>
             <div className="row gap" style={{ flexWrap: "wrap" }}>
               {dentist.availability.map((slot, i) => (
                 <span key={i} className="tag">

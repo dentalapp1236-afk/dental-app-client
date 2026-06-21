@@ -33,41 +33,57 @@ const buildSlots = (startMin, endMin, stepMin) => {
 // Interactive day + time-slot picker. `value` is an ISO datetime string (or "").
 // Slot hours come from the clinic's availability (set by the dentist at sign up);
 // when none is configured, falls back to 9:00–6:00.
-export default function SlotPicker({ value, onChange, excludeId, stepMin = 15 }) {
+//
+// Optional props:
+//  - dentistId: fetch a specific dentist's booked slots from the public endpoint
+//    (used on the public dentist profile) instead of the viewer's own clinic.
+//  - availabilityOverride: use this availability array instead of the fetched one.
+//  - readOnly: display availability only — slots aren't selectable.
+export default function SlotPicker({
+  value,
+  onChange,
+  excludeId,
+  stepMin = 15,
+  dentistId,
+  availabilityOverride,
+  readOnly = false,
+}) {
   const valueDate = value ? new Date(value) : null;
   const [day, setDay] = useState(valueDate ? dayStr(valueDate) : todayStr());
   const [bookedISO, setBookedISO] = useState([]);
-  const [availability, setAvailability] = useState([]);
+  const [fetchedAvailability, setFetchedAvailability] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Pull booked datetimes + clinic hours for the selected day from the server.
+  // Pull booked datetimes (+ clinic hours) for the selected day from the server.
   useEffect(() => {
     if (!day) return;
     const from = new Date(`${day}T00:00:00`);
     const to = new Date(`${day}T00:00:00`);
     to.setDate(to.getDate() + 1);
+    const endpoint = dentistId ? `/dentists/${dentistId}/booked` : "/appointments/booked";
     let active = true;
     setLoading(true);
     api
-      .get("/appointments/booked", {
+      .get(endpoint, {
         params: { from: from.toISOString(), to: to.toISOString(), exclude: excludeId },
         skipLoader: true,
       })
       .then((r) => {
         if (!active) return;
         setBookedISO(r.data.slots || []);
-        setAvailability(r.data.availability || []);
+        if (r.data.availability) setFetchedAvailability(r.data.availability);
       })
       .catch(() => {
         if (!active) return;
         setBookedISO([]);
-        setAvailability([]);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [day, excludeId]);
+  }, [day, excludeId, dentistId]);
+
+  const availability = availabilityOverride || fetchedAvailability;
 
   // Clinic hours for the selected weekday (or null when the clinic is closed).
   const hours = useMemo(() => {
@@ -111,28 +127,39 @@ export default function SlotPicker({ value, onChange, excludeId, stepMin = 15 })
       <div className="slot-legend">
         <span><i className="slot-dot slot-dot-free" /> Available</span>
         <span><i className="slot-dot slot-dot-booked" /> Booked</span>
-        <span><i className="slot-dot slot-dot-sel" /> Selected</span>
+        {!readOnly && <span><i className="slot-dot slot-dot-sel" /> Selected</span>}
       </div>
 
       {loading ? (
         <p className="muted" style={{ margin: "8px 0" }}>Loading slots…</p>
       ) : !hours ? (
-        <p className="muted" style={{ margin: "8px 0" }}>The clinic is closed on this day. Please pick another day.</p>
+        <p className="muted" style={{ margin: "8px 0" }}>The clinic is closed on this day.</p>
       ) : (
-        <div className="slot-grid">
+        <div className={`slot-grid${readOnly ? " readonly" : ""}`}>
           {slots.map((slot) => {
             const [h, m] = slot.split(":").map(Number);
             const slotTime = new Date(`${day}T${pad(h)}:${pad(m)}:00`).getTime();
             const booked = bookedSet.has(slot);
             const past = slotTime < now;
-            const selected = selectedHM === slot;
+            const selected = !readOnly && selectedHM === slot;
+            const cls = `slot${selected ? " selected" : ""}${booked ? " booked" : ""}${
+              past && !booked ? " past" : ""
+            }`;
+            const title = booked ? "Booked" : past ? "Past" : "Available";
+            if (readOnly) {
+              return (
+                <div key={slot} className={cls} title={title}>
+                  {fmt12(slot)}
+                </div>
+              );
+            }
             return (
               <button
                 key={slot}
                 type="button"
-                className={`slot${selected ? " selected" : ""}${booked ? " booked" : ""}`}
+                className={cls}
                 disabled={booked || past}
-                title={booked ? "Booked" : past ? "Past" : "Available"}
+                title={title}
                 onClick={() => pick(slot)}
               >
                 {fmt12(slot)}

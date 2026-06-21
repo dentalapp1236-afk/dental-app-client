@@ -26,7 +26,9 @@ export default function FindDentist() {
     }
   };
 
-  useEffect(() => {
+  // Re-detect location and reload the list (used on mount and by the Refresh button).
+  const locate = () => {
+    setLocStatus("Finding dentists near you…");
     if (!navigator.geolocation) {
       setLocStatus("Location unavailable — showing top-rated dentists.");
       load();
@@ -43,15 +45,25 @@ export default function FindDentist() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  useEffect(() => {
+    locate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
       {!user && <PublicTopbar />}
       <div className="page">
-      <h1 className="icon">
-        <Icon name="person_search" /> Find a dentist
-      </h1>
+      <div className="page-head">
+        <h1 className="icon">
+          <Icon name="person_search" /> Find a dentist
+        </h1>
+        <button className="btn-secondary icon" onClick={locate} disabled={loading}>
+          <Icon name="refresh" size={18} /> Refresh
+        </button>
+      </div>
       <p className="muted">{locStatus}</p>
       {!user && (
         <p className="muted">
@@ -66,7 +78,7 @@ export default function FindDentist() {
       ) : (
         <div className="dentist-grid">
           {dentists.map((d) => (
-            <Link key={d._id} to={`/dentists/${d._id}`} className="dentist-card">
+            <div key={d._id} className="dentist-card">
               <div className="row gap" style={{ justifyContent: "space-between" }}>
                 <h3 style={{ margin: 0 }}>Dr. {d.name}</h3>
                 {d.distanceKm != null && (
@@ -95,7 +107,14 @@ export default function FindDentist() {
                 </div>
               )}
               {d.about && <p className="clamp-2">{d.about}</p>}
-            </Link>
+              <Link
+                to={`/dentists/${d._id}`}
+                className="btn-secondary icon"
+                style={{ textDecoration: "none", marginTop: "auto" }}
+              >
+                <Icon name="info" size={18} /> View details
+              </Link>
+            </div>
           ))}
         </div>
       )}
