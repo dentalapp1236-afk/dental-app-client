@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, Link } from "react-router-dom";
+import api from "./api/axios";
 import { useAuth } from "./context/AuthContext";
 import Sidebar from "./components/Sidebar";
 import MobileNav from "./components/MobileNav";
 import ProfileMenu from "./components/ProfileMenu";
 import NotificationBell from "./components/NotificationBell";
+import { useNotifications } from "./context/NotificationsContext";
 import Icon from "./components/Icon";
 import GlobalLoader from "./components/GlobalLoader";
 import FullScreenLoader from "./components/FullScreenLoader";
@@ -46,11 +49,33 @@ function Home() {
 // bottom tab bar on mobile. Auth pages (no user) render full-screen, no chrome.
 function Shell({ children }) {
   const { user } = useAuth();
+  const { items } = useNotifications();
+  // For patients: know their associated dentist so the "Find a dentist" tab
+  // becomes "My dentist" pointing to that dentist's profile.
+  const [myDentistId, setMyDentistId] = useState(null);
+
+  useEffect(() => {
+    if (user?.role !== "client") {
+      setMyDentistId(null);
+      return;
+    }
+    const refresh = () =>
+      api
+        .get("/associations/me", { skipLoader: true })
+        .then((r) => setMyDentistId(r.data?.dentist?._id || null))
+        .catch(() => {});
+    refresh();
+    // Update instantly when the association changes — a dentist approval/decline
+    // arrives as a notification, and the patient's own leave/request fires an event.
+    window.addEventListener("association-changed", refresh);
+    return () => window.removeEventListener("association-changed", refresh);
+  }, [user, items.length]);
+
   if (!user) return children;
 
   return (
     <div className="app-shell">
-      <Sidebar />
+      <Sidebar myDentistId={myDentistId} />
       <div className="app-main">
         <header className="topbar">
           <Link to="/" className="topbar-brand icon">
@@ -63,7 +88,7 @@ function Shell({ children }) {
         </header>
         {children}
       </div>
-      <MobileNav role={user.role} />
+      <MobileNav role={user.role} myDentistId={myDentistId} />
     </div>
   );
 }

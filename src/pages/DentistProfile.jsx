@@ -7,6 +7,14 @@ import StarRating from "../components/StarRating";
 import SlotPicker from "../components/SlotPicker";
 import PublicTopbar from "../components/PublicTopbar";
 
+// "17:00" -> "5:00 PM" (or unchanged when show24).
+const fmtTime = (hhmm, show24) => {
+  if (show24 || !hhmm) return hhmm;
+  const [h, m] = hhmm.split(":").map(Number);
+  const ap = h < 12 ? "AM" : "PM";
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${ap}`;
+};
+
 export default function DentistProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,6 +23,7 @@ export default function DentistProfile() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [show24, setShow24] = useState(false); // clinic hours 12h (default) vs 24h
 
   // Review form (clients only)
   const [myRating, setMyRating] = useState(0);
@@ -175,11 +184,16 @@ export default function DentistProfile() {
             <SlotPicker dentistId={id} availabilityOverride={dentist.availability} readOnly />
 
             <hr className="divider" />
-            <h3 className="icon"><Icon name="schedule" size={18} /> Clinic hours</h3>
-            <div className="row gap" style={{ flexWrap: "wrap" }}>
+            <div className="row gap" style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
+              <h3 className="icon" style={{ margin: 0 }}><Icon name="schedule" size={18} /> Clinic hours</h3>
+              <button type="button" className="btn-link icon" onClick={() => setShow24((v) => !v)}>
+                <Icon name="schedule" size={16} /> {show24 ? "Show 12-hour" : "Show 24-hour"}
+              </button>
+            </div>
+            <div className="row gap" style={{ flexWrap: "wrap", marginTop: 8 }}>
               {dentist.availability.map((slot, i) => (
                 <span key={i} className="tag">
-                  {slot.day} {slot.start}–{slot.end}
+                  {slot.day} {fmtTime(slot.start, show24)}–{fmtTime(slot.end, show24)}
                 </span>
               ))}
             </div>

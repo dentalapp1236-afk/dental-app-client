@@ -67,6 +67,7 @@ export default function ClientDashboard() {
           `Request sent to Dr. ${pend.name || "your selected dentist"} — you'll be notified once they confirm.`
         );
         loadAssoc();
+        window.dispatchEvent(new Event("association-changed"));
       })
       .catch((err) =>
         setAssocNotice(err.response?.data?.message || "Could not send your association request.")
@@ -83,6 +84,8 @@ export default function ClientDashboard() {
       setShowLeave(false);
       setLeaveComment("");
       await loadAssoc();
+      await loadUpcoming();
+      window.dispatchEvent(new Event("association-changed"));
     } catch (err) {
       console.error(err);
     } finally {

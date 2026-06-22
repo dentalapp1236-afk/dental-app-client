@@ -1,13 +1,13 @@
 import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ROLE_LINKS } from "../navLinks";
+import { ROLE_LINKS, decorateClientLinks } from "../navLinks";
 import Icon from "./Icon";
 
-export default function Sidebar({ open, onNavigate }) {
+export default function Sidebar({ open, onNavigate, myDentistId }) {
   const { user } = useAuth();
   if (!user) return null;
 
-  const links = ROLE_LINKS[user.role] || [];
+  const links = decorateClientLinks(ROLE_LINKS[user.role] || [], myDentistId);
 
   return (
     <aside className={`sidebar ${open ? "open" : ""}`}>

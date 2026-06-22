@@ -1,10 +1,10 @@
 import { NavLink } from "react-router-dom";
-import { ROLE_LINKS } from "../navLinks";
+import { ROLE_LINKS, decorateClientLinks } from "../navLinks";
 import Icon from "./Icon";
 
 // Bottom tab bar shown on mobile to switch between sections.
-export default function MobileNav({ role }) {
-  const links = ROLE_LINKS[role] || [];
+export default function MobileNav({ role, myDentistId }) {
+  const links = decorateClientLinks(ROLE_LINKS[role] || [], myDentistId);
   return (
     <nav className="mobile-nav">
       {links.map((l) => (

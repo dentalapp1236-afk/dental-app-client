@@ -26,3 +26,12 @@ export const ROLE_LINKS = {
   ],
   vendor: [{ to: "/vendor", icon: "storefront", label: "My Store" }],
 };
+
+// When a patient is associated, the "Find a dentist" tab becomes "My dentist"
+// and points to their dentist's profile.
+export const decorateClientLinks = (links, myDentistId) =>
+  links.map((l) =>
+    l.to === "/find-dentist" && myDentistId
+      ? { ...l, to: `/dentists/${myDentistId}`, icon: "medical_information", label: "My dentist" }
+      : l
+  );
