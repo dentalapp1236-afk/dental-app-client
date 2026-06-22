@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
 
-// Patient "Home" tab: association status with their dentist. Appointments and
-// treatment history live in their own tabs.
+const statusLabel = (s) =>
+  s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
+
+// Patient "Home" tab: association status + upcoming appointments. Full appointment
+// and treatment history live in their own tabs.
 export default function ClientDashboard() {
   const { user } = useAuth();
   const [assoc, setAssoc] = useState(null); // { dentist, pending }
+  const [upcoming, setUpcoming] = useState([]);
   const [showLeave, setShowLeave] = useState(false);
   const [leaveRating, setLeaveRating] = useState(5);
   const [leaveComment, setLeaveComment] = useState("");
@@ -21,6 +26,21 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     loadAssoc();
+    // Upcoming = active (scheduled or pending) appointments still in the future.
+    api
+      .get("/appointments", { skipLoader: true })
+      .then((r) => {
+        const now = Date.now();
+        const list = (r.data || [])
+          .filter(
+            (a) =>
+              ["scheduled", "pending"].includes(a.status) &&
+              new Date(a.date).getTime() >= now
+          )
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        setUpcoming(list);
+      })
+      .catch(() => {});
   }, []);
 
   // If the patient arrived via the public "Associate with this clinic" flow,
@@ -125,16 +145,31 @@ export default function ClientDashboard() {
         )}
       </div>
 
-      {/* Quick links to the other tabs */}
-      {assoc?.dentist && (
-        <div className="row gap" style={{ flexWrap: "wrap" }}>
-          <Link to="/client/appointments" className="btn-secondary icon" style={{ textDecoration: "none" }}>
-            <Icon name="calendar_month" size={18} /> My appointments
-          </Link>
-          <Link to="/client/treatments" className="btn-secondary icon" style={{ textDecoration: "none" }}>
-            <Icon name="medical_services" size={18} /> My treatments
-          </Link>
-        </div>
+      {/* Upcoming appointments (active / pending only) */}
+      {upcoming.length > 0 && (
+        <section>
+          <h2 className="icon" style={{ marginBottom: 4 }}>
+            <Icon name="event_upcoming" /> Upcoming appointment{upcoming.length > 1 ? "s" : ""}
+          </h2>
+          <div className="appt-list">
+            {upcoming.map((a) => (
+              <div key={a._id} className="appt-card">
+                <div className="appt-card-head">
+                  <span className="appt-when icon">
+                    <Icon name="schedule" size={18} /> {formatDateTime(a.date)}
+                  </span>
+                  <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
+                </div>
+                <div className="appt-card-body">
+                  <span className="icon"><Icon name="person" size={16} /> Dr. {a.dentist?.name}</span>
+                  {a.reason && (
+                    <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {showLeave && (
