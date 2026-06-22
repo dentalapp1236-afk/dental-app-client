@@ -729,6 +729,21 @@ button {
 button:hover:not(:disabled) { background: var(--primary-hover); }
 button:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* Anchors styled as buttons: the base `button` rule above only targets <button>,
+   so give link-buttons the same box model (padding, radius, sizing). */
+a.btn-secondary,
+a.btn-danger,
+a.btn-danger-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .btn-secondary {
   background: var(--surface);
   color: var(--text);
