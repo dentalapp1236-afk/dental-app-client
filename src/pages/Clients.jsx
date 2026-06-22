@@ -122,6 +122,8 @@ export default function Clients() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!/^\d{11}$/.test(form.phone))
+      return setError("Phone number must be exactly 11 digits.");
     if (!editingId) {
       if (form.password.length < 8)
         return setError("Password must be at least 8 characters.");
@@ -356,7 +358,14 @@ export default function Clients() {
         <div className="grid-2">
           <label>
             <span className="lbl">Name <span className="req">*</span></span>
-            <input name="name" required value={form.name} onChange={handleChange} />
+            <input
+              name="name"
+              required
+              value={form.name}
+              onChange={(e) =>
+                setForm({ ...form, name: e.target.value.replace(/[0-9]/g, "") })
+              }
+            />
           </label>
           <label>
             <span className="lbl">Email <span className="muted">(optional)</span></span>
@@ -368,45 +377,50 @@ export default function Clients() {
               onChange={handleChange}
             />
           </label>
+        </div>
+        <label>
+          <span className="lbl">Phone <span className="req">*</span></span>
+          <input
+            name="phone"
+            type="tel"
+            inputMode="numeric"
+            maxLength={11}
+            required
+            placeholder="e.g. 03001234567"
+            value={form.phone}
+            onChange={(e) =>
+              setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })
+            }
+          />
+        </label>
+        {!editingId && (
           <label>
-            <span className="lbl">Phone <span className="req">*</span></span>
-            <input
-              name="phone"
+            <span className="lbl">Password (min 8) <span className="req">*</span></span>
+            <PasswordInput
+              name="password"
               required
-              placeholder="e.g. 03001234567"
-              value={form.phone}
+              minLength={8}
+              autoComplete="new-password"
+              defaultVisible
+              value={form.password}
               onChange={handleChange}
             />
           </label>
-          {!editingId && (
-            <label>
-              <span className="lbl">Password (min 8) <span className="req">*</span></span>
-              <PasswordInput
-                name="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                defaultVisible
-                value={form.password}
-                onChange={handleChange}
-              />
-            </label>
-          )}
-          {!editingId && (
-            <label>
-              <span className="lbl">Confirm password <span className="req">*</span></span>
-              <PasswordInput
-                name="confirmPassword"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                defaultVisible
-                value={form.confirmPassword}
-                onChange={handleChange}
-              />
-            </label>
-          )}
-        </div>
+        )}
+        {!editingId && (
+          <label>
+            <span className="lbl">Confirm password <span className="req">*</span></span>
+            <PasswordInput
+              name="confirmPassword"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              defaultVisible
+              value={form.confirmPassword}
+              onChange={handleChange}
+            />
+          </label>
+        )}
         <div className="row gap">
           <button type="submit">{editingId ? "Update" : "Add patient"}</button>
           <button type="button" className="btn-secondary" onClick={resetForm}>
