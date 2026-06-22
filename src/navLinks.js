@@ -2,8 +2,8 @@
 export const ROLE_LINKS = {
   dentist: [
     { to: "/dentist", icon: "today", label: "Today's Schedule" },
-    { to: "/clients", icon: "group", label: "Patients" },
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
+    { to: "/clients", icon: "group", label: "Patients" },
     { to: "/finances", icon: "payments", label: "Finances" },
     // Supplies temporarily hidden from the sidebar (route still exists).
     // { to: "/supplies", icon: "shopping_cart", label: "Supplies" },
@@ -13,8 +13,8 @@ export const ROLE_LINKS = {
   // Assistant: same clinic tools as the dentist, minus staff management.
   assistant: [
     { to: "/dentist", icon: "today", label: "Today's Schedule" },
-    { to: "/clients", icon: "group", label: "Patients" },
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
+    { to: "/clients", icon: "group", label: "Patients" },
     { to: "/finances", icon: "payments", label: "Finances" },
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
   ],
