@@ -325,26 +325,44 @@ export default function Appointments() {
         </label>
       </div>
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Client</th>
-            <th>Phone</th>
-            <th>Purpose</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      {visible.length === 0 ? (
+        <p className="muted">
+          {search.trim() ? "No appointments match your search." : "No appointments scheduled."}
+        </p>
+      ) : (
+        <div className="appt-list">
           {visible.map((a) => (
-            <tr key={a._id} className="row-click" onClick={() => setSelected(a)} title="View details">
-              <td>{formatDateTime(a.date)}</td>
-              <td>{a.client?.name}</td>
-              <td>{a.client?.phone || "—"}</td>
-              <td>{a.reason || "—"}</td>
-              <td><span className={`st st-${a.status}`}>{statusLabel(a.status)}</span></td>
-              <td className="row gap" style={{ justifyContent: "flex-end" }}>
+            <div
+              key={a._id}
+              className="appt-card"
+              style={{ cursor: "pointer" }}
+              onClick={() => setSelected(a)}
+              title="View details"
+            >
+              <div className="appt-card-head">
+                <span className="appt-when icon">
+                  <Icon name="schedule" size={18} /> {formatDateTime(a.date)}
+                </span>
+                <div className="row gap" style={{ flexWrap: "wrap" }}>
+                  <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
+                  {a.arrivalStatus && a.arrivalStatus !== "none" && (
+                    <span className={`clinic-badge ${a.arrivalStatus === "arrived" ? "open" : "soon"}`}>
+                      <Icon name={a.arrivalStatus === "arrived" ? "where_to_vote" : "directions_car"} size={14} />
+                      {a.arrivalStatus === "arrived" ? "Arrived" : "On the way"}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="appt-card-body">
+                <span className="icon"><Icon name="person" size={16} /> {a.client?.name}</span>
+                {a.client?.phone && (
+                  <span className="icon"><Icon name="call" size={16} /> {a.client.phone}</span>
+                )}
+                {a.reason && (
+                  <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
+                )}
+              </div>
+              <div className="row gap" style={{ flexWrap: "wrap" }}>
                 <button
                   className="btn-secondary icon"
                   onClick={(e) => { e.stopPropagation(); handleEdit(a); }}
@@ -357,20 +375,11 @@ export default function Appointments() {
                 >
                   <Icon name="delete" size={18} /> Delete
                 </button>
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
-          {visible.length === 0 && (
-            <tr>
-              <td colSpan="6" className="muted">
-                {search.trim()
-                  ? "No appointments match your search."
-                  : "No appointments scheduled."}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+        </div>
+      )}
 
       {selected && (
         <div className="modal-backdrop" onClick={() => setSelected(null)}>

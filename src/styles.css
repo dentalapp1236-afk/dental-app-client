@@ -840,6 +840,41 @@ a.btn-danger-soft {
 .appt-card-body { display: flex; flex-direction: column; gap: 6px; color: var(--text); font-size: 14px; }
 .appt-card-body .material-symbols-outlined { color: var(--muted); }
 
+/* iOS install hint on the login screen */
+.auth-ios-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--b-50);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0;
+}
+.auth-ios-hint strong { color: var(--text); }
+
+/* Period toggle (finances day/week/month/year) */
+.period-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.period-toggle button {
+  background: var(--surface);
+  color: var(--muted);
+  border: none;
+  border-radius: 0;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.period-toggle button:hover:not(:disabled) { background: var(--b-50); }
+.period-toggle button.active { background: var(--primary); color: #fff; }
+
 /* Section divider */
 .divider {
   border: none;

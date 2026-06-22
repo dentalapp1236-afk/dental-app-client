@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
-import { SkeletonTable } from "../components/Skeleton";
+import { SkeletonCards } from "../components/Skeleton";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -23,34 +23,42 @@ export default function ClientTreatments() {
       <h1 className="icon"><Icon name="medical_services" /> My treatment history</h1>
 
       {loading ? (
-        <SkeletonTable rows={5} cols={6} />
+        <SkeletonCards count={4} />
       ) : treatments.length === 0 ? (
         <p className="muted">No treatments recorded yet.</p>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Procedure</th>
-              <th>Tooth</th>
-              <th>Diagnosis</th>
-              <th>Cost</th>
-              <th>Paid</th>
-            </tr>
-          </thead>
-          <tbody>
-            {treatments.map((t) => (
-              <tr key={t._id}>
-                <td>{formatDate(t.date)}</td>
-                <td>{t.procedure}</td>
-                <td>{t.toothNumber || "—"}</td>
-                <td>{t.diagnosis || "—"}</td>
-                <td>{t.cost ? money(t.cost) : "No charge"}</td>
-                <td>{t.paid ? "Yes" : "No"}</td>
-              </tr>
+        <div className="appt-list">
+          {[...treatments]
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .map((t) => (
+              <div key={t._id} className="appt-card">
+                <div className="appt-card-head">
+                  <span className="appt-when icon">
+                    <Icon name="medical_services" size={18} /> {t.procedure}
+                  </span>
+                  {t.cost > 0 ? (
+                    <span className={`st ${t.paid ? "st-completed" : "st-pending"}`}>
+                      {t.paid ? "Paid" : "Unpaid"}
+                    </span>
+                  ) : (
+                    <span className="st st-scheduled">No charge</span>
+                  )}
+                </div>
+                <div className="appt-card-body">
+                  <span className="icon"><Icon name="event" size={16} /> {formatDate(t.date)}</span>
+                  {t.toothNumber && (
+                    <span className="icon"><Icon name="dentistry" size={16} /> Tooth {t.toothNumber}</span>
+                  )}
+                  {t.diagnosis && (
+                    <span className="icon"><Icon name="clinical_notes" size={16} /> {t.diagnosis}</span>
+                  )}
+                  {t.cost > 0 && (
+                    <span className="icon"><Icon name="payments" size={16} /> {money(t.cost)}</span>
+                  )}
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+        </div>
       )}
     </div>
   );

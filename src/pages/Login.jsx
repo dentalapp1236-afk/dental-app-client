@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
+import { usePwaInstall } from "../utils/pwaInstall";
 
 export default function Login() {
   const { login } = useAuth();
+  const { canInstall, install, iosHint } = usePwaInstall();
   const navigate = useNavigate();
   const [form, setForm] = useState({ identifier: "", password: "" });
   const [error, setError] = useState("");
@@ -106,6 +108,22 @@ export default function Login() {
         <p className="auth-alt">
           <Link to="/find-dentist">Browse dentists near you →</Link>
         </p>
+        {canInstall && (
+          <button
+            type="button"
+            className="btn-secondary icon"
+            style={{ borderColor: "var(--primary)", color: "var(--primary)", width: "100%", justifyContent: "center" }}
+            onClick={install}
+          >
+            <Icon name="install_mobile" size={18} /> Install app
+          </button>
+        )}
+        {!canInstall && iosHint && (
+          <p className="auth-ios-hint icon">
+            <Icon name="ios_share" size={18} /> To install: tap <strong>Share</strong>, then{" "}
+            <strong>Add to Home Screen</strong>.
+          </p>
+        )}
       </form>
     </div>
   );

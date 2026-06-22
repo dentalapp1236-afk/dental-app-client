@@ -11,14 +11,30 @@ export default function AppointmentActions({ appointment, onChanged }) {
   const a = appointment;
   const active = a.status === "scheduled" || a.status === "pending";
   const future = new Date(a.date) > new Date();
+  const isToday = new Date(a.date).toDateString() === new Date().toDateString();
+  // Travel buttons only for a confirmed appointment on its day.
+  const showArrival = a.status === "scheduled" && isToday;
 
   const [reschedOpen, setReschedOpen] = useState(false);
   const [reschedDate, setReschedDate] = useState(a.date);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [arrBusy, setArrBusy] = useState(false);
 
   if (!active) return null;
+
+  const sendArrival = async (status) => {
+    setArrBusy(true);
+    try {
+      await api.patch(`/appointments/${a._id}/arrival`, { status });
+      onChanged?.();
+    } catch (e2) {
+      alert(e2.response?.data?.message || "Could not update.");
+    } finally {
+      setArrBusy(false);
+    }
+  };
 
   const openReschedule = () => {
     setReschedDate(a.date);
@@ -58,6 +74,30 @@ export default function AppointmentActions({ appointment, onChanged }) {
 
   return (
     <div className="row gap" style={{ flexWrap: "wrap" }}>
+      {showArrival && a.arrivalStatus === "arrived" ? (
+        <span className="clinic-badge open">
+          <Icon name="where_to_vote" size={16} /> Marked arrived
+        </span>
+      ) : showArrival ? (
+        <>
+          <button
+            className="btn-secondary icon"
+            onClick={() => sendArrival("on_the_way")}
+            disabled={arrBusy}
+          >
+            <Icon name="directions_car" size={18} />{" "}
+            {a.arrivalStatus === "on_the_way" ? "On the way ✓" : "On my way"}
+          </button>
+          <button
+            className="btn-secondary icon"
+            style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
+            onClick={() => sendArrival("arrived")}
+            disabled={arrBusy}
+          >
+            <Icon name="where_to_vote" size={18} /> I've arrived
+          </button>
+        </>
+      ) : null}
       {future && (
         <button className="btn-secondary icon" onClick={openReschedule}>
           <Icon name="edit_calendar" size={18} /> Reschedule

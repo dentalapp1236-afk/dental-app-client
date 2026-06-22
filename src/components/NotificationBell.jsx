@@ -20,6 +20,7 @@ const routeFor = (n) => {
     case "appointment_rescheduled":
     case "appointment_requested":
     case "appointment_cancelled":
+    case "appointment_arrival":
       return "/appointments";
     case "association_approved":
     case "appointment_scheduled":

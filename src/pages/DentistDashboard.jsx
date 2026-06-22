@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
 
@@ -43,6 +44,7 @@ export default function DentistDashboard() {
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  const { items } = useNotifications();
   const today = useMemo(() => dayStr(new Date()), []);
 
   const load = useCallback(async () => {
@@ -71,6 +73,19 @@ export default function DentistDashboard() {
     const onFocus = () => load().catch(() => {});
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
+  }, [load]);
+
+  // Live updates: refetch when a notification arrives (e.g. a patient marks
+  // "on the way" / "arrived"), and poll every 15s as a fallback so the board
+  // stays current even while the dentist is watching it.
+  useEffect(() => {
+    load().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
+
+  useEffect(() => {
+    const id = setInterval(() => load().catch(() => {}), 9000);
+    return () => clearInterval(id);
   }, [load]);
 
   // Today's appointments, keyed by their slot start time (HH:mm)
@@ -181,7 +196,15 @@ export default function DentistDashboard() {
               >
                 <span className="slot-time">{fmt12(slot)}</span>
                 <span className="slot-patient">{appt.client?.name || "—"}</span>
-                <span className={`st st-${appt.status}`}>{statusLabel(appt.status)}</span>
+                <div className="row gap" style={{ flexWrap: "wrap" }}>
+                  <span className={`st st-${appt.status}`}>{statusLabel(appt.status)}</span>
+                  {appt.arrivalStatus && appt.arrivalStatus !== "none" && (
+                    <span className={`clinic-badge ${appt.arrivalStatus === "arrived" ? "open" : "soon"}`}>
+                      <Icon name={appt.arrivalStatus === "arrived" ? "where_to_vote" : "directions_car"} size={14} />
+                      {appt.arrivalStatus === "arrived" ? "Arrived" : "On the way"}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -226,6 +249,14 @@ export default function DentistDashboard() {
                 <Icon name="info" size={18} />
                 <span className={`st st-${selected.status}`}>{statusLabel(selected.status)}</span>
               </div>
+              {selected.arrivalStatus && selected.arrivalStatus !== "none" && (
+                <div className="detail-row">
+                  <Icon name={selected.arrivalStatus === "arrived" ? "where_to_vote" : "directions_car"} size={18} />
+                  <span className={`clinic-badge ${selected.arrivalStatus === "arrived" ? "open" : "soon"}`}>
+                    {selected.arrivalStatus === "arrived" ? "Patient has arrived" : "Patient is on the way"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {selected.status === "pending" ? (

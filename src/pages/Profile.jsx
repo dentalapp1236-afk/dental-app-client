@@ -12,6 +12,7 @@ export default function Profile() {
 
   const [form, setForm] = useState({
     name: user.name || "",
+    email: user.email || "",
     phone: user.phone || "",
     // client
     dateOfBirth: user.dateOfBirth ? user.dateOfBirth.substring(0, 10) : "",
@@ -84,9 +85,11 @@ export default function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.phone && !/^\d{11}$/.test(form.phone))
+      return setError("Phone number must be exactly 11 digits.");
     setSaving(true);
     try {
-      const payload = { name: form.name, phone: form.phone };
+      const payload = { name: form.name, email: form.email, phone: form.phone };
       if (user.role === "client") {
         payload.dateOfBirth = form.dateOfBirth;
         payload.address = form.address;
@@ -140,12 +143,27 @@ export default function Profile() {
             )}
           </label>
           <label>
-            Email
-            <input value={user.email} disabled />
+            Email <span className="muted">(optional)</span>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+            />
           </label>
           <label>
-            Phone
-            <input name="phone" value={form.phone} onChange={handleChange} />
+            Phone <span className="muted">(11 digits)</span>
+            <input
+              name="phone"
+              type="tel"
+              inputMode="numeric"
+              maxLength={11}
+              placeholder="e.g. 03001234567"
+              value={form.phone}
+              onChange={(e) =>
+                setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })
+              }
+            />
           </label>
           <label>
             Role

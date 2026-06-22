@@ -6,9 +6,18 @@ import { SkeletonStats, SkeletonTable } from "../components/Skeleton";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const PERIODS = [
+  { key: "day", label: "Day" },
+  { key: "week", label: "Week" },
+  { key: "month", label: "Month" },
+  { key: "year", label: "Year" },
+];
+
 export default function Finances() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState("month");
+  const [trend, setTrend] = useState([]);
 
   const load = async () => {
     const { data } = await api.get("/finances/summary");
@@ -22,6 +31,14 @@ export default function Finances() {
       setLoading(false);
     });
   }, []);
+
+  // Trend chart: refetch whenever the selected period changes.
+  useEffect(() => {
+    api
+      .get("/finances/trend", { params: { period }, skipLoader: true })
+      .then((r) => setTrend(r.data.series || []))
+      .catch(() => setTrend([]));
+  }, [period]);
 
   const markPaid = async (id) => {
     await api.put(`/treatments/${id}`, { paid: true });
@@ -38,8 +55,8 @@ export default function Finances() {
     );
   if (!data) return <div className="page"><p className="muted">Could not load finances.</p></div>;
 
-  const { totals, monthly, unpaid } = data;
-  const maxBar = Math.max(1, ...monthly.flatMap((m) => [m.income, m.expense]));
+  const { totals, unpaid } = data;
+  const maxBar = Math.max(1, ...trend.flatMap((m) => [m.income, m.expense]));
 
   return (
     <div className="page">
@@ -75,13 +92,27 @@ export default function Finances() {
         </div>
       </div>
 
-      <h2 className="icon"><Icon name="bar_chart" /> Monthly income vs. expenses</h2>
-      {monthly.length === 0 ? (
-        <p className="muted">No financial activity yet.</p>
+      <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
+        <h2 className="icon" style={{ margin: 0 }}><Icon name="bar_chart" /> Income vs. expenses</h2>
+        <div className="period-toggle">
+          {PERIODS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              className={period === p.key ? "active" : ""}
+              onClick={() => setPeriod(p.key)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {trend.every((m) => !m.income && !m.expense) ? (
+        <p className="muted">No financial activity in this period.</p>
       ) : (
         <div className="card">
           <div className="chart">
-            {monthly.map((m) => (
+            {trend.map((m) => (
               <div key={m.label} className="chart-col">
                 <div className="chart-bars">
                   <div
