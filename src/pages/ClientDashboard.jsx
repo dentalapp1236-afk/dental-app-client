@@ -166,11 +166,27 @@ export default function ClientDashboard() {
                 </div>
                 <div className="appt-card-body">
                   <span className="icon"><Icon name="person" size={16} /> Dr. {a.dentist?.name}</span>
+                  {a.dentist?.clinicName && (
+                    <span className="icon"><Icon name="apartment" size={16} /> {a.dentist.clinicName}</span>
+                  )}
                   {a.reason && (
                     <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
                   )}
                 </div>
-                <AppointmentActions appointment={a} onChanged={loadUpcoming} />
+                <div className="row gap" style={{ flexWrap: "wrap" }}>
+                  {a.dentist?.location?.coordinates?.length === 2 && (
+                    <a
+                      className="btn-secondary icon"
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${a.dentist.location.coordinates[1]},${a.dentist.location.coordinates[0]}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Icon name="directions" size={18} /> Directions
+                    </a>
+                  )}
+                  <AppointmentActions appointment={a} onChanged={loadUpcoming} />
+                </div>
               </div>
             ))}
           </div>

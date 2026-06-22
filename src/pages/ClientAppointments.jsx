@@ -67,16 +67,27 @@ export default function ClientAppointments() {
     }
   };
 
+  // Already has an active appointment still in the future? Then no new request.
+  const hasUpcoming = appointments.some(
+    (a) => ["scheduled", "pending"].includes(a.status) && new Date(a.date) > new Date()
+  );
+
   return (
     <div className="page">
       <div className="page-head">
         <h1 className="icon"><Icon name="calendar_month" /> My appointments</h1>
-        {assoc?.dentist && (
+        {assoc?.dentist && !hasUpcoming && (
           <button className="icon" onClick={openRequest}>
             <Icon name="event" size={18} /> Request appointment
           </button>
         )}
       </div>
+
+      {assoc?.dentist && hasUpcoming && (
+        <p className="muted" style={{ marginTop: -4 }}>
+          You already have an upcoming appointment. You can request a new one after it's completed.
+        </p>
+      )}
 
       {reqSent && (
         <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
