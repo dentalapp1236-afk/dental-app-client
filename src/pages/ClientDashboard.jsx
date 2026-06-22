@@ -126,7 +126,7 @@ export default function ClientDashboard() {
               <Link
                 to={`/dentists/${assoc.dentist._id}`}
                 className="btn-secondary icon"
-                style={{ textDecoration: "none" }}
+                style={{ textDecoration: "none", borderColor: "var(--primary)", color: "var(--primary)" }}
               >
                 <Icon name="info" size={18} /> View details
               </Link>
@@ -180,7 +180,7 @@ export default function ClientDashboard() {
                       href={`https://www.google.com/maps/dir/?api=1&destination=${a.dentist.location.coordinates[1]},${a.dentist.location.coordinates[0]}`}
                       target="_blank"
                       rel="noreferrer"
-                      style={{ textDecoration: "none" }}
+                      style={{ textDecoration: "none", borderColor: "var(--primary)", color: "var(--primary)" }}
                     >
                       <Icon name="directions" size={18} /> Directions
                     </a>
