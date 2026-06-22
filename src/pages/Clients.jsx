@@ -6,13 +6,14 @@ import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import { useNotifications } from "../context/NotificationsContext";
 
+// New patients get a default password the dentist can share; they change it later.
+const DEFAULT_PASSWORD = "123456789";
 const empty = {
   name: "",
   email: "",
-  password: "",
-  confirmPassword: "",
+  password: DEFAULT_PASSWORD,
+  confirmPassword: DEFAULT_PASSWORD,
   phone: "",
-  dateOfBirth: "",
 };
 
 export default function Clients() {
@@ -121,8 +122,6 @@ export default function Clients() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (form.dateOfBirth && form.dateOfBirth > new Date().toISOString().slice(0, 10))
-      return setError("Date of birth cannot be in the future.");
     if (!editingId) {
       if (form.password.length < 8)
         return setError("Password must be at least 8 characters.");
@@ -154,7 +153,6 @@ export default function Clients() {
       password: "",
       confirmPassword: "",
       phone: c.phone || "",
-      dateOfBirth: c.dateOfBirth ? c.dateOfBirth.substring(0, 10) : "",
     });
   };
 
@@ -380,16 +378,6 @@ export default function Clients() {
               onChange={handleChange}
             />
           </label>
-          <label>
-            Date of birth
-            <input
-              type="date"
-              name="dateOfBirth"
-              max={new Date().toISOString().slice(0, 10)}
-              value={form.dateOfBirth}
-              onChange={handleChange}
-            />
-          </label>
           {!editingId && (
             <label>
               <span className="lbl">Password (min 8) <span className="req">*</span></span>
@@ -398,6 +386,7 @@ export default function Clients() {
                 required
                 minLength={8}
                 autoComplete="new-password"
+                defaultVisible
                 value={form.password}
                 onChange={handleChange}
               />
@@ -411,6 +400,7 @@ export default function Clients() {
                 required
                 minLength={8}
                 autoComplete="new-password"
+                defaultVisible
                 value={form.confirmPassword}
                 onChange={handleChange}
               />
