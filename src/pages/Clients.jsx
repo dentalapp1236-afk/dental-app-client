@@ -428,30 +428,31 @@ export default function Clients() {
       </div>
       )}
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>DOB</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      {clients.length === 0 ? (
+        <p className="muted">No patients yet.</p>
+      ) : (
+        <div className="appt-list">
           {clients.map((c) => (
-            <tr
+            <div
               key={c._id}
-              className="row-click"
+              className="appt-card"
+              style={{ cursor: "pointer" }}
               onClick={() => navigate(`/clients/${c._id}`)}
+              title="View patient record"
             >
-              <td>{c.name}</td>
-              <td>{c.email || "—"}</td>
-              <td>{c.phone || "—"}</td>
-              <td>
-                {c.dateOfBirth ? formatDate(c.dateOfBirth) : "—"}
-              </td>
-              <td className="row gap" style={{ justifyContent: "flex-end" }}>
+              <div className="appt-card-head">
+                <span className="appt-when icon">
+                  <Icon name="person" size={18} /> {c.name}
+                </span>
+              </div>
+              <div className="appt-card-body">
+                {c.phone && <span className="icon"><Icon name="call" size={16} /> {c.phone}</span>}
+                {c.email && <span className="icon"><Icon name="mail" size={16} /> {c.email}</span>}
+                {c.dateOfBirth && (
+                  <span className="icon"><Icon name="cake" size={16} /> {formatDate(c.dateOfBirth)}</span>
+                )}
+              </div>
+              <div className="row gap" style={{ flexWrap: "wrap" }}>
                 <button
                   className="btn-secondary icon"
                   onClick={(e) => { e.stopPropagation(); navigate(`/clients/${c._id}`); }}
@@ -477,18 +478,11 @@ export default function Clients() {
                 >
                   <Icon name="delete" size={18} /> Delete
                 </button>
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
-          {clients.length === 0 && (
-            <tr>
-              <td colSpan="5" className="muted">
-                No patients yet.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+        </div>
+      )}
     </div>
   );
 }
