@@ -1,119 +1,30 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
-import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
-import SlotPicker from "../components/SlotPicker";
-import { SkeletonTable } from "../components/Skeleton";
 
-const statusLabel = (s) =>
-  s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
-
+// Patient "Home" tab: association status with their dentist. Appointments and
+// treatment history live in their own tabs.
 export default function ClientDashboard() {
   const { user } = useAuth();
-  const [appointments, setAppointments] = useState([]);
-  const [treatments, setTreatments] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Association
   const [assoc, setAssoc] = useState(null); // { dentist, pending }
   const [showLeave, setShowLeave] = useState(false);
   const [leaveRating, setLeaveRating] = useState(5);
   const [leaveComment, setLeaveComment] = useState("");
   const [leaving, setLeaving] = useState(false);
+  const [assocNotice, setAssocNotice] = useState("");
 
-  // Reschedule
-  const [reschedTarget, setReschedTarget] = useState(null);
-  const [reschedDate, setReschedDate] = useState("");
-  const [reschedError, setReschedError] = useState("");
-  const [reschedBusy, setReschedBusy] = useState(false);
-
-  // Request a new appointment
-  const [showRequest, setShowRequest] = useState(false);
-  const [reqDate, setReqDate] = useState("");
-  const [reqReason, setReqReason] = useState("");
-  const [reqError, setReqError] = useState("");
-  const [reqBusy, setReqBusy] = useState(false);
-  const [reqSent, setReqSent] = useState(false);
-
-  const loadAppointments = () =>
-    api.get("/appointments").then((r) => setAppointments(r.data)).catch(() => {});
   const loadAssoc = () =>
     api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
 
-  const openReschedule = (a) => {
-    setReschedTarget(a);
-    setReschedDate(a.date); // ISO; SlotPicker derives day + slot
-    setReschedError("");
-  };
-
-  const openRequest = () => {
-    setReqDate("");
-    setReqReason("");
-    setReqError("");
-    setReqSent(false);
-    setShowRequest(true);
-  };
-
-  const submitRequest = async (e) => {
-    e.preventDefault();
-    setReqError("");
-    if (!reqDate) return setReqError("Please pick a time slot.");
-    setReqBusy(true);
-    try {
-      await api.post("/appointments/request", { date: reqDate, reason: reqReason });
-      setShowRequest(false);
-      setReqSent(true);
-      await loadAppointments();
-    } catch (err) {
-      setReqError(err.response?.data?.message || "Could not send request.");
-    } finally {
-      setReqBusy(false);
-    }
-  };
-
-  const submitReschedule = async (e) => {
-    e.preventDefault();
-    if (!reschedDate) return setReschedError("Pick a new date and time.");
-    if (new Date(reschedDate).getTime() < Date.now())
-      return setReschedError("Appointment cannot be in the past.");
-    setReschedBusy(true);
-    try {
-      await api.patch(`/appointments/${reschedTarget._id}/reschedule`, {
-        date: reschedDate, // already an ISO instant from the slot picker
-      });
-      setReschedTarget(null);
-      await loadAppointments();
-    } catch (err) {
-      setReschedError(err.response?.data?.message || "Could not reschedule.");
-    } finally {
-      setReschedBusy(false);
-    }
-  };
-
   useEffect(() => {
-    (async () => {
-      try {
-        const [a, t] = await Promise.all([
-          api.get("/appointments"),
-          api.get("/treatments"),
-        ]);
-        setAppointments(a.data);
-        setTreatments(t.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    })();
     loadAssoc();
   }, []);
 
-  // If the patient arrived here via the public "Associate with this clinic" flow,
+  // If the patient arrived via the public "Associate with this clinic" flow,
   // send the association request now that they're signed in.
-  const [assocNotice, setAssocNotice] = useState("");
   useEffect(() => {
     const raw = sessionStorage.getItem("pendingAssociation");
     if (!raw) return;
@@ -154,17 +65,6 @@ export default function ClientDashboard() {
       setLeaving(false);
     }
   };
-
-  if (loading)
-    return (
-      <div className="page">
-        <h1 className="icon"><Icon name="waving_hand" /> Hello, {user.name}</h1>
-        <h2 className="icon"><Icon name="calendar_month" /> My appointments</h2>
-        <SkeletonTable rows={4} cols={5} />
-        <h2 className="icon"><Icon name="medical_services" /> My treatment history</h2>
-        <SkeletonTable rows={4} cols={6} />
-      </div>
-    );
 
   return (
     <div className="page">
@@ -225,6 +125,18 @@ export default function ClientDashboard() {
         )}
       </div>
 
+      {/* Quick links to the other tabs */}
+      {assoc?.dentist && (
+        <div className="row gap" style={{ flexWrap: "wrap" }}>
+          <Link to="/client/appointments" className="btn-secondary icon" style={{ textDecoration: "none" }}>
+            <Icon name="calendar_month" size={18} /> My appointments
+          </Link>
+          <Link to="/client/treatments" className="btn-secondary icon" style={{ textDecoration: "none" }}>
+            <Icon name="medical_services" size={18} /> My treatments
+          </Link>
+        </div>
+      )}
+
       {showLeave && (
         <div className="modal-backdrop" onClick={() => setShowLeave(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -250,162 +162,6 @@ export default function ClientDashboard() {
           </div>
         </div>
       )}
-
-      {reschedTarget && (
-        <div className="modal-backdrop" onClick={() => setReschedTarget(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={submitReschedule} style={{ display: "contents" }}>
-              <h3 className="icon"><Icon name="edit_calendar" size={18} /> Reschedule appointment</h3>
-              <p className="muted" style={{ margin: 0 }}>
-                {reschedTarget.reason} with Dr. {reschedTarget.dentist?.name} — currently{" "}
-                {formatDateTime(reschedTarget.date)}
-              </p>
-              {reschedError && <div className="error">{reschedError}</div>}
-              <SlotPicker
-                value={reschedDate}
-                excludeId={reschedTarget._id}
-                onChange={(iso) => setReschedDate(iso)}
-              />
-              <div className="row gap">
-                <button type="submit" className="icon" disabled={reschedBusy}>
-                  <Icon name="check" size={18} /> {reschedBusy ? "Saving…" : "Confirm reschedule"}
-                </button>
-                <button type="button" className="btn-secondary" onClick={() => setReschedTarget(null)}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showRequest && (
-        <div className="modal-backdrop" onClick={() => setShowRequest(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={submitRequest} style={{ display: "contents" }}>
-              <div className="modal-head">
-                <h3 className="icon">
-                  <Icon name="event" size={18} /> Request an appointment
-                </h3>
-                <button type="button" className="modal-close" aria-label="Close" onClick={() => setShowRequest(false)}>
-                  <Icon name="close" />
-                </button>
-              </div>
-              <p className="muted" style={{ margin: 0 }}>
-                Pick an available slot with Dr. {assoc?.dentist?.name}. They'll confirm your request.
-              </p>
-              {reqError && <div className="error">{reqError}</div>}
-              <label>
-                <span className="lbl">Purpose <span className="muted">(optional)</span></span>
-                <input
-                  placeholder="e.g. Checkup, Toothache"
-                  value={reqReason}
-                  onChange={(e) => setReqReason(e.target.value)}
-                />
-              </label>
-              <SlotPicker value={reqDate} onChange={(iso) => setReqDate(iso)} />
-              <div className="row gap">
-                <button type="submit" className="icon" disabled={reqBusy}>
-                  <Icon name="schedule_send" size={18} /> {reqBusy ? "Sending…" : "Send request"}
-                </button>
-                <button type="button" className="btn-secondary" onClick={() => setShowRequest(false)}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <section>
-        <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
-          <h2 className="icon" style={{ margin: 0 }}>
-            <Icon name="calendar_month" /> My appointments
-          </h2>
-          {assoc?.dentist && (
-            <button className="icon" onClick={openRequest}>
-              <Icon name="event" size={18} /> Request appointment
-            </button>
-          )}
-        </div>
-
-        {reqSent && (
-          <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
-            <p className="icon" style={{ margin: 0 }}>
-              <Icon name="schedule_send" size={18} /> Request sent — you'll be notified once your dentist confirms.
-            </p>
-          </div>
-        )}
-
-        {appointments.length === 0 ? (
-          <p className="muted">No appointments yet.</p>
-        ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Dentist</th>
-                <th>Purpose</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((a) => (
-                <tr key={a._id}>
-                  <td>{formatDateTime(a.date)}</td>
-                  <td>{a.dentist?.name}</td>
-                  <td>{a.reason || "—"}</td>
-                  <td><span className={`st st-${a.status}`}>{statusLabel(a.status)}</span></td>
-                  <td>{a.notes || "—"}</td>
-                  <td className="row gap" style={{ justifyContent: "flex-end" }}>
-                    {a.status === "scheduled" && new Date(a.date) > new Date() && (
-                      <button className="btn-secondary icon" onClick={() => openReschedule(a)}>
-                        <Icon name="edit_calendar" size={18} /> Reschedule
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
-
-      <section>
-        <h2 className="icon">
-          <Icon name="medical_services" /> My treatment history
-        </h2>
-        {treatments.length === 0 ? (
-          <p className="muted">No treatments recorded.</p>
-        ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Procedure</th>
-                <th>Tooth</th>
-                <th>Diagnosis</th>
-                <th>Cost</th>
-                <th>Paid</th>
-              </tr>
-            </thead>
-            <tbody>
-              {treatments.map((t) => (
-                <tr key={t._id}>
-                  <td>{formatDate(t.date)}</td>
-                  <td>{t.procedure}</td>
-                  <td>{t.toothNumber || "—"}</td>
-                  <td>{t.diagnosis || "—"}</td>
-                  <td>{t.cost}</td>
-                  <td>{t.paid ? "Yes" : "No"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
     </div>
   );
 }

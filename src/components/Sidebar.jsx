@@ -20,7 +20,13 @@ export default function Sidebar({ open, onNavigate }) {
 
       <nav className="sidebar-nav">
         {links.map((l) => (
-          <NavLink key={l.to} to={l.to} className="sidebar-link" onClick={onNavigate}>
+          <NavLink
+            key={l.to}
+            to={l.to}
+            end={links.some((o) => o.to !== l.to && o.to.startsWith(`${l.to}/`))}
+            className="sidebar-link"
+            onClick={onNavigate}
+          >
             <Icon name={l.icon} />
             <span>{l.label}</span>
           </NavLink>

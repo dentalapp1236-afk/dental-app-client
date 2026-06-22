@@ -781,6 +781,35 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .input-prefix input:focus { outline: none; box-shadow: none; }
 
+/* Patient appointment cards (mobile-friendly, no horizontal scroll) */
+.appt-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.appt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.appt-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.appt-when { font-weight: 600; color: var(--heading); font-size: 14px; }
+.appt-card-body { display: flex; flex-direction: column; gap: 6px; color: var(--text); font-size: 14px; }
+.appt-card-body .material-symbols-outlined { color: var(--muted); }
+
 /* Section divider */
 .divider {
   border: none;

@@ -19,7 +19,9 @@ export const ROLE_LINKS = {
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
   ],
   client: [
-    { to: "/client", icon: "dashboard", label: "Dashboard" },
+    { to: "/client", icon: "home", label: "Home" },
+    { to: "/client/appointments", icon: "calendar_month", label: "Appointments" },
+    { to: "/client/treatments", icon: "medical_services", label: "Treatments" },
     { to: "/find-dentist", icon: "person_search", label: "Find a dentist" },
   ],
   vendor: [{ to: "/vendor", icon: "storefront", label: "My Store" }],

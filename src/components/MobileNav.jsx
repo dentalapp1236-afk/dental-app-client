@@ -8,7 +8,12 @@ export default function MobileNav({ role }) {
   return (
     <nav className="mobile-nav">
       {links.map((l) => (
-        <NavLink key={l.to} to={l.to} className="mobile-nav-item">
+        <NavLink
+          key={l.to}
+          to={l.to}
+          end={links.some((o) => o.to !== l.to && o.to.startsWith(`${l.to}/`))}
+          className="mobile-nav-item"
+        >
           <Icon name={l.icon} />
           <span>{l.label}</span>
         </NavLink>
