@@ -319,9 +319,9 @@ export default function Appointments() {
         <label className="sort-label">
           <Icon name="sort" size={18} />
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="date-asc">Date (oldest first)</option>
-            <option value="date-desc">Date (newest first)</option>
-            <option value="created-desc">Newest added</option>
+            <option value="date-asc">Appointment date (ascending)</option>
+            <option value="date-desc">Appointment date (descending)</option>
+            <option value="created-desc">Latest added</option>
             <option value="name">Client name (A–Z)</option>
             <option value="status">Status</option>
           </select>
