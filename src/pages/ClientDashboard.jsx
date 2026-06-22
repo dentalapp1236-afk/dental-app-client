@@ -10,6 +10,38 @@ import AppointmentActions from "../components/AppointmentActions";
 const statusLabel = (s) =>
   s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
 
+const WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const toMin = (s) => {
+  const [h, m] = String(s).split(":").map(Number);
+  return h * 60 + (m || 0);
+};
+const fmt12 = (s) => {
+  const [h, m] = String(s).split(":").map(Number);
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+
+// Live open/closed status for a clinic, from its per-day availability.
+// green = open now, yellow = opens later today, red = closed.
+const clinicStatus = (availability) => {
+  if (!availability?.length) return null;
+  const now = new Date();
+  const entry = availability.find((a) => a.day === WEEK[now.getDay()]);
+  if (!entry || !entry.start || !entry.end)
+    return { kind: "closed", icon: "block", text: "Closed today" };
+  const start = toMin(entry.start);
+  const end = toMin(entry.end);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  if (nowMin >= end) return { kind: "closed", icon: "block", text: "Closed for today" };
+  if (nowMin < start) {
+    const diff = start - nowMin;
+    const h = Math.floor(diff / 60);
+    const m = diff % 60;
+    const inText = h > 0 ? `${h}h${m ? ` ${m}m` : ""}` : `${m}m`;
+    return { kind: "soon", icon: "schedule", text: `Opens in ${inText} (${fmt12(entry.start)})` };
+  }
+  return { kind: "open", icon: "check_circle", text: `Open now · closes ${fmt12(entry.end)}` };
+};
+
 // Patient "Home" tab: association status + upcoming appointments. Full appointment
 // and treatment history live in their own tabs.
 export default function ClientDashboard() {
@@ -116,6 +148,16 @@ export default function ClientDashboard() {
               {assoc.dentist.specialization && (
                 <div className="muted" style={{ fontSize: 13 }}>{assoc.dentist.specialization}</div>
               )}
+              {(() => {
+                const st = clinicStatus(assoc.dentist.availability);
+                return st ? (
+                  <div style={{ marginTop: 6 }}>
+                    <span className={`clinic-badge ${st.kind}`}>
+                      <Icon name={st.icon} size={16} /> {st.text}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
               {assoc.dentist.reviewCount > 0 && (
                 <div className="row gap" style={{ alignItems: "center", marginTop: 4 }}>
                   <StarRating value={assoc.dentist.rating || 0} size={16} />
