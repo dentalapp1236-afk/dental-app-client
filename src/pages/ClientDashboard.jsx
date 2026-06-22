@@ -5,6 +5,7 @@ import { formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import StarRating from "../components/StarRating";
+import AppointmentActions from "../components/AppointmentActions";
 
 const statusLabel = (s) =>
   s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
@@ -24,9 +25,8 @@ export default function ClientDashboard() {
   const loadAssoc = () =>
     api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
 
-  useEffect(() => {
-    loadAssoc();
-    // Upcoming = active (scheduled or pending) appointments still in the future.
+  // Upcoming = active (scheduled or pending) appointments still in the future.
+  const loadUpcoming = () =>
     api
       .get("/appointments", { skipLoader: true })
       .then((r) => {
@@ -41,6 +41,10 @@ export default function ClientDashboard() {
         setUpcoming(list);
       })
       .catch(() => {});
+
+  useEffect(() => {
+    loadAssoc();
+    loadUpcoming();
   }, []);
 
   // If the patient arrived via the public "Associate with this clinic" flow,
@@ -166,6 +170,7 @@ export default function ClientDashboard() {
                     <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
                   )}
                 </div>
+                <AppointmentActions appointment={a} onChanged={loadUpcoming} />
               </div>
             ))}
           </div>
