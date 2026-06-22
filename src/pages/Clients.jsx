@@ -361,9 +361,14 @@ export default function Clients() {
             <input
               name="name"
               required
+              autoCapitalize="words"
               value={form.name}
               onChange={(e) =>
-                setForm({ ...form, name: e.target.value.replace(/[0-9]/g, "") })
+                setForm({
+                  ...form,
+                  // digits removed; first letter of every word capitalized
+                  name: e.target.value.replace(/[0-9]/g, "").replace(/\b\p{L}/gu, (ch) => ch.toUpperCase()),
+                })
               }
             />
           </label>
