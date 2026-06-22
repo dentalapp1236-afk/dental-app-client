@@ -18,7 +18,7 @@ export default function Appointments() {
   const [showForm, setShowForm] = useState(false);
   const [scheduled, setScheduled] = useState(null); // { shareMessage, whatsappUrl } after creating
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("date-desc");
+  const [sortBy, setSortBy] = useState("date-asc");
   const [selected, setSelected] = useState(null);
   const { items, refresh: refreshNotifications } = useNotifications();
   const navigate = useNavigate();
@@ -151,15 +151,17 @@ export default function Appointments() {
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case "date-asc":
-          return new Date(a.date) - new Date(b.date);
+        case "date-desc":
+          return new Date(b.date) - new Date(a.date);
+        case "created-desc":
+          return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
         case "name":
           return (a.client?.name || "").localeCompare(b.client?.name || "");
         case "status":
           return (a.status || "").localeCompare(b.status || "");
-        case "date-desc":
+        case "date-asc":
         default:
-          return new Date(b.date) - new Date(a.date);
+          return new Date(a.date) - new Date(b.date);
       }
     });
 
@@ -317,8 +319,9 @@ export default function Appointments() {
         <label className="sort-label">
           <Icon name="sort" size={18} />
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="date-desc">Date (newest first)</option>
             <option value="date-asc">Date (oldest first)</option>
+            <option value="date-desc">Date (newest first)</option>
+            <option value="created-desc">Newest added</option>
             <option value="name">Client name (A–Z)</option>
             <option value="status">Status</option>
           </select>
