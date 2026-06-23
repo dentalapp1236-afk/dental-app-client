@@ -65,7 +65,12 @@ export default function Finances() {
         </button>
         <span className="period-label">
           {data ? data.label : "…"}
-          {offset === 0 && <span className="muted"> · current</span>}
+          {offset === 0 && (
+            <span className="muted">
+              {" · "}
+              {period === "day" ? "today" : period === "week" ? "this week" : period === "month" ? "this month" : "this year"}
+            </span>
+          )}
         </span>
         <button
           type="button"

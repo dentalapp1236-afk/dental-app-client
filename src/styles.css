@@ -760,7 +760,7 @@ a.btn-danger-soft {
   color: var(--danger);
   border: 1px solid var(--danger);
 }
-.btn-danger-soft:hover { background: var(--danger); color: #fff !important; }
+.btn-danger-soft:hover:not(:disabled) { background: var(--danger) !important; color: #fff !important; }
 
 .btn-link {
   background: transparent;
@@ -878,7 +878,7 @@ a.btn-danger-soft {
   box-shadow: 0 1px 3px rgba(31, 45, 61, 0.05);
   transition: box-shadow 0.15s, transform 0.05s;
 }
-.fin-card:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(31, 45, 61, 0.12); }
+.fin-card:hover:not(:disabled) { background: var(--surface); box-shadow: 0 6px 18px rgba(31, 45, 61, 0.12); }
 .fin-card:active:not(:disabled) { transform: translateY(1px); }
 .fin-card:disabled { opacity: 0.7; cursor: default; }
 .fin-card .material-symbols-outlined { color: var(--muted); }
@@ -943,6 +943,7 @@ a.btn-danger-soft {
   border-radius: 999px;
   padding: 6px;
 }
+.period-nav button:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
 .period-nav button:disabled { opacity: 0.4; }
 .period-label { font-weight: 700; font-size: 15px; color: var(--heading); text-align: center; }
 .period-figures {
@@ -980,8 +981,9 @@ a.btn-danger-soft {
   font-size: 13px;
   font-weight: 600;
 }
-.period-toggle button:hover:not(:disabled) { background: var(--b-50); }
+.period-toggle button:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
 .period-toggle button.active { background: var(--primary); color: #fff; }
+.period-toggle button.active:hover:not(:disabled) { background: var(--primary-hover); color: #fff; }
 
 /* Section divider */
 .divider {
