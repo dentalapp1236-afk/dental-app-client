@@ -542,15 +542,18 @@ export default function ClientLedger() {
                       onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
                       onChange={treatChange}
                     />
-                    {Number(treatForm.upfront) > 0 && (
-                      <>
-                        <span className="lbl" style={{ marginTop: 6 }}>Paid via <span className="req">*</span></span>
-                        <MethodToggle
-                          value={treatForm.upfrontMethod}
-                          onChange={(m) => setTreatForm({ ...treatForm, upfrontMethod: m })}
-                        />
-                      </>
-                    )}
+                  </label>
+                )}
+                {!editingTreatId && (
+                  <label>
+                    <span className="lbl">
+                      Payment method {Number(treatForm.upfront) > 0 && <span className="req">*</span>}
+                    </span>
+                    <MethodToggle
+                      value={treatForm.upfrontMethod}
+                      onChange={(m) => setTreatForm({ ...treatForm, upfrontMethod: m })}
+                    />
+                    <span className="muted" style={{ fontSize: 12 }}>How the upfront payment was collected.</span>
                   </label>
                 )}
                 <label>
