@@ -114,6 +114,14 @@ export default function Finances() {
               </button>
             </div>
 
+            <div className="fin-detail-total">
+              <span className="muted">
+                Total {detail} · {data[detail].items.length}{" "}
+                {data[detail].items.length === 1 ? "entry" : "entries"}
+              </span>
+              <strong>{money(data[detail].total)}</strong>
+            </div>
+
             {data[detail].items.length === 0 ? (
               <p className="muted">Nothing in this period.</p>
             ) : (
@@ -121,47 +129,53 @@ export default function Finances() {
                 {detail === "collected" &&
                   data.collected.items.map((it, i) => (
                     <div key={i} className="fin-detail-row">
-                      <div>
-                        <strong>{money(it.amount)}</strong>
-                        <div className="muted" style={{ fontSize: 13 }}>
-                          {formatDate(it.date)} · {it.client || "—"}
-                          {it.procedure ? ` · ${it.procedure}` : ""}
-                          {it.note ? ` · ${it.note}` : ""}
+                      <div className="fin-detail-main">
+                        <strong>{it.client || "Patient"}</strong>
+                        {it.procedure && <span className="muted"> · {it.procedure}</span>}
+                        <div className="fin-detail-sub muted">
+                          {formatDate(it.date)}{it.note ? ` · ${it.note}` : ""}
                         </div>
                       </div>
-                      {it.method && (
-                        <span className="tag">{it.method === "online" ? "Online" : "Cash"}</span>
-                      )}
+                      <div className="fin-detail-right">
+                        <span className="fin-amt earned">{money(it.amount)}</span>
+                        <span className={`tag ${it.method === "online" ? "tag-online" : "tag-cash"}`}>
+                          {it.method === "online" ? "Online" : it.method === "cash" ? "Cash" : "—"}
+                        </span>
+                      </div>
                     </div>
                   ))}
 
                 {detail === "expenses" &&
                   data.expenses.items.map((it, i) => (
                     <div key={i} className="fin-detail-row">
-                      <div>
-                        <strong>{money(it.amount)}</strong>
-                        <div className="muted" style={{ fontSize: 13 }}>
-                          {formatDate(it.date)} · {it.title}
-                          {it.category ? ` · ${it.category}` : ""}
-                        </div>
+                      <div className="fin-detail-main">
+                        <strong>{it.title}</strong>
+                        {it.category && <span className="muted"> · {it.category}</span>}
+                        <div className="fin-detail-sub muted">{formatDate(it.date)}</div>
                       </div>
-                      <span className="tag">{it.kind === "supply" ? "Supplies" : "Maintenance"}</span>
+                      <div className="fin-detail-right">
+                        <span className="fin-amt spent">{money(it.amount)}</span>
+                        <span className="tag">{it.kind === "supply" ? "Supplies" : "Maintenance"}</span>
+                      </div>
                     </div>
                   ))}
 
                 {detail === "outstanding" &&
                   data.outstanding.items.map((it) => (
                     <div key={it._id} className="fin-detail-row">
-                      <div>
-                        <strong>{money(it.balance)}</strong> <span className="muted">of {money(it.cost)}</span>
-                        <div className="muted" style={{ fontSize: 13 }}>
-                          {formatDate(it.date)} · {it.client || "—"}
-                          {it.procedure ? ` · ${it.procedure}` : ""}
+                      <div className="fin-detail-main">
+                        <strong>{it.client || "Patient"}</strong>
+                        {it.procedure && <span className="muted"> · {it.procedure}</span>}
+                        <div className="fin-detail-sub muted">
+                          {formatDate(it.date)} · balance {money(it.balance)} of {money(it.cost)}
                         </div>
                       </div>
-                      <button className="btn-secondary icon" onClick={() => markPaid(it._id)}>
-                        <Icon name="check_circle" size={18} /> Mark paid
-                      </button>
+                      <div className="fin-detail-right">
+                        <span className="fin-amt pending">{money(it.balance)}</span>
+                        <button className="btn-secondary icon" onClick={() => markPaid(it._id)}>
+                          <Icon name="check_circle" size={18} /> Mark paid
+                        </button>
+                      </div>
                     </div>
                   ))}
               </div>
