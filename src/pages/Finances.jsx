@@ -19,6 +19,18 @@ export default function Finances() {
   const [period, setPeriod] = useState("month");
   const [trend, setTrend] = useState([]);
 
+  // Navigable single-period earnings vs expenses
+  const [sumPeriod, setSumPeriod] = useState("day");
+  const [sumOffset, setSumOffset] = useState(0);
+  const [summary, setSummary] = useState(null);
+
+  useEffect(() => {
+    api
+      .get("/finances/period", { params: { period: sumPeriod, offset: sumOffset }, skipLoader: true })
+      .then((r) => setSummary(r.data))
+      .catch(() => setSummary(null));
+  }, [sumPeriod, sumOffset]);
+
   const load = async () => {
     const { data } = await api.get("/finances/summary");
     setData(data);
@@ -89,6 +101,60 @@ export default function Finances() {
           <Icon name="trending_up" size={26} className="stat-icon" />
           <div className="stat-value">{money(totals.net)}</div>
           <div className="stat-label">Net (collected − expenses)</div>
+        </div>
+      </div>
+
+      {/* Navigable per-period earnings vs expenses */}
+      <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center", marginTop: 8 }}>
+        <h2 className="icon" style={{ margin: 0 }}><Icon name="query_stats" /> Earnings &amp; expenses</h2>
+        <div className="period-toggle">
+          {PERIODS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              className={sumPeriod === p.key ? "active" : ""}
+              onClick={() => { setSumPeriod(p.key); setSumOffset(0); }}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="card period-card">
+        <div className="period-nav">
+          <button type="button" className="icon" aria-label="Previous" onClick={() => setSumOffset((o) => o + 1)}>
+            <Icon name="chevron_left" />
+          </button>
+          <span className="period-label">
+            {summary ? summary.label : "…"}
+            {sumOffset === 0 && <span className="muted"> · current</span>}
+          </span>
+          <button
+            type="button"
+            className="icon"
+            aria-label="Next"
+            disabled={sumOffset === 0}
+            onClick={() => setSumOffset((o) => Math.max(0, o - 1))}
+          >
+            <Icon name="chevron_right" />
+          </button>
+        </div>
+        <div className="period-figures">
+          <div className="period-fig earned">
+            <Icon name="payments" size={22} />
+            <div className="period-fig-value">{money(summary?.income || 0)}</div>
+            <div className="period-fig-label">Earned</div>
+          </div>
+          <div className="period-fig spent">
+            <Icon name="shopping_cart_checkout" size={22} />
+            <div className="period-fig-value">{money(summary?.expense || 0)}</div>
+            <div className="period-fig-label">Expenses</div>
+          </div>
+          <div className="period-fig net">
+            <Icon name="trending_up" size={22} />
+            <div className="period-fig-value">{money(summary?.net || 0)}</div>
+            <div className="period-fig-label">Net</div>
+          </div>
         </div>
       </div>
 
