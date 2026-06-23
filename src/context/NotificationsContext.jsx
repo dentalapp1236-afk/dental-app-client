@@ -91,14 +91,16 @@ export const NotificationsProvider = ({ children }) => {
   };
 
   const markAllRead = async () => {
+    // Update the UI immediately so the bell badge clears instantly…
+    setItems((prev) => prev.map((i) => ({ ...i, read: true })));
+    setUnreadCount(0);
+    prevUnread.current = 0;
+    // …then persist (the next poll will reconcile if this fails).
     try {
       await api.post("/notifications/read-all", null, { skipLoader: true });
     } catch {
       /* ignore */
     }
-    setItems((prev) => prev.map((i) => ({ ...i, read: true })));
-    setUnreadCount(0);
-    prevUnread.current = 0;
   };
 
   const markRead = async (id) => {
