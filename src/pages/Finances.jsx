@@ -129,6 +129,9 @@ export default function Finances() {
                           {it.note ? ` · ${it.note}` : ""}
                         </div>
                       </div>
+                      {it.method && (
+                        <span className="tag">{it.method === "online" ? "Online" : "Cash"}</span>
+                      )}
                     </div>
                   ))}
 

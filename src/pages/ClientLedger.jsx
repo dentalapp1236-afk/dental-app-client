@@ -9,6 +9,27 @@ import { SkeletonTable } from "../components/Skeleton";
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
 
+// Cash / Online segmented selector for how a payment was collected.
+function MethodToggle({ value, onChange }) {
+  return (
+    <div className="period-toggle" style={{ marginTop: 4 }}>
+      {[
+        { v: "cash", label: "Cash", icon: "payments" },
+        { v: "online", label: "Online", icon: "account_balance" },
+      ].map((m) => (
+        <button
+          key={m.v}
+          type="button"
+          className={`icon ${value === m.v ? "active" : ""}`}
+          onClick={() => onChange(m.v)}
+        >
+          <Icon name={m.icon} size={16} /> {m.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ClientLedger() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,7 +40,7 @@ export default function ClientLedger() {
   const [sortOrder, setSortOrder] = useState("desc"); // newest first by default
   // Record-payment modal
   const [payTarget, setPayTarget] = useState(null);
-  const [payForm, setPayForm] = useState({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+  const [payForm, setPayForm] = useState({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
   const [payError, setPayError] = useState("");
   // Edit-payment modal
   const [editPay, setEditPay] = useState(null); // { treatId, paymentId, amount, note, date }
@@ -32,6 +53,7 @@ export default function ClientLedger() {
     description: "",
     cost: "",
     upfront: "",
+    upfrontMethod: "cash",
     date: new Date().toISOString().slice(0, 10),
   };
   const [showTreat, setShowTreat] = useState(false);
@@ -68,7 +90,7 @@ export default function ClientLedger() {
 
   const openPayment = (t) => {
     setPayTarget(t);
-    setPayForm({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+    setPayForm({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
     setPayError("");
   };
 
@@ -147,6 +169,7 @@ export default function ClientLedger() {
           description: treatForm.description,
           cost: Number(treatForm.cost) || 0,
           upfront: Number(treatForm.upfront) || 0,
+          upfrontMethod: treatForm.upfrontMethod,
           date: treatForm.date,
         });
       }
@@ -169,6 +192,7 @@ export default function ClientLedger() {
       await api.post(`/treatments/${payTarget._id}/payments`, {
         amount: Number(payForm.amount),
         note: payForm.note,
+        method: payForm.method,
         date: payForm.date,
       });
       setPayTarget(null);
@@ -195,6 +219,7 @@ export default function ClientLedger() {
       paymentId: p._id,
       amount: p.amount ?? "",
       note: p.note || "",
+      method: p.method || "cash",
       date: p.date ? new Date(p.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
     });
     setEditPayError("");
@@ -216,6 +241,7 @@ export default function ClientLedger() {
       await api.put(`/treatments/${editPay.treatId}/payments/${editPay.paymentId}`, {
         amount: Number(editPay.amount),
         note: editPay.note,
+        method: editPay.method,
         date: editPay.date,
       });
       setEditPay(null);
@@ -388,6 +414,12 @@ export default function ClientLedger() {
                       <Icon name="payments" size={16} />
                       <span className="muted">{fmtDate(p.date)}</span>
                       <strong>{money(p.amount)}</strong>
+                      {p.method && (
+                        <span className="tag icon">
+                          <Icon name={p.method === "online" ? "account_balance" : "payments"} size={14} />
+                          {p.method === "online" ? "Online" : "Cash"}
+                        </span>
+                      )}
                       {p.note && <span className="muted">· {p.note}</span>}
                       {p._id && (
                         <span className="timeline-actions">
@@ -510,6 +542,15 @@ export default function ClientLedger() {
                       onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
                       onChange={treatChange}
                     />
+                    {Number(treatForm.upfront) > 0 && (
+                      <>
+                        <span className="lbl" style={{ marginTop: 6 }}>Paid via <span className="req">*</span></span>
+                        <MethodToggle
+                          value={treatForm.upfrontMethod}
+                          onChange={(m) => setTreatForm({ ...treatForm, upfrontMethod: m })}
+                        />
+                      </>
+                    )}
                   </label>
                 )}
                 <label>
@@ -572,6 +613,10 @@ export default function ClientLedger() {
                 </label>
               </div>
               <label>
+                <span className="lbl">Paid via <span className="req">*</span></span>
+                <MethodToggle value={payForm.method} onChange={(m) => setPayForm({ ...payForm, method: m })} />
+              </label>
+              <label>
                 Note (optional)
                 <input
                   placeholder="e.g. Visit 3 adjustment"
@@ -623,6 +668,10 @@ export default function ClientLedger() {
                   />
                 </label>
               </div>
+              <label>
+                <span className="lbl">Paid via <span className="req">*</span></span>
+                <MethodToggle value={editPay.method} onChange={(m) => setEditPay({ ...editPay, method: m })} />
+              </label>
               <label>
                 Note (optional)
                 <input
