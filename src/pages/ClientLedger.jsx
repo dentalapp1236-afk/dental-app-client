@@ -149,6 +149,17 @@ export default function ClientLedger() {
     e.preventDefault();
     setTreatError("");
     if (!treatForm.procedure.trim()) return setTreatError("Procedure is required.");
+    if (treatForm.cost === "" || Number(treatForm.cost) < 0)
+      return setTreatError("Charges are required.");
+    if (!treatForm.date) return setTreatError("Date is required.");
+    if (!editingTreatId) {
+      if (treatForm.upfront === "" || Number(treatForm.upfront) < 0)
+        return setTreatError("Collected amount is required.");
+      if (Number(treatForm.upfront) > Number(treatForm.cost))
+        return setTreatError("Collected amount cannot exceed the charges.");
+      if (!["cash", "online"].includes(treatForm.upfrontMethod))
+        return setTreatError("Select a payment method (cash or online).");
+    }
     try {
       if (editingTreatId) {
         await api.put(`/treatments/${editingTreatId}`, {
@@ -517,12 +528,13 @@ export default function ClientLedger() {
                   <input name="toothNumber" value={treatForm.toothNumber} onChange={treatChange} />
                 </label>
                 <label>
-                  Total amount <span className="muted">(0 = free / no charge)</span>
+                  <span className="lbl">Charges <span className="req">*</span></span>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
                     name="cost"
+                    required
                     placeholder="e.g. 50000"
                     value={treatForm.cost}
                     onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
@@ -531,12 +543,13 @@ export default function ClientLedger() {
                 </label>
                 {!editingTreatId && (
                   <label>
-                    Upfront payment (optional)
+                    <span className="lbl">Collected amount <span className="req">*</span></span>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       name="upfront"
+                      required
                       placeholder="e.g. 25000"
                       value={treatForm.upfront}
                       onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
@@ -546,14 +559,11 @@ export default function ClientLedger() {
                 )}
                 {!editingTreatId && (
                   <label>
-                    <span className="lbl">
-                      Payment method {Number(treatForm.upfront) > 0 && <span className="req">*</span>}
-                    </span>
+                    <span className="lbl">Payment method <span className="req">*</span></span>
                     <MethodToggle
                       value={treatForm.upfrontMethod}
                       onChange={(m) => setTreatForm({ ...treatForm, upfrontMethod: m })}
                     />
-                    <span className="muted" style={{ fontSize: 12 }}>How the upfront payment was collected.</span>
                   </label>
                 )}
                 <label>
@@ -561,8 +571,8 @@ export default function ClientLedger() {
                   <input name="diagnosis" value={treatForm.diagnosis} onChange={treatChange} />
                 </label>
                 <label>
-                  Date
-                  <input type="date" name="date" value={treatForm.date} onChange={treatChange} />
+                  <span className="lbl">Date <span className="req">*</span></span>
+                  <input type="date" name="date" required value={treatForm.date} onChange={treatChange} />
                 </label>
               </div>
               <label>
