@@ -573,6 +573,9 @@ export default function ClientLedger() {
                 <label>
                   <span className="lbl">Date <span className="req">*</span></span>
                   <input type="date" name="date" required value={treatForm.date} onChange={treatChange} />
+                  {treatForm.date && (
+                    <span className="muted" style={{ fontSize: 12 }}>{fmtDate(treatForm.date)}</span>
+                  )}
                 </label>
               </div>
               <label>
@@ -623,6 +626,9 @@ export default function ClientLedger() {
                     value={payForm.date}
                     onChange={(e) => setPayForm({ ...payForm, date: e.target.value })}
                   />
+                  {payForm.date && (
+                    <span className="muted" style={{ fontSize: 12 }}>{fmtDate(payForm.date)}</span>
+                  )}
                 </label>
               </div>
               <label>
@@ -679,6 +685,9 @@ export default function ClientLedger() {
                     value={editPay.date}
                     onChange={(e) => setEditPay({ ...editPay, date: e.target.value })}
                   />
+                  {editPay.date && (
+                    <span className="muted" style={{ fontSize: 12 }}>{fmtDate(editPay.date)}</span>
+                  )}
                 </label>
               </div>
               <label>
