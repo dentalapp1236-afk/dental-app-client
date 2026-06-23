@@ -165,6 +165,53 @@ export default function Appointments() {
       }
     });
 
+  // Split into upcoming vs past (by appointment time), keeping the chosen sort.
+  const now = Date.now();
+  const upcoming = visible.filter((a) => new Date(a.date).getTime() >= now);
+  const past = visible.filter((a) => new Date(a.date).getTime() < now);
+
+  const renderCard = (a) => (
+    <div
+      key={a._id}
+      className="appt-card"
+      style={{ cursor: "pointer" }}
+      onClick={() => setSelected(a)}
+      title="View details"
+    >
+      <div className="appt-card-head">
+        <span className="appt-when icon">
+          <Icon name="schedule" size={18} /> {formatDateTime(a.date)}
+        </span>
+        <div className="row gap" style={{ flexWrap: "wrap" }}>
+          <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
+          {a.arrivalStatus && a.arrivalStatus !== "none" && (
+            <span className={`clinic-badge ${a.arrivalStatus === "arrived" ? "open" : "soon"}`}>
+              <Icon name={a.arrivalStatus === "arrived" ? "where_to_vote" : "directions_car"} size={14} />
+              {a.arrivalStatus === "arrived" ? "Arrived" : "On the way"}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="appt-card-body">
+        <span className="icon"><Icon name="person" size={16} /> {a.client?.name}</span>
+        {a.client?.phone && (
+          <span className="icon"><Icon name="call" size={16} /> {a.client.phone}</span>
+        )}
+        {a.reason && (
+          <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
+        )}
+      </div>
+      <div className="row gap" style={{ flexWrap: "wrap" }}>
+        <button className="btn-secondary icon" onClick={(e) => { e.stopPropagation(); handleEdit(a); }}>
+          <Icon name="edit" size={18} /> Edit
+        </button>
+        <button className="btn-danger-soft icon" onClick={(e) => { e.stopPropagation(); handleDelete(a._id); }}>
+          <Icon name="delete" size={18} /> Delete
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="page">
       <div className="page-head">
@@ -333,55 +380,21 @@ export default function Appointments() {
           {search.trim() ? "No appointments match your search." : "No appointments scheduled."}
         </p>
       ) : (
-        <div className="appt-list">
-          {visible.map((a) => (
-            <div
-              key={a._id}
-              className="appt-card"
-              style={{ cursor: "pointer" }}
-              onClick={() => setSelected(a)}
-              title="View details"
-            >
-              <div className="appt-card-head">
-                <span className="appt-when icon">
-                  <Icon name="schedule" size={18} /> {formatDateTime(a.date)}
-                </span>
-                <div className="row gap" style={{ flexWrap: "wrap" }}>
-                  <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
-                  {a.arrivalStatus && a.arrivalStatus !== "none" && (
-                    <span className={`clinic-badge ${a.arrivalStatus === "arrived" ? "open" : "soon"}`}>
-                      <Icon name={a.arrivalStatus === "arrived" ? "where_to_vote" : "directions_car"} size={14} />
-                      {a.arrivalStatus === "arrived" ? "Arrived" : "On the way"}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="appt-card-body">
-                <span className="icon"><Icon name="person" size={16} /> {a.client?.name}</span>
-                {a.client?.phone && (
-                  <span className="icon"><Icon name="call" size={16} /> {a.client.phone}</span>
-                )}
-                {a.reason && (
-                  <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
-                )}
-              </div>
-              <div className="row gap" style={{ flexWrap: "wrap" }}>
-                <button
-                  className="btn-secondary icon"
-                  onClick={(e) => { e.stopPropagation(); handleEdit(a); }}
-                >
-                  <Icon name="edit" size={18} /> Edit
-                </button>
-                <button
-                  className="btn-danger-soft icon"
-                  onClick={(e) => { e.stopPropagation(); handleDelete(a._id); }}
-                >
-                  <Icon name="delete" size={18} /> Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <>
+          <h2 className="icon"><Icon name="event_upcoming" /> Upcoming ({upcoming.length})</h2>
+          {upcoming.length === 0 ? (
+            <p className="muted">No upcoming appointments.</p>
+          ) : (
+            <div className="appt-list">{upcoming.map(renderCard)}</div>
+          )}
+
+          {past.length > 0 && (
+            <>
+              <h2 className="icon" style={{ marginTop: 24 }}><Icon name="history" /> Past ({past.length})</h2>
+              <div className="appt-list">{past.map(renderCard)}</div>
+            </>
+          )}
+        </>
       )}
 
       {selected && (
