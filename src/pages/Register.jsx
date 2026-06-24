@@ -375,9 +375,13 @@ export default function Register() {
         <p className="auth-alt">
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
-        <p className="auth-alt">
-          <Link to="/find-dentist">Browse dentists near you →</Link>
-        </p>
+        <Link
+          to="/find-dentist"
+          className="btn-secondary icon"
+          style={{ textDecoration: "none", justifyContent: "center", width: "100%", borderColor: "var(--primary)", color: "var(--primary)" }}
+        >
+          <Icon name="person_search" size={18} /> Find a dentist near you
+        </Link>
       </form>
     </div>
   );
