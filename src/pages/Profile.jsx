@@ -9,6 +9,7 @@ import AvatarUpload from "../components/AvatarUpload";
 export default function Profile() {
   const { user, updateUser } = useAuth();
   const isDentist = user.role === "dentist";
+  const isAssistant = user.role === "assistant";
   const isVendor = user.role === "vendor";
 
   const [form, setForm] = useState({
@@ -97,6 +98,7 @@ export default function Profile() {
         payload.address = form.address;
       }
       if (isVendor) payload.companyName = form.companyName;
+      if (isAssistant) payload.image = avatarUrl;
       if (isDentist) {
         payload.clinicName = form.clinicName;
         payload.specialization = form.specialization;
@@ -146,7 +148,7 @@ export default function Profile() {
             )}
           </label>
           <label>
-            Email <span className="muted">(optional)</span>
+            <span className="lbl">Email <span className="muted">(optional)</span></span>
             <input
               type="email"
               name="email"
@@ -155,7 +157,7 @@ export default function Profile() {
             />
           </label>
           <label>
-            Phone <span className="muted">(11 digits)</span>
+            <span className="lbl">Phone <span className="muted">(11 digits)</span></span>
             <input
               name="phone"
               type="tel"
@@ -173,6 +175,13 @@ export default function Profile() {
             <input value={user.role} disabled style={{ textTransform: "capitalize" }} />
           </label>
         </div>
+
+        {isAssistant && (
+          <div>
+            <span className="field-label">Profile photo</span>
+            <AvatarUpload value={avatarUrl} name={form.name} onChange={setAvatarUrl} />
+          </div>
+        )}
 
         {user.role === "client" && (
           <div className="grid-2">
