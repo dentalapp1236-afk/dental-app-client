@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import AvailabilityEditor from "../components/AvailabilityEditor";
+import AvatarUpload from "../components/AvatarUpload";
 
 const DEFAULT_AVAILABILITY = ["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => ({
   day,
@@ -30,6 +31,7 @@ export default function Register() {
     companyName: "",
   });
   const [availability, setAvailability] = useState(DEFAULT_AVAILABILITY);
+  const [avatarUrl, setAvatarUrl] = useState(""); // dentist profile photo (Cloudinary URL)
   const [coords, setCoords] = useState(null); // { latitude, longitude }
   const [locStatus, setLocStatus] = useState("");
   const [error, setError] = useState("");
@@ -140,6 +142,7 @@ export default function Register() {
         payload.latitude = coords.latitude;
         payload.longitude = coords.longitude;
         payload.availability = availability;
+        if (avatarUrl) payload.image = avatarUrl;
       }
       if (isVendor) {
         payload.companyName = form.companyName;
@@ -282,6 +285,10 @@ export default function Register() {
             <p className="muted" style={{ margin: 0 }}>
               Your public profile — patients see this when finding a dentist.
             </p>
+            <div>
+              <span className="field-label">Profile photo</span>
+              <AvatarUpload value={avatarUrl} name={form.name} onChange={setAvatarUrl} />
+            </div>
             <label>
               <span className="lbl">Clinic name <span className="req">*</span></span>
               <input

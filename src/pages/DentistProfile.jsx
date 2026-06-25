@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
+import Avatar from "../components/Avatar";
 import StarRating from "../components/StarRating";
 import SlotPicker from "../components/SlotPicker";
 import PublicTopbar from "../components/PublicTopbar";
@@ -112,9 +113,12 @@ export default function DentistProfile() {
       </button>
       <div className="card">
         <div className="row gap" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <h1 style={{ margin: 0 }}>Dr. {dentist.name}</h1>
-            {dentist.clinicName && <div className="muted">{dentist.clinicName}</div>}
+          <div className="row gap" style={{ alignItems: "center" }}>
+            <Avatar src={dentist.image} name={dentist.name} size={72} />
+            <div>
+              <h1 style={{ margin: 0 }}>Dr. {dentist.name}</h1>
+              {dentist.clinicName && <div className="muted">{dentist.clinicName}</div>}
+            </div>
           </div>
           <div style={{ textAlign: "right" }}>
             <StarRating value={dentist.rating} size={22} />

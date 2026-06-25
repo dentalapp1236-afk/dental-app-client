@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import AvailabilityEditor from "../components/AvailabilityEditor";
+import AvatarUpload from "../components/AvatarUpload";
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -35,6 +36,7 @@ export default function Profile() {
       ? { latitude: user.location.coordinates[1], longitude: user.location.coordinates[0] }
       : null
   );
+  const [avatarUrl, setAvatarUrl] = useState(user.image || "");
   const [locStatus, setLocStatus] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -102,6 +104,7 @@ export default function Profile() {
         payload.about = form.about;
         payload.address = form.address;
         payload.availability = availability;
+        payload.image = avatarUrl;
         if (coords) {
           payload.latitude = coords.latitude;
           payload.longitude = coords.longitude;
@@ -195,6 +198,10 @@ export default function Profile() {
           <>
             <hr className="divider" />
             <h3 className="icon"><Icon name="medical_information" size={18} /> Dentist profile</h3>
+            <div>
+              <span className="field-label">Profile photo</span>
+              <AvatarUpload value={avatarUrl} name={form.name} onChange={setAvatarUrl} />
+            </div>
             <label>
               Clinic name
               <input name="clinicName" value={form.clinicName} onChange={handleChange} />

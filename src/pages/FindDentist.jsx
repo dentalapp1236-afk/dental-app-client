@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
+import Avatar from "../components/Avatar";
 import StarRating from "../components/StarRating";
 import PublicTopbar from "../components/PublicTopbar";
 import { SkeletonCards } from "../components/Skeleton";
@@ -79,8 +80,11 @@ export default function FindDentist() {
         <div className="dentist-grid">
           {dentists.map((d) => (
             <div key={d._id} className="dentist-card">
-              <div className="row gap" style={{ justifyContent: "space-between" }}>
-                <h3 style={{ margin: 0 }}>Dr. {d.name}</h3>
+              <div className="row gap" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div className="row gap" style={{ alignItems: "center" }}>
+                  <Avatar src={d.image} name={d.name} size={52} />
+                  <h3 style={{ margin: 0 }}>Dr. {d.name}</h3>
+                </div>
                 {d.distanceKm != null && (
                   <span className="badge icon">
                     <Icon name="near_me" size={16} /> {d.distanceKm} km
