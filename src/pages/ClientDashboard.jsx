@@ -140,7 +140,9 @@ export default function ClientDashboard() {
       {/* My dentist / association status */}
       <div className="card" style={{ maxWidth: "none" }}>
         <h3 className="icon"><Icon name="medical_information" size={18} /> My dentist</h3>
-        {assoc?.dentist ? (
+        {assoc === null ? (
+          <p className="muted">Loading…</p>
+        ) : assoc.dentist ? (
           <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
             <div>
               <strong>Dr. {assoc.dentist.name}</strong>
