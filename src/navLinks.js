@@ -4,6 +4,7 @@ export const ROLE_LINKS = {
     { to: "/dentist", icon: "today", label: "Today's Schedule" },
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/clients", icon: "group", label: "Patients" },
+    { to: "/dependents", icon: "escalator_warning", label: "Dependents" },
     { to: "/finances", icon: "payments", label: "Finances" },
     // Supplies temporarily hidden from the sidebar (route still exists).
     // { to: "/supplies", icon: "shopping_cart", label: "Supplies" },
@@ -15,6 +16,7 @@ export const ROLE_LINKS = {
     { to: "/dentist", icon: "today", label: "Today's Schedule" },
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/clients", icon: "group", label: "Patients" },
+    { to: "/dependents", icon: "escalator_warning", label: "Dependents" },
     { to: "/finances", icon: "payments", label: "Finances" },
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
   ],

@@ -25,7 +25,8 @@ const empty = {
 // Capitalize the first letter of every word as the user types.
 const titleCase = (s) => s.replace(/[0-9]/g, "").replace(/\b\p{L}/gu, (ch) => ch.toUpperCase());
 
-export default function Clients() {
+export default function Clients({ mode = "patients" }) {
+  const isDependents = mode === "dependents";
   const { items, refresh: refreshNotifications } = useNotifications();
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
@@ -86,10 +87,13 @@ export default function Clients() {
     : "#";
 
   const load = async () => {
-    const { data } = await api.get("/clients", { params: { search } });
+    const { data } = await api.get("/clients", {
+      params: { search, managed: isDependents },
+    });
     setClients(data);
   };
   const loadRequests = async () => {
+    if (isDependents) return; // dependents don't self-request association
     const { data } = await api.get("/associations/requests");
     setRequests(data);
   };
@@ -115,14 +119,14 @@ export default function Clients() {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const resetForm = () => {
-    setForm(empty);
+    setForm({ ...empty, managed: isDependents });
     setEditingId(null);
     setError("");
     setShowForm(false);
   };
 
   const openCreate = () => {
-    setForm(empty);
+    setForm({ ...empty, managed: isDependents });
     setEditingId(null);
     setError("");
     setShowForm(true);
@@ -208,10 +212,13 @@ export default function Clients() {
   return (
     <div className="page">
       <div className="page-head">
-        <h1 className="icon"><Icon name="group" /> Patients</h1>
+        <h1 className="icon">
+          <Icon name={isDependents ? "escalator_warning" : "group"} />{" "}
+          {isDependents ? "Dependents" : "Patients"}
+        </h1>
         {!showForm && (
           <button className="icon" onClick={openCreate}>
-            <Icon name="person_add" size={18} /> Add patient
+            <Icon name="person_add" size={18} /> {isDependents ? "Add dependent" : "Add patient"}
           </button>
         )}
       </div>
@@ -358,7 +365,7 @@ export default function Clients() {
 
       <div className="search-row">
         <input
-          placeholder="Search by name, email, or phone…"
+          placeholder={isDependents ? "Search by child or guardian…" : "Search by name, email, or phone…"}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -372,24 +379,16 @@ export default function Clients() {
         <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} style={{ display: "contents" }}>
         <div className="modal-head">
-          <h3>{editingId ? "Edit patient" : "Add new patient"}</h3>
+          <h3>
+            {editingId
+              ? isDependents ? "Edit dependent" : "Edit patient"
+              : isDependents ? "Add dependent (child)" : "Add new patient"}
+          </h3>
           <button type="button" className="modal-close" aria-label="Close" onClick={resetForm}>
             <Icon name="close" />
           </button>
         </div>
         {error && <div className="error">{error}</div>}
-
-        {!editingId && (
-          <label className="row gap" style={{ alignItems: "center" }}>
-            <input
-              type="checkbox"
-              checked={form.managed}
-              onChange={(e) => setForm({ ...form, managed: e.target.checked })}
-              style={{ width: "auto" }}
-            />
-            <span>Child / dependent — no phone or email (we'll contact a guardian)</span>
-          </label>
-        )}
 
         {form.managed ? (
           <>
@@ -515,7 +514,7 @@ export default function Clients() {
           </>
         )}
         <div className="row gap">
-          <button type="submit">{editingId ? "Update" : "Add patient"}</button>
+          <button type="submit">{editingId ? "Update" : isDependents ? "Add dependent" : "Add patient"}</button>
           <button type="button" className="btn-secondary" onClick={resetForm}>
             Cancel
           </button>
@@ -526,7 +525,7 @@ export default function Clients() {
       )}
 
       {clients.length === 0 ? (
-        <p className="muted">No patients yet.</p>
+        <p className="muted">{isDependents ? "No dependents yet." : "No patients yet."}</p>
       ) : (
         <div className="appt-list">
           {clients.map((c) => (

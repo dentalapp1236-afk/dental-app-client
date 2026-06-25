@@ -145,6 +145,14 @@ export default function App() {
           }
         />
         <Route
+          path="/dependents"
+          element={
+            <ProtectedRoute role={["dentist", "assistant"]}>
+              <Clients mode="dependents" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/clients/:id"
           element={
             <ProtectedRoute role={["dentist", "assistant"]}>

@@ -303,7 +303,7 @@ export default function ClientLedger() {
 
   return (
     <div className="page">
-      <button className="ledger-back btn-secondary icon" onClick={() => navigate("/clients")}>
+      <button className="ledger-back btn-secondary icon" onClick={() => navigate(-1)}>
         <Icon name="arrow_back" size={18} /> Back
       </button>
       <div className="page-head">
