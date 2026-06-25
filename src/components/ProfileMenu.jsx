@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Icon from "./Icon";
+import Avatar from "./Avatar";
 
 // Account icon (top-right on mobile) with a dropdown showing the user + logout.
 export default function ProfileMenu() {
@@ -30,15 +31,22 @@ export default function ProfileMenu() {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        <Icon name="account_circle" />
+        {user.image ? (
+          <Avatar src={user.image} name={user.name} size={34} />
+        ) : (
+          <Icon name="account_circle" />
+        )}
       </button>
       {open && (
         <>
           <div className="profile-backdrop" onClick={() => setOpen(false)} />
           <div className="profile-dropdown">
             <button className="profile-head profile-head-btn" onClick={goProfile}>
-              <div className="profile-name">{user.name}</div>
-              <div className="profile-role">{user.role}</div>
+              <Avatar src={user.image} name={user.name} size={40} />
+              <div>
+                <div className="profile-name">{user.name}</div>
+                <div className="profile-role">{user.role}</div>
+              </div>
             </button>
             <button className="profile-item" onClick={handleLogout}>
               <Icon name="logout" size={20} /> Logout

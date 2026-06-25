@@ -237,7 +237,9 @@ a:hover { text-decoration: underline; }
 }
 .profile-head { padding: 12px 14px; border-bottom: 1px solid var(--border); }
 .profile-head-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   text-align: left;
   background: transparent;
