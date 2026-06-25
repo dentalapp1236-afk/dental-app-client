@@ -9,26 +9,10 @@
       content="Find dentists nearby, book appointments, and manage your dental clinic."
     />
     <meta name="theme-color" content="#ffffff" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="MyDentalBooking" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="root"></div>
-
-    <!-- Dynamic splash shown immediately on first load, replaced once the app is ready -->
+    <!-- Critical splash styles in <head> so the splash is centered on the very
+         first paint (avoids a flash where it renders un-positioned, then jumps). -->
     <style>
+      html, body { margin: 0; background: #f2f6fc; }
       #splash {
         position: fixed;
         inset: 0;
@@ -86,6 +70,26 @@
         font-variant-numeric: tabular-nums;
       }
     </style>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="MyDentalBooking" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Dynamic splash shown immediately on first load, replaced once the app is ready.
+         Its styles live in <head> so it paints centered from the first frame. -->
     <div id="splash">
       <div class="splash-inner">
         <img src="/favicon.svg" alt="MyDentalBooking" class="splash-logo" />
