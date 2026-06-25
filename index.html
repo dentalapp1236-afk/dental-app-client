@@ -21,7 +21,9 @@
         align-items: center;
         justify-content: center;
         background: #f2f6fc;
-        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        /* System fonts only — the splash must not depend on Inter loading, or a
+           late web-font swap would reflow and visibly nudge the centered content. */
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         transition: opacity 0.4s ease;
       }
       #splash.hide { opacity: 0; pointer-events: none; }
@@ -86,10 +88,9 @@
     />
   </head>
   <body>
-    <div id="root"></div>
-
     <!-- Dynamic splash shown immediately on first load, replaced once the app is ready.
-         Its styles live in <head> so it paints centered from the first frame. -->
+         Placed BEFORE #root (so it can never be pushed below the app content during a
+         reflow) and styled from <head> (so it paints centered on the very first frame). -->
     <div id="splash">
       <div class="splash-inner">
         <img src="/favicon.svg" alt="MyDentalBooking" class="splash-logo" />
@@ -128,6 +129,7 @@
       })();
     </script>
 
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
