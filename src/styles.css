@@ -1694,6 +1694,16 @@ h2.icon { gap: 8px; }
   align-items: flex-start;
   gap: 6px;
 }
+/* Centered variant — avatar on top, controls beneath, used at the top of forms */
+.avatar-upload.centered {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+.avatar-upload.centered .avatar-upload-actions {
+  align-items: center;
+}
 
 /* Crop/zoom editor inside the modal */
 .cropper-stage {

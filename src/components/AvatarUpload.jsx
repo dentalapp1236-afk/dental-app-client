@@ -41,7 +41,7 @@ async function getCroppedDataUrl(src, cropPixels, size = 512) {
 // Props:
 //   value    - current image URL (or empty)
 //   onChange - called with the new hosted URL after a successful upload
-export default function AvatarUpload({ value, name = "", onChange }) {
+export default function AvatarUpload({ value, name = "", onChange, centered = false, hint = "" }) {
   const fileRef = useRef(null);
   const [rawImage, setRawImage] = useState(null); // data URL being edited
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -94,8 +94,8 @@ export default function AvatarUpload({ value, name = "", onChange }) {
   };
 
   return (
-    <div className="avatar-upload">
-      <Avatar src={value} name={name} size={88} />
+    <div className={`avatar-upload${centered ? " centered" : ""}`}>
+      <Avatar src={value} name={name} size={centered ? 104 : 88} />
       <div className="avatar-upload-actions">
         <button type="button" className="btn-secondary icon" onClick={() => fileRef.current?.click()}>
           <Icon name={value ? "photo_camera" : "add_a_photo"} size={18} />
@@ -106,9 +106,9 @@ export default function AvatarUpload({ value, name = "", onChange }) {
             <Icon name="delete" size={16} /> Remove
           </button>
         )}
-        <span className="muted" style={{ fontSize: 12 }}>
-          Patients see this when finding a dentist.
-        </span>
+        {hint && (
+          <span className="muted" style={{ fontSize: 12 }}>{hint}</span>
+        )}
       </div>
       <input
         ref={fileRef}

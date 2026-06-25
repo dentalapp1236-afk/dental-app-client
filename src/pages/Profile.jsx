@@ -10,7 +10,9 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const isDentist = user.role === "dentist";
   const isAssistant = user.role === "assistant";
+  const isClient = user.role === "client";
   const isVendor = user.role === "vendor";
+  const canPhoto = isDentist || isAssistant || isClient;
 
   const [form, setForm] = useState({
     name: user.name || "",
@@ -93,12 +95,12 @@ export default function Profile() {
     setSaving(true);
     try {
       const payload = { name: form.name, email: form.email, phone: form.phone };
+      if (canPhoto) payload.image = avatarUrl;
       if (user.role === "client") {
         payload.dateOfBirth = form.dateOfBirth;
         payload.address = form.address;
       }
       if (isVendor) payload.companyName = form.companyName;
-      if (isAssistant) payload.image = avatarUrl;
       if (isDentist) {
         payload.clinicName = form.clinicName;
         payload.specialization = form.specialization;
@@ -106,7 +108,6 @@ export default function Profile() {
         payload.about = form.about;
         payload.address = form.address;
         payload.availability = availability;
-        payload.image = avatarUrl;
         if (coords) {
           payload.latitude = coords.latitude;
           payload.longitude = coords.longitude;
@@ -131,6 +132,16 @@ export default function Profile() {
       <form className="card" onSubmit={handleSubmit}>
         <h3 className="icon"><Icon name="badge" size={18} /> Account</h3>
         {error && <div className="error">{error}</div>}
+
+        {canPhoto && (
+          <AvatarUpload
+            value={avatarUrl}
+            name={form.name}
+            onChange={setAvatarUrl}
+            centered
+            hint={isDentist ? "Patients see this when finding a dentist." : ""}
+          />
+        )}
 
         <div className="grid-2">
           <label>
@@ -176,13 +187,6 @@ export default function Profile() {
           </label>
         </div>
 
-        {isAssistant && (
-          <div>
-            <span className="field-label">Profile photo</span>
-            <AvatarUpload value={avatarUrl} name={form.name} onChange={setAvatarUrl} />
-          </div>
-        )}
-
         {user.role === "client" && (
           <div className="grid-2">
             <label>
@@ -207,10 +211,6 @@ export default function Profile() {
           <>
             <hr className="divider" />
             <h3 className="icon"><Icon name="medical_information" size={18} /> Dentist profile</h3>
-            <div>
-              <span className="field-label">Profile photo</span>
-              <AvatarUpload value={avatarUrl} name={form.name} onChange={setAvatarUrl} />
-            </div>
             <label>
               Clinic name
               <input name="clinicName" value={form.clinicName} onChange={handleChange} />

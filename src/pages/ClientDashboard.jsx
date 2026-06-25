@@ -4,6 +4,7 @@ import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
+import Avatar from "../components/Avatar";
 import StarRating from "../components/StarRating";
 import AppointmentActions from "../components/AppointmentActions";
 
@@ -143,33 +144,42 @@ export default function ClientDashboard() {
         {assoc === null ? (
           <p className="muted">Loading…</p>
         ) : assoc.dentist ? (
-          <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              gap: 8,
+            }}
+          >
+            <Avatar src={assoc.dentist.image} name={assoc.dentist.name} size={96} />
             <div>
               <strong>Dr. {assoc.dentist.name}</strong>
-              {assoc.dentist.clinicName && <span className="muted"> · {assoc.dentist.clinicName}</span>}
+              {assoc.dentist.clinicName && (
+                <div className="muted">{assoc.dentist.clinicName}</div>
+              )}
               {assoc.dentist.specialization && (
                 <div className="muted" style={{ fontSize: 13 }}>{assoc.dentist.specialization}</div>
               )}
-              {(() => {
-                const st = clinicStatus(assoc.dentist.availability);
-                return st ? (
-                  <div style={{ marginTop: 6 }}>
-                    <span className={`clinic-badge ${st.kind}`}>
-                      <Icon name={st.icon} size={16} /> {st.text}
-                    </span>
-                  </div>
-                ) : null;
-              })()}
-              {assoc.dentist.reviewCount > 0 && (
-                <div className="row gap" style={{ alignItems: "center", marginTop: 4 }}>
-                  <StarRating value={assoc.dentist.rating || 0} size={16} />
-                  <span className="muted" style={{ fontSize: 13 }}>
-                    {Number(assoc.dentist.rating || 0).toFixed(1)} ({assoc.dentist.reviewCount})
-                  </span>
-                </div>
-              )}
             </div>
-            <div className="row gap" style={{ flexWrap: "wrap" }}>
+            {(() => {
+              const st = clinicStatus(assoc.dentist.availability);
+              return st ? (
+                <span className={`clinic-badge ${st.kind}`}>
+                  <Icon name={st.icon} size={16} /> {st.text}
+                </span>
+              ) : null;
+            })()}
+            {assoc.dentist.reviewCount > 0 && (
+              <div className="row gap" style={{ alignItems: "center" }}>
+                <StarRating value={assoc.dentist.rating || 0} size={16} />
+                <span className="muted" style={{ fontSize: 13 }}>
+                  {Number(assoc.dentist.rating || 0).toFixed(1)} ({assoc.dentist.reviewCount})
+                </span>
+              </div>
+            )}
+            <div className="row gap" style={{ flexWrap: "wrap", justifyContent: "center" }}>
               <Link
                 to={`/dentists/${assoc.dentist._id}`}
                 className="btn-secondary icon"

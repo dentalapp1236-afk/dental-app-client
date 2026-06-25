@@ -39,6 +39,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   const isDentist = form.role === "dentist";
+  const isClient = form.role === "client";
   const isVendor = form.role === "vendor";
 
   const roleHome = (role) =>
@@ -142,8 +143,8 @@ export default function Register() {
         payload.latitude = coords.latitude;
         payload.longitude = coords.longitude;
         payload.availability = availability;
-        if (avatarUrl) payload.image = avatarUrl;
       }
+      if (avatarUrl) payload.image = avatarUrl;
       if (isVendor) {
         payload.companyName = form.companyName;
       }
@@ -185,6 +186,15 @@ export default function Register() {
               <option value="vendor">Vendor / Supplier</option>
             </select>
           </label>
+        )}
+        {(isDentist || isClient) && (
+          <AvatarUpload
+            value={avatarUrl}
+            name={form.name}
+            onChange={setAvatarUrl}
+            centered
+            hint={isDentist ? "Patients see this when finding a dentist." : "Add a profile photo (optional)."}
+          />
         )}
         {isVendor && (
           <label>
@@ -285,10 +295,6 @@ export default function Register() {
             <p className="muted" style={{ margin: 0 }}>
               Your public profile — patients see this when finding a dentist.
             </p>
-            <div>
-              <span className="field-label">Profile photo</span>
-              <AvatarUpload value={avatarUrl} name={form.name} onChange={setAvatarUrl} />
-            </div>
             <label>
               <span className="lbl">Clinic name <span className="req">*</span></span>
               <input
