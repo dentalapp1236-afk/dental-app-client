@@ -340,8 +340,9 @@ export default function ClientLedger() {
         </div>
       )}
       <p className="muted" style={{ marginTop: -8 }}>
-        {client.email}
-        {client.phone ? ` · ${client.phone}` : ""}
+        {client.managed
+          ? `Child · Guardian: ${client.guardianName || "—"}${client.guardianPhone ? ` · ${client.guardianPhone}` : ""}${client.guardianEmail ? ` · ${client.guardianEmail}` : ""}`
+          : `${client.email || ""}${client.phone ? ` · ${client.phone}` : ""}`}
       </p>
 
       <div className="summary">

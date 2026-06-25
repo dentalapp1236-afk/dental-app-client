@@ -14,7 +14,16 @@ const empty = {
   password: DEFAULT_PASSWORD,
   confirmPassword: DEFAULT_PASSWORD,
   phone: "",
+  // Managed (child/dependent) patient — contact the guardian instead of the patient
+  managed: false,
+  dateOfBirth: "",
+  guardianName: "",
+  guardianPhone: "",
+  guardianEmail: "",
 };
+
+// Capitalize the first letter of every word as the user types.
+const titleCase = (s) => s.replace(/[0-9]/g, "").replace(/\b\p{L}/gu, (ch) => ch.toUpperCase());
 
 export default function Clients() {
   const { items, refresh: refreshNotifications } = useNotifications();
@@ -122,13 +131,20 @@ export default function Clients() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!/^\d{11}$/.test(form.phone))
-      return setError("Phone number must be exactly 11 digits.");
-    if (!editingId) {
-      if (form.password.length < 8)
-        return setError("Password must be at least 8 characters.");
-      if (form.password !== form.confirmPassword)
-        return setError("Passwords do not match.");
+    if (form.managed) {
+      if (!form.name.trim()) return setError("Patient name is required.");
+      if (!form.guardianName.trim()) return setError("Guardian name is required.");
+      if (!/^\d{11}$/.test(form.guardianPhone))
+        return setError("Guardian phone must be exactly 11 digits.");
+    } else {
+      if (!/^\d{11}$/.test(form.phone))
+        return setError("Phone number must be exactly 11 digits.");
+      if (!editingId) {
+        if (form.password.length < 8)
+          return setError("Password must be at least 8 characters.");
+        if (form.password !== form.confirmPassword)
+          return setError("Passwords do not match.");
+      }
     }
     try {
       if (editingId) {
@@ -155,6 +171,11 @@ export default function Clients() {
       password: "",
       confirmPassword: "",
       phone: c.phone || "",
+      managed: !!c.managed,
+      dateOfBirth: c.dateOfBirth ? c.dateOfBirth.substring(0, 10) : "",
+      guardianName: c.guardianName || "",
+      guardianPhone: c.guardianPhone || "",
+      guardianEmail: c.guardianEmail || "",
     });
   };
 
@@ -231,12 +252,13 @@ export default function Clients() {
       {created && (
         <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
           <h3 className="icon">
-            <Icon name="check_circle" size={18} /> Account created for {created.client.name}
+            <Icon name="check_circle" size={18} />{" "}
+            {created.managed ? "Patient added" : "Account created"} for {created.client.name}
           </h3>
           <textarea readOnly rows={6} value={created.shareMessage} />
           <div className="row gap" style={{ flexWrap: "wrap" }}>
             <button type="button" className="icon" onClick={copyCreds}>
-              <Icon name="content_copy" size={18} /> {copied ? "Copied!" : "Copy credentials"}
+              <Icon name="content_copy" size={18} /> {copied ? "Copied!" : created.managed ? "Copy message" : "Copy credentials"}
             </button>
             <a
               className="btn-whatsapp"
@@ -257,7 +279,8 @@ export default function Clients() {
           </div>
           {created.credentials.email && (
             <p className="muted" style={{ margin: 0 }}>
-              Credentials were also emailed to {created.credentials.email}.
+              {created.managed ? "Details were also emailed to " : "Credentials were also emailed to "}
+              {created.credentials.email}.
             </p>
           )}
         </div>
@@ -355,76 +378,141 @@ export default function Clients() {
           </button>
         </div>
         {error && <div className="error">{error}</div>}
-        <div className="grid-2">
-          <label>
-            <span className="lbl">Name <span className="req">*</span></span>
-            <input
-              name="name"
-              required
-              autoCapitalize="words"
-              value={form.name}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  // digits removed; first letter of every word capitalized
-                  name: e.target.value.replace(/[0-9]/g, "").replace(/\b\p{L}/gu, (ch) => ch.toUpperCase()),
-                })
-              }
-            />
-          </label>
-          <label>
-            <span className="lbl">Email <span className="muted">(optional)</span></span>
-            <input
-              type="email"
-              name="email"
-              disabled={!!editingId}
-              value={form.email}
-              onChange={handleChange}
-            />
-          </label>
-        </div>
-        <label>
-          <span className="lbl">Phone <span className="req">*</span></span>
-          <input
-            name="phone"
-            type="tel"
-            inputMode="numeric"
-            maxLength={11}
-            required
-            placeholder="e.g. 03001234567"
-            value={form.phone}
-            onChange={(e) =>
-              setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })
-            }
-          />
-        </label>
+
         {!editingId && (
-          <label>
-            <span className="lbl">Password (min 8) <span className="req">*</span></span>
-            <PasswordInput
-              name="password"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              defaultVisible
-              value={form.password}
-              onChange={handleChange}
+          <label className="row gap" style={{ alignItems: "center" }}>
+            <input
+              type="checkbox"
+              checked={form.managed}
+              onChange={(e) => setForm({ ...form, managed: e.target.checked })}
+              style={{ width: "auto" }}
             />
+            <span>Child / dependent — no phone or email (we'll contact a guardian)</span>
           </label>
         )}
-        {!editingId && (
-          <label>
-            <span className="lbl">Confirm password <span className="req">*</span></span>
-            <PasswordInput
-              name="confirmPassword"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              defaultVisible
-              value={form.confirmPassword}
-              onChange={handleChange}
-            />
-          </label>
+
+        {form.managed ? (
+          <>
+            <div className="grid-2">
+              <label>
+                <span className="lbl">Patient name <span className="req">*</span></span>
+                <input
+                  required
+                  autoCapitalize="words"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: titleCase(e.target.value) })}
+                />
+              </label>
+              <label>
+                <span className="lbl">Date of birth</span>
+                <input
+                  type="date"
+                  max={new Date().toISOString().slice(0, 10)}
+                  value={form.dateOfBirth}
+                  onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                />
+              </label>
+            </div>
+            <label>
+              <span className="lbl">Guardian name <span className="req">*</span></span>
+              <input
+                required
+                autoCapitalize="words"
+                value={form.guardianName}
+                onChange={(e) => setForm({ ...form, guardianName: titleCase(e.target.value) })}
+              />
+            </label>
+            <label>
+              <span className="lbl">Guardian phone <span className="req">*</span></span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={11}
+                required
+                placeholder="e.g. 03001234567"
+                value={form.guardianPhone}
+                onChange={(e) =>
+                  setForm({ ...form, guardianPhone: e.target.value.replace(/\D/g, "").slice(0, 11) })
+                }
+              />
+            </label>
+            <label>
+              <span className="lbl">Guardian email <span className="muted">(optional)</span></span>
+              <input
+                type="email"
+                value={form.guardianEmail}
+                onChange={(e) => setForm({ ...form, guardianEmail: e.target.value })}
+              />
+            </label>
+          </>
+        ) : (
+          <>
+            <div className="grid-2">
+              <label>
+                <span className="lbl">Name <span className="req">*</span></span>
+                <input
+                  name="name"
+                  required
+                  autoCapitalize="words"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: titleCase(e.target.value) })}
+                />
+              </label>
+              <label>
+                <span className="lbl">Email <span className="muted">(optional)</span></span>
+                <input
+                  type="email"
+                  name="email"
+                  disabled={!!editingId}
+                  value={form.email}
+                  onChange={handleChange}
+                />
+              </label>
+            </div>
+            <label>
+              <span className="lbl">Phone <span className="req">*</span></span>
+              <input
+                name="phone"
+                type="tel"
+                inputMode="numeric"
+                maxLength={11}
+                required
+                placeholder="e.g. 03001234567"
+                value={form.phone}
+                onChange={(e) =>
+                  setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })
+                }
+              />
+            </label>
+            {!editingId && (
+              <label>
+                <span className="lbl">Password (min 8) <span className="req">*</span></span>
+                <PasswordInput
+                  name="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  defaultVisible
+                  value={form.password}
+                  onChange={handleChange}
+                />
+              </label>
+            )}
+            {!editingId && (
+              <label>
+                <span className="lbl">Confirm password <span className="req">*</span></span>
+                <PasswordInput
+                  name="confirmPassword"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  defaultVisible
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                />
+              </label>
+            )}
+          </>
         )}
         <div className="row gap">
           <button type="submit">{editingId ? "Update" : "Add patient"}</button>
@@ -453,10 +541,21 @@ export default function Clients() {
                 <span className="appt-when icon">
                   <Icon name="person" size={18} /> {c.name}
                 </span>
+                {c.managed && <span className="st st-scheduled">Child</span>}
               </div>
               <div className="appt-card-body">
-                {c.phone && <span className="icon"><Icon name="call" size={16} /> {c.phone}</span>}
-                {c.email && <span className="icon"><Icon name="mail" size={16} /> {c.email}</span>}
+                {c.managed ? (
+                  <>
+                    <span className="icon"><Icon name="escalator_warning" size={16} /> Guardian: {c.guardianName || "—"}</span>
+                    {c.guardianPhone && <span className="icon"><Icon name="call" size={16} /> {c.guardianPhone}</span>}
+                    {c.guardianEmail && <span className="icon"><Icon name="mail" size={16} /> {c.guardianEmail}</span>}
+                  </>
+                ) : (
+                  <>
+                    {c.phone && <span className="icon"><Icon name="call" size={16} /> {c.phone}</span>}
+                    {c.email && <span className="icon"><Icon name="mail" size={16} /> {c.email}</span>}
+                  </>
+                )}
                 {c.dateOfBirth && (
                   <span className="icon"><Icon name="cake" size={16} /> {formatDate(c.dateOfBirth)}</span>
                 )}
@@ -474,13 +573,15 @@ export default function Clients() {
                 >
                   <Icon name="edit" size={18} /> Edit
                 </button>
-                <button
-                  className="btn-secondary icon"
-                  title="Reset password"
-                  onClick={(e) => { e.stopPropagation(); openReset(c); }}
-                >
-                  <Icon name="lock_reset" size={18} /> Reset
-                </button>
+                {!c.managed && (
+                  <button
+                    className="btn-secondary icon"
+                    title="Reset password"
+                    onClick={(e) => { e.stopPropagation(); openReset(c); }}
+                  >
+                    <Icon name="lock_reset" size={18} /> Reset
+                  </button>
+                )}
                 <button
                   className="btn-danger-soft icon"
                   onClick={(e) => { e.stopPropagation(); handleDelete(c._id); }}
