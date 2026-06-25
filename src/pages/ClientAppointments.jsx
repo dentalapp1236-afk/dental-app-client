@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
+import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 import AppointmentActions from "../components/AppointmentActions";
@@ -10,12 +11,15 @@ const statusLabel = (s) =>
   s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
 
 export default function ClientAppointments() {
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [assoc, setAssoc] = useState(null);
+  const [deps, setDeps] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Request a new appointment
   const [showRequest, setShowRequest] = useState(false);
+  const [reqFor, setReqFor] = useState(""); // "" = myself, else dependent id
   const [reqDate, setReqDate] = useState("");
   const [reqReason, setReqReason] = useState("");
   const [reqError, setReqError] = useState("");
@@ -28,12 +32,14 @@ export default function ClientAppointments() {
   useEffect(() => {
     (async () => {
       try {
-        const [a, c] = await Promise.all([
+        const [a, c, f] = await Promise.all([
           api.get("/appointments"),
           api.get("/associations/me"),
+          api.get("/family", { skipLoader: true }),
         ]);
         setAppointments(a.data);
         setAssoc(c.data);
+        setDeps(f.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -43,6 +49,7 @@ export default function ClientAppointments() {
   }, []);
 
   const openRequest = () => {
+    setReqFor("");
     setReqDate("");
     setReqReason("");
     setReqError("");
@@ -56,7 +63,7 @@ export default function ClientAppointments() {
     if (!reqDate) return setReqError("Please pick a time slot.");
     setReqBusy(true);
     try {
-      await api.post("/appointments/request", { date: reqDate, reason: reqReason });
+      await api.post("/appointments/request", { date: reqDate, reason: reqReason, for: reqFor || undefined });
       setShowRequest(false);
       setReqSent(true);
       await loadAppointments();
@@ -67,27 +74,16 @@ export default function ClientAppointments() {
     }
   };
 
-  // Already has an active appointment still in the future? Then no new request.
-  const hasUpcoming = appointments.some(
-    (a) => ["scheduled", "pending"].includes(a.status) && new Date(a.date) > new Date()
-  );
-
   return (
     <div className="page">
       <div className="page-head">
         <h1 className="icon"><Icon name="calendar_month" /> My appointments</h1>
-        {assoc?.dentist && !hasUpcoming && (
+        {assoc?.dentist && (
           <button className="icon" onClick={openRequest}>
             <Icon name="event" size={18} /> Request appointment
           </button>
         )}
       </div>
-
-      {assoc?.dentist && hasUpcoming && (
-        <p className="muted" style={{ marginTop: -4 }}>
-          You already have an upcoming appointment. You can request a new one after it's completed.
-        </p>
-      )}
 
       {reqSent && (
         <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
@@ -114,6 +110,9 @@ export default function ClientAppointments() {
                   <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
                 </div>
                 <div className="appt-card-body">
+                  {a.client && a.client._id !== user._id && (
+                    <span className="icon"><Icon name="child_care" size={16} /> For {a.client.name}</span>
+                  )}
                   <span className="icon"><Icon name="person" size={16} /> Dr. {a.dentist?.name}</span>
                   {a.reason && (
                     <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
@@ -139,6 +138,17 @@ export default function ClientAppointments() {
                 Pick an available slot with Dr. {assoc?.dentist?.name}. They'll confirm your request.
               </p>
               {reqError && <div className="error">{reqError}</div>}
+              {deps.length > 0 && (
+                <label>
+                  <span className="lbl">Who is this for?</span>
+                  <select value={reqFor} onChange={(e) => setReqFor(e.target.value)}>
+                    <option value="">Myself</option>
+                    {deps.map((d) => (
+                      <option key={d._id} value={d._id}>{d.name}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label>
                 <span className="lbl">Purpose <span className="muted">(optional)</span></span>
                 <input

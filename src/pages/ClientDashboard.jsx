@@ -210,6 +210,9 @@ export default function ClientDashboard() {
                   <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
                 </div>
                 <div className="appt-card-body">
+                  {a.client && a.client._id !== user._id && (
+                    <span className="icon"><Icon name="child_care" size={16} /> For {a.client.name}</span>
+                  )}
                   <span className="icon"><Icon name="person" size={16} /> Dr. {a.dentist?.name}</span>
                   {a.dentist?.clinicName && (
                     <span className="icon"><Icon name="apartment" size={16} /> {a.dentist.clinicName}</span>

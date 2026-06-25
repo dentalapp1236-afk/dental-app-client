@@ -19,6 +19,7 @@ import DentistDashboard from "./pages/DentistDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import ClientAppointments from "./pages/ClientAppointments";
 import ClientTreatments from "./pages/ClientTreatments";
+import Family from "./pages/Family";
 import Clients from "./pages/Clients";
 import Staff from "./pages/Staff";
 import ClientLedger from "./pages/ClientLedger";
@@ -133,6 +134,14 @@ export default function App() {
           element={
             <ProtectedRoute role="client">
               <ClientTreatments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/family"
+          element={
+            <ProtectedRoute role="client">
+              <Family />
             </ProtectedRoute>
           }
         />
