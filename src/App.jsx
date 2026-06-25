@@ -140,7 +140,7 @@ export default function App() {
           path="/clients"
           element={
             <ProtectedRoute role={["dentist", "assistant"]}>
-              <Clients />
+              <Clients key="patients" />
             </ProtectedRoute>
           }
         />
@@ -148,7 +148,7 @@ export default function App() {
           path="/dependents"
           element={
             <ProtectedRoute role={["dentist", "assistant"]}>
-              <Clients mode="dependents" />
+              <Clients key="dependents" mode="dependents" />
             </ProtectedRoute>
           }
         />
