@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
@@ -47,6 +47,7 @@ const clinicStatus = (availability) => {
 // and treatment history live in their own tabs.
 export default function ClientDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [assoc, setAssoc] = useState(null); // { dentist, pending }
   const [upcoming, setUpcoming] = useState([]);
   const [showLeave, setShowLeave] = useState(false);
@@ -145,12 +146,15 @@ export default function ClientDashboard() {
           <p className="muted">Loading…</p>
         ) : assoc.dentist ? (
           <div
+            onClick={() => navigate(`/dentists/${assoc.dentist._id}`)}
+            title="View dentist details"
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               textAlign: "center",
               gap: 8,
+              cursor: "pointer",
             }}
           >
             <Avatar src={assoc.dentist.image} name={assoc.dentist.name} size={96} />
@@ -179,7 +183,11 @@ export default function ClientDashboard() {
                 </span>
               </div>
             )}
-            <div className="row gap" style={{ flexWrap: "wrap", justifyContent: "center" }}>
+            <div
+              className="row gap"
+              style={{ flexWrap: "wrap", justifyContent: "center" }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <Link
                 to={`/dentists/${assoc.dentist._id}`}
                 className="btn-secondary icon"
