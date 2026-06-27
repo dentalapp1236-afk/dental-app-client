@@ -113,17 +113,20 @@ export default function DentistProfile() {
       </button>
       <div className="card">
         <div
-          className="row gap"
-          style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 10,
+          }}
         >
-          <div className="row gap" style={{ alignItems: "center", minWidth: 0, flex: "1 1 220px" }}>
-            <Avatar src={dentist.image} name={dentist.name} size={64} />
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: "clamp(1.25rem, 5vw, 1.7rem)", lineHeight: 1.15 }}>
-                Dr. {dentist.name}
-              </h1>
-              {dentist.clinicName && <div className="muted">{dentist.clinicName}</div>}
-            </div>
+          <Avatar src={dentist.image} name={dentist.name} size={88} />
+          <div>
+            <h1 style={{ margin: 0, fontSize: "clamp(1.3rem, 5vw, 1.8rem)", lineHeight: 1.15 }}>
+              Dr. {dentist.name}
+            </h1>
+            {dentist.clinicName && <div className="muted">{dentist.clinicName}</div>}
           </div>
           <div>
             <StarRating value={dentist.rating} size={20} />
