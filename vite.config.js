@@ -10,7 +10,9 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.js",
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      // External registration script (not inline) so a strict CSP can omit
+      // 'unsafe-inline' from script-src.
+      injectRegister: "script",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "MyDentalBooking",
