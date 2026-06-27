@@ -224,6 +224,15 @@ export default function ClientLedger() {
     }
   };
 
+  const resolveFollowUp = async (treatId, fid) => {
+    try {
+      await api.put(`/treatments/${treatId}/follow-up/${fid}/resolve`);
+      await loadTreatments();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not update the report.");
+    }
+  };
+
   const openEditPayment = (treatId, p) => {
     setEditPay({
       treatId,
@@ -416,6 +425,42 @@ export default function ClientLedger() {
                 </button>
               </div>
             </div>
+
+            {t.followUps?.length > 0 && (
+              <div style={{ marginTop: 10 }}>
+                {[...t.followUps]
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                  .map((f) => (
+                    <div
+                      key={f._id}
+                      className="row gap"
+                      style={{
+                        alignItems: "flex-start",
+                        flexWrap: "wrap",
+                        borderTop: "1px solid var(--border)",
+                        paddingTop: 8,
+                        marginTop: 8,
+                      }}
+                    >
+                      <Icon name="report" size={18} style={{ color: "var(--danger)" }} />
+                      <div style={{ flex: 1, minWidth: 140 }}>
+                        <div>
+                          <strong>Patient reported a problem</strong>{" "}
+                          <span className="muted" style={{ fontSize: 12 }}>· {fmtDate(f.createdAt)}</span>
+                        </div>
+                        <div style={{ fontSize: 14 }}>{f.message}</div>
+                      </div>
+                      {f.status === "open" ? (
+                        <button className="btn-secondary icon" onClick={() => resolveFollowUp(t._id, f._id)}>
+                          <Icon name="check" size={16} /> Mark resolved
+                        </button>
+                      ) : (
+                        <span className="badge icon"><Icon name="check_circle" size={14} /> Resolved</span>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
 
             {t.payments?.length > 0 && (
               <div className="timeline">
