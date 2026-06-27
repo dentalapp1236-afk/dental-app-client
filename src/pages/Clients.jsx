@@ -6,6 +6,16 @@ import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import { useNotifications } from "../context/NotificationsContext";
 
+// Build a WhatsApp click-to-chat URL: local number -> international, message prefilled.
+// Opens the dentist's own WhatsApp (app on phone / WhatsApp Web on desktop).
+const waChatUrl = (phone, text) => {
+  let d = String(phone || "").replace(/\D/g, "");
+  if (d.startsWith("00")) d = d.slice(2);
+  if (d.startsWith("0")) d = "92" + d.slice(1);
+  else if (!d.startsWith("92") && d.length <= 10) d = "92" + d;
+  return `https://wa.me/${d}?text=${encodeURIComponent(text)}`;
+};
+
 // New patients get a default password the dentist can share; they change it later.
 const DEFAULT_PASSWORD = "123456789";
 const empty = {
@@ -47,34 +57,24 @@ export default function Clients({ mode = "patients" }) {
   const [resetResult, setResetResult] = useState(null); // { shareMessage } after reset
   const [resetCopied, setResetCopied] = useState(false);
 
-  // WhatsApp message flow
+  // WhatsApp message flow — opens the dentist's own WhatsApp (click-to-chat)
   const [msgTarget, setMsgTarget] = useState(null); // the patient being messaged
   const [msgText, setMsgText] = useState("");
   const [msgError, setMsgError] = useState("");
-  const [msgBusy, setMsgBusy] = useState(false);
-  const [msgSent, setMsgSent] = useState(false);
 
   const openMessage = (c) => {
     setMsgTarget(c);
     setMsgText("");
     setMsgError("");
-    setMsgSent(false);
   };
 
-  const submitMessage = async (e) => {
+  const submitMessage = (e) => {
     e.preventDefault();
     setMsgError("");
     if (!msgText.trim()) return setMsgError("Type a message to send.");
-    setMsgBusy(true);
-    try {
-      await api.post("/whatsapp/send", { clientId: msgTarget._id, message: msgText.trim() });
-      setMsgSent(true);
-      setMsgTarget(null);
-    } catch (err) {
-      setMsgError(err.response?.data?.message || "Could not send the WhatsApp message.");
-    } finally {
-      setMsgBusy(false);
-    }
+    const phone = msgTarget.managed ? msgTarget.guardianPhone : msgTarget.phone;
+    window.open(waChatUrl(phone, msgText.trim()), "_blank", "noopener");
+    setMsgTarget(null);
   };
 
   const genTempPassword = () => `Dt${Math.random().toString(36).slice(2, 8)}9`;
@@ -93,7 +93,7 @@ export default function Clients({ mode = "patients" }) {
     setResetBusy(true);
     try {
       const { data } = await api.post(`/clients/${resetTarget._id}/reset-password`, { password: resetPwd });
-      setResetResult({ ...data, name: resetTarget.name });
+      setResetResult({ ...data, name: resetTarget.name, phone: resetTarget.phone });
       setResetCopied(false);
       setResetTarget(null);
     } catch (err) {
@@ -113,7 +113,7 @@ export default function Clients({ mode = "patients" }) {
   };
 
   const resetWaLink = resetResult
-    ? `https://wa.me/?text=${encodeURIComponent(resetResult.shareMessage)}`
+    ? waChatUrl(resetResult.phone, resetResult.shareMessage)
     : "#";
 
   const load = async () => {
@@ -236,7 +236,7 @@ export default function Clients({ mode = "patients" }) {
   };
 
   const waLink = created
-    ? `https://wa.me/?text=${encodeURIComponent(created.shareMessage)}`
+    ? waChatUrl(created.credentials?.phone, created.shareMessage)
     : "#";
 
   return (
@@ -393,14 +393,6 @@ export default function Clients({ mode = "patients" }) {
         </div>
       )}
 
-      {msgSent && (
-        <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
-          <p className="icon" style={{ margin: 0 }}>
-            <Icon name="check_circle" size={18} /> WhatsApp message sent.
-          </p>
-        </div>
-      )}
-
       {msgTarget && (
         <div className="modal-backdrop" onClick={() => setMsgTarget(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -412,8 +404,8 @@ export default function Clients({ mode = "patients" }) {
                 </button>
               </div>
               <p className="muted" style={{ margin: 0 }}>
-                Message <strong>{msgTarget.name}</strong> on WhatsApp
-                {msgTarget.managed ? " (via guardian)" : ""}. They can tap a button to confirm.
+                Type a message — it opens WhatsApp with <strong>{msgTarget.name}</strong>'s
+                {msgTarget.managed ? " guardian's" : ""} number and your message ready to send.
               </p>
               {msgError && <div className="error">{msgError}</div>}
               <label>
@@ -427,8 +419,8 @@ export default function Clients({ mode = "patients" }) {
                 />
               </label>
               <div className="row gap">
-                <button type="submit" className="icon" disabled={msgBusy}>
-                  <Icon name="send" size={18} /> {msgBusy ? "Sending…" : "Send"}
+                <button type="submit" className="icon">
+                  <Icon name="chat" size={18} /> Open in WhatsApp
                 </button>
                 <button type="button" className="btn-secondary" onClick={() => setMsgTarget(null)}>
                   Cancel
