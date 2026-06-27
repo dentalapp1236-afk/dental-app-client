@@ -47,6 +47,36 @@ export default function Clients({ mode = "patients" }) {
   const [resetResult, setResetResult] = useState(null); // { shareMessage } after reset
   const [resetCopied, setResetCopied] = useState(false);
 
+  // WhatsApp message flow
+  const [msgTarget, setMsgTarget] = useState(null); // the patient being messaged
+  const [msgText, setMsgText] = useState("");
+  const [msgError, setMsgError] = useState("");
+  const [msgBusy, setMsgBusy] = useState(false);
+  const [msgSent, setMsgSent] = useState(false);
+
+  const openMessage = (c) => {
+    setMsgTarget(c);
+    setMsgText("");
+    setMsgError("");
+    setMsgSent(false);
+  };
+
+  const submitMessage = async (e) => {
+    e.preventDefault();
+    setMsgError("");
+    if (!msgText.trim()) return setMsgError("Type a message to send.");
+    setMsgBusy(true);
+    try {
+      await api.post("/whatsapp/send", { clientId: msgTarget._id, message: msgText.trim() });
+      setMsgSent(true);
+      setMsgTarget(null);
+    } catch (err) {
+      setMsgError(err.response?.data?.message || "Could not send the WhatsApp message.");
+    } finally {
+      setMsgBusy(false);
+    }
+  };
+
   const genTempPassword = () => `Dt${Math.random().toString(36).slice(2, 8)}9`;
 
   const openReset = (c) => {
@@ -363,6 +393,52 @@ export default function Clients({ mode = "patients" }) {
         </div>
       )}
 
+      {msgSent && (
+        <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+          <p className="icon" style={{ margin: 0 }}>
+            <Icon name="check_circle" size={18} /> WhatsApp message sent.
+          </p>
+        </div>
+      )}
+
+      {msgTarget && (
+        <div className="modal-backdrop" onClick={() => setMsgTarget(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={submitMessage} style={{ display: "contents" }}>
+              <div className="modal-head">
+                <h3 className="icon"><Icon name="chat" size={18} /> WhatsApp message</h3>
+                <button type="button" className="modal-close" aria-label="Close" onClick={() => setMsgTarget(null)}>
+                  <Icon name="close" />
+                </button>
+              </div>
+              <p className="muted" style={{ margin: 0 }}>
+                Message <strong>{msgTarget.name}</strong> on WhatsApp
+                {msgTarget.managed ? " (via guardian)" : ""}. They can tap a button to confirm.
+              </p>
+              {msgError && <div className="error">{msgError}</div>}
+              <label>
+                <span className="lbl">Message <span className="req">*</span></span>
+                <textarea
+                  rows={4}
+                  autoFocus
+                  placeholder="e.g. Your appointment is tomorrow at 3 PM. Please confirm."
+                  value={msgText}
+                  onChange={(e) => setMsgText(e.target.value)}
+                />
+              </label>
+              <div className="row gap">
+                <button type="submit" className="icon" disabled={msgBusy}>
+                  <Icon name="send" size={18} /> {msgBusy ? "Sending…" : "Send"}
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setMsgTarget(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="search-row">
         <input
           placeholder={isDependents ? "Search by child or guardian…" : "Search by name, email, or phone…"}
@@ -572,6 +648,15 @@ export default function Clients({ mode = "patients" }) {
                 >
                   <Icon name="edit" size={18} /> Edit
                 </button>
+                {(c.managed ? c.guardianPhone : c.phone) && (
+                  <button
+                    className="btn-secondary icon"
+                    title="Send a WhatsApp message"
+                    onClick={(e) => { e.stopPropagation(); openMessage(c); }}
+                  >
+                    <Icon name="chat" size={18} /> Message
+                  </button>
+                )}
                 {!c.managed && (
                   <button
                     className="btn-secondary icon"
