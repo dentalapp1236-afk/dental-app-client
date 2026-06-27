@@ -10,9 +10,8 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const isDentist = user.role === "dentist";
   const isAssistant = user.role === "assistant";
-  const isClient = user.role === "client";
   const isVendor = user.role === "vendor";
-  const canPhoto = isDentist || isAssistant || isClient;
+  const canPhoto = isDentist || isAssistant;
 
   const [form, setForm] = useState({
     name: user.name || "",

@@ -39,7 +39,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   const isDentist = form.role === "dentist";
-  const isClient = form.role === "client";
   const isVendor = form.role === "vendor";
 
   const roleHome = (role) =>
@@ -143,8 +142,8 @@ export default function Register() {
         payload.latitude = coords.latitude;
         payload.longitude = coords.longitude;
         payload.availability = availability;
+        if (avatarUrl) payload.image = avatarUrl;
       }
-      if (avatarUrl) payload.image = avatarUrl;
       if (isVendor) {
         payload.companyName = form.companyName;
       }
@@ -187,13 +186,13 @@ export default function Register() {
             </select>
           </label>
         )}
-        {(isDentist || isClient) && (
+        {isDentist && (
           <AvatarUpload
             value={avatarUrl}
             name={form.name}
             onChange={setAvatarUrl}
             centered
-            hint={isDentist ? "Patients see this when finding a dentist." : "Add a profile photo (optional)."}
+            hint="Patients see this when finding a dentist."
           />
         )}
         {isVendor && (
