@@ -74,15 +74,32 @@ export default function ClientAppointments() {
     }
   };
 
+  // Hide "Request appointment" once the patient already has an active appointment
+  // (pending or upcoming). Guardians with dependents keep it so they can still
+  // book for a child. The server also blocks same-day double-booking.
+  const now = Date.now();
+  const hasActiveOwn = appointments.some(
+    (a) =>
+      a.client?._id === user._id &&
+      ["pending", "scheduled"].includes(a.status) &&
+      new Date(a.date).getTime() >= now
+  );
+  const hideRequest = hasActiveOwn && deps.length === 0;
+
   return (
     <div className="page">
       <div className="page-head">
         <h1 className="icon"><Icon name="calendar_month" /> My appointments</h1>
-        {assoc?.dentist && (
-          <button className="icon" onClick={openRequest}>
-            <Icon name="event" size={18} /> Request appointment
-          </button>
-        )}
+        {assoc?.dentist &&
+          (hideRequest ? (
+            <span className="muted icon" style={{ fontSize: 14 }}>
+              <Icon name="event_available" size={18} /> Appointment already scheduled
+            </span>
+          ) : (
+            <button className="icon" onClick={openRequest}>
+              <Icon name="event" size={18} /> Request appointment
+            </button>
+          ))}
       </div>
 
       {reqSent && (
