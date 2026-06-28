@@ -78,16 +78,11 @@ export default function AppointmentActions({ appointment, onChanged }) {
         <span className="clinic-badge open">
           <Icon name="where_to_vote" size={16} /> Marked arrived
         </span>
-      ) : showArrival ? (
+      ) : showArrival && a.arrivalStatus === "on_the_way" ? (
         <>
-          <button
-            className="btn-secondary icon"
-            onClick={() => sendArrival("on_the_way")}
-            disabled={arrBusy}
-          >
-            <Icon name="directions_car" size={18} />{" "}
-            {a.arrivalStatus === "on_the_way" ? "On the way ✓" : "On my way"}
-          </button>
+          <span className="badge icon">
+            <Icon name="directions_car" size={14} /> On the way
+          </span>
           <button
             className="btn-secondary icon"
             style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
@@ -97,6 +92,14 @@ export default function AppointmentActions({ appointment, onChanged }) {
             <Icon name="where_to_vote" size={18} /> I've arrived
           </button>
         </>
+      ) : showArrival ? (
+        <button
+          className="btn-secondary icon"
+          onClick={() => sendArrival("on_the_way")}
+          disabled={arrBusy}
+        >
+          <Icon name="directions_car" size={18} /> On my way
+        </button>
       ) : null}
       {future && (
         <button className="btn-secondary icon" onClick={openReschedule}>
