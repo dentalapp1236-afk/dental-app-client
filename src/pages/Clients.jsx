@@ -168,11 +168,11 @@ export default function Clients({ mode = "patients" }) {
     if (form.managed) {
       if (!form.name.trim()) return setError("Patient name is required.");
       if (!form.guardianName.trim()) return setError("Guardian name is required.");
-      if (!/^\d{11}$/.test(form.guardianPhone))
-        return setError("Guardian phone must be exactly 11 digits.");
+      if (!/^0\d{10}$/.test(form.guardianPhone))
+        return setError("Guardian phone must be 11 digits and start with 0 (e.g. 03001234567).");
     } else {
-      if (!/^\d{11}$/.test(form.phone))
-        return setError("Phone number must be exactly 11 digits.");
+      if (!/^0\d{10}$/.test(form.phone))
+        return setError("Phone number must be 11 digits and start with 0 (e.g. 03001234567).");
       if (!editingId) {
         if (form.password.length < 8)
           return setError("Password must be at least 8 characters.");

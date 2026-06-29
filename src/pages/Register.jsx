@@ -67,8 +67,8 @@ export default function Register() {
     else if (!EMAIL_RE.test(form.email.trim())) e.email = "Enter a valid email address.";
 
     if (!form.phone.trim()) e.phone = "Phone number is required.";
-    else if (!/^\d{11}$/.test(form.phone.trim()))
-      e.phone = "Mobile number must be exactly 11 digits.";
+    else if (!/^0\d{10}$/.test(form.phone.trim()))
+      e.phone = "Mobile number must be 11 digits and start with 0 (e.g. 03001234567).";
 
     if (!form.password) e.password = "Password is required.";
     else if (form.password.length < 8) e.password = "Use at least 8 characters.";
