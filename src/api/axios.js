@@ -7,11 +7,22 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
 });
 
+// True when the app is running as an installed PWA (standalone), not a browser tab.
+const isStandalone = () =>
+  (typeof window !== "undefined" &&
+    (window.matchMedia?.("(display-mode: standalone)")?.matches ||
+      window.matchMedia?.("(display-mode: fullscreen)")?.matches ||
+      window.matchMedia?.("(display-mode: minimal-ui)")?.matches ||
+      window.navigator?.standalone === true)) ||
+  false;
+
 api.interceptors.request.use(
   (config) => {
     if (!config.skipLoader) loadingStore.start();
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    // Tell the server how the app is being used (installed PWA vs browser).
+    config.headers["X-Display-Mode"] = isStandalone() ? "standalone" : "browser";
     return config;
   },
   (err) => {
