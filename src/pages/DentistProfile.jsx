@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import Avatar from "../components/Avatar";
 import StarRating from "../components/StarRating";
-import SlotPicker from "../components/SlotPicker";
 import PublicTopbar from "../components/PublicTopbar";
 
 // "17:00" -> "5:00 PM" (or unchanged when show24).
@@ -37,14 +36,6 @@ export default function DentistProfile() {
   const [assocMsg, setAssocMsg] = useState("");
   const [requesting, setRequesting] = useState(false);
 
-  // Book-from-profile (associated clients only)
-  const [deps, setDeps] = useState([]); // guardian's dependents (if any)
-  const [bookFor, setBookFor] = useState(""); // "" = myself, else dependent id
-  const [bookSlot, setBookSlot] = useState("");
-  const [bookReason, setBookReason] = useState("");
-  const [booking, setBooking] = useState(false);
-  const [bookMsg, setBookMsg] = useState("");
-  const [bookError, setBookError] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -64,7 +55,6 @@ export default function DentistProfile() {
   useEffect(() => {
     if (user?.role === "client") {
       api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
-      api.get("/family", { skipLoader: true }).then((r) => setDeps(r.data || [])).catch(() => {});
     }
   }, [user]);
 
@@ -108,30 +98,6 @@ export default function DentistProfile() {
       setReviewError(err.response?.data?.message || "Could not submit review");
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  // A logged-in client associated with THIS dentist can book straight from here.
-  const canBook = user?.role === "client" && assoc?.dentist?._id === id;
-
-  const submitBooking = async () => {
-    setBookError("");
-    if (!bookSlot) return setBookError("Please pick a time slot first.");
-    setBooking(true);
-    try {
-      await api.post("/appointments/request", {
-        date: bookSlot,
-        reason: bookReason,
-        for: bookFor || undefined,
-      });
-      setBookSlot("");
-      setBookReason("");
-      setBookFor("");
-      setBookMsg("Request sent — you'll be notified once the dentist confirms.");
-    } catch (err) {
-      setBookError(err.response?.data?.message || "Could not send the request.");
-    } finally {
-      setBooking(false);
     }
   };
 
@@ -222,60 +188,6 @@ export default function DentistProfile() {
 
         {dentist.availability?.length > 0 && (
           <>
-            <hr className="divider" />
-            <h3 className="icon">
-              <Icon name="event_available" size={18} /> {canBook ? "Book an appointment" : "Check availability"}
-            </h3>
-            <p className="muted" style={{ marginTop: -4 }}>
-              {canBook
-                ? "Pick an open slot below and send a request — your dentist will confirm it."
-                : "Pick a day to see which slots are open."}
-            </p>
-
-            {bookMsg ? (
-              <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
-                <p className="icon" style={{ margin: 0 }}>
-                  <Icon name="check_circle" size={18} /> {bookMsg}
-                </p>
-              </div>
-            ) : canBook ? (
-              <>
-                <SlotPicker
-                  dentistId={id}
-                  availabilityOverride={dentist.availability}
-                  value={bookSlot}
-                  onChange={(iso) => { setBookSlot(iso); setBookError(""); }}
-                />
-                {deps.length > 0 && (
-                  <label style={{ marginTop: 8 }}>
-                    <span className="lbl">Who is this for?</span>
-                    <select value={bookFor} onChange={(e) => setBookFor(e.target.value)}>
-                      <option value="">Myself</option>
-                      {deps.map((d) => (
-                        <option key={d._id} value={d._id}>{d.name}</option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-                <label style={{ marginTop: 8 }}>
-                  <span className="lbl">Purpose <span className="muted">(optional)</span></span>
-                  <input
-                    placeholder="e.g. Checkup, Toothache"
-                    value={bookReason}
-                    onChange={(e) => setBookReason(e.target.value)}
-                  />
-                </label>
-                {bookError && <div className="error">{bookError}</div>}
-                <div className="row gap">
-                  <button className="icon" onClick={submitBooking} disabled={booking || !bookSlot}>
-                    <Icon name="schedule_send" size={18} /> {booking ? "Sending…" : "Request appointment"}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <SlotPicker dentistId={id} availabilityOverride={dentist.availability} readOnly />
-            )}
-
             <hr className="divider" />
             <div className="row gap" style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
               <h3 className="icon" style={{ margin: 0 }}><Icon name="schedule" size={18} /> Clinic hours</h3>
