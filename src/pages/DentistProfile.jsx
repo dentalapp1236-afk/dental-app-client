@@ -37,6 +37,13 @@ export default function DentistProfile() {
   const [assocMsg, setAssocMsg] = useState("");
   const [requesting, setRequesting] = useState(false);
 
+  // Book-from-profile (associated clients only)
+  const [bookSlot, setBookSlot] = useState("");
+  const [bookReason, setBookReason] = useState("");
+  const [booking, setBooking] = useState(false);
+  const [bookMsg, setBookMsg] = useState("");
+  const [bookError, setBookError] = useState("");
+
   useEffect(() => {
     (async () => {
       try {
@@ -98,6 +105,25 @@ export default function DentistProfile() {
       setReviewError(err.response?.data?.message || "Could not submit review");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // A logged-in client associated with THIS dentist can book straight from here.
+  const canBook = user?.role === "client" && assoc?.dentist?._id === id;
+
+  const submitBooking = async () => {
+    setBookError("");
+    if (!bookSlot) return setBookError("Please pick a time slot first.");
+    setBooking(true);
+    try {
+      await api.post("/appointments/request", { date: bookSlot, reason: bookReason });
+      setBookSlot("");
+      setBookReason("");
+      setBookMsg("Request sent — you'll be notified once the dentist confirms.");
+    } catch (err) {
+      setBookError(err.response?.data?.message || "Could not send the request.");
+    } finally {
+      setBooking(false);
     }
   };
 
@@ -189,11 +215,47 @@ export default function DentistProfile() {
         {dentist.availability?.length > 0 && (
           <>
             <hr className="divider" />
-            <h3 className="icon"><Icon name="event_available" size={18} /> Check availability</h3>
+            <h3 className="icon">
+              <Icon name="event_available" size={18} /> {canBook ? "Book an appointment" : "Check availability"}
+            </h3>
             <p className="muted" style={{ marginTop: -4 }}>
-              Pick a day to see which slots are open.
+              {canBook
+                ? "Pick an open slot below and send a request — your dentist will confirm it."
+                : "Pick a day to see which slots are open."}
             </p>
-            <SlotPicker dentistId={id} availabilityOverride={dentist.availability} readOnly />
+
+            {bookMsg ? (
+              <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
+                <p className="icon" style={{ margin: 0 }}>
+                  <Icon name="check_circle" size={18} /> {bookMsg}
+                </p>
+              </div>
+            ) : canBook ? (
+              <>
+                <SlotPicker
+                  dentistId={id}
+                  availabilityOverride={dentist.availability}
+                  value={bookSlot}
+                  onChange={(iso) => { setBookSlot(iso); setBookError(""); }}
+                />
+                <label style={{ marginTop: 8 }}>
+                  <span className="lbl">Purpose <span className="muted">(optional)</span></span>
+                  <input
+                    placeholder="e.g. Checkup, Toothache"
+                    value={bookReason}
+                    onChange={(e) => setBookReason(e.target.value)}
+                  />
+                </label>
+                {bookError && <div className="error">{bookError}</div>}
+                <div className="row gap">
+                  <button className="icon" onClick={submitBooking} disabled={booking || !bookSlot}>
+                    <Icon name="schedule_send" size={18} /> {booking ? "Sending…" : "Request appointment"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <SlotPicker dentistId={id} availabilityOverride={dentist.availability} readOnly />
+            )}
 
             <hr className="divider" />
             <div className="row gap" style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
