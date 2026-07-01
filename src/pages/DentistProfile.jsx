@@ -38,6 +38,8 @@ export default function DentistProfile() {
   const [requesting, setRequesting] = useState(false);
 
   // Book-from-profile (associated clients only)
+  const [deps, setDeps] = useState([]); // guardian's dependents (if any)
+  const [bookFor, setBookFor] = useState(""); // "" = myself, else dependent id
   const [bookSlot, setBookSlot] = useState("");
   const [bookReason, setBookReason] = useState("");
   const [booking, setBooking] = useState(false);
@@ -62,6 +64,7 @@ export default function DentistProfile() {
   useEffect(() => {
     if (user?.role === "client") {
       api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
+      api.get("/family", { skipLoader: true }).then((r) => setDeps(r.data || [])).catch(() => {});
     }
   }, [user]);
 
@@ -116,9 +119,14 @@ export default function DentistProfile() {
     if (!bookSlot) return setBookError("Please pick a time slot first.");
     setBooking(true);
     try {
-      await api.post("/appointments/request", { date: bookSlot, reason: bookReason });
+      await api.post("/appointments/request", {
+        date: bookSlot,
+        reason: bookReason,
+        for: bookFor || undefined,
+      });
       setBookSlot("");
       setBookReason("");
+      setBookFor("");
       setBookMsg("Request sent — you'll be notified once the dentist confirms.");
     } catch (err) {
       setBookError(err.response?.data?.message || "Could not send the request.");
@@ -238,6 +246,17 @@ export default function DentistProfile() {
                   value={bookSlot}
                   onChange={(iso) => { setBookSlot(iso); setBookError(""); }}
                 />
+                {deps.length > 0 && (
+                  <label style={{ marginTop: 8 }}>
+                    <span className="lbl">Who is this for?</span>
+                    <select value={bookFor} onChange={(e) => setBookFor(e.target.value)}>
+                      <option value="">Myself</option>
+                      {deps.map((d) => (
+                        <option key={d._id} value={d._id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <label style={{ marginTop: 8 }}>
                   <span className="lbl">Purpose <span className="muted">(optional)</span></span>
                   <input
