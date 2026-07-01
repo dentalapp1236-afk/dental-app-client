@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import { usePwaInstall } from "../utils/pwaInstall";
+import { normalizePkPhone } from "../utils/phone";
 
 export default function Login() {
   const { login } = useAuth();
@@ -18,6 +19,15 @@ export default function Login() {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  // Identifier is email OR phone: normalize phone-like input to local format
+  // (e.g. pasted "+92 323 4944896" -> "03234944896"), but leave emails alone.
+  const handleIdentifier = (e) => {
+    const raw = e.target.value;
+    const value = /[a-zA-Z@]/.test(raw) ? raw : normalizePkPhone(raw);
+    setForm({ ...form, identifier: value });
+    if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: undefined }));
   };
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,7 +89,7 @@ export default function Login() {
               placeholder="you@example.com or 03001234567"
               className={errors.identifier ? "invalid" : ""}
               value={form.identifier}
-              onChange={handleChange}
+              onChange={handleIdentifier}
             />
           </div>
           {errors.identifier && <span className="field-error">{errors.identifier}</span>}
