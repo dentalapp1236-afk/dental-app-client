@@ -5,6 +5,7 @@ import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import AvatarUpload from "../components/AvatarUpload";
+import { normalizePkPhone } from "../utils/phone";
 
 const DEFAULT_AVAILABILITY = ["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => ({
   day,
@@ -252,14 +253,12 @@ export default function Register() {
             name="phone"
             type="tel"
             inputMode="numeric"
-            maxLength={11}
             placeholder="e.g. 03001234567"
             className={errors.phone ? "invalid" : ""}
             value={form.phone}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
-              handleChange({ target: { name: "phone", value: digits } });
-            }}
+            onChange={(e) =>
+              handleChange({ target: { name: "phone", value: normalizePkPhone(e.target.value) } })
+            }
           />
           {errors.phone && <span className="field-error">{errors.phone}</span>}
         </label>

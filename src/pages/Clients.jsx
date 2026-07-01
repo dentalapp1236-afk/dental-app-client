@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
+import { normalizePkPhone } from "../utils/phone";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import { useNotifications } from "../context/NotificationsContext";
@@ -494,12 +495,11 @@ export default function Clients({ mode = "patients" }) {
               <input
                 type="tel"
                 inputMode="numeric"
-                maxLength={11}
                 required
                 placeholder="e.g. 03001234567"
                 value={form.guardianPhone}
                 onChange={(e) =>
-                  setForm({ ...form, guardianPhone: e.target.value.replace(/\D/g, "").slice(0, 11) })
+                  setForm({ ...form, guardianPhone: normalizePkPhone(e.target.value) })
                 }
               />
             </label>
@@ -542,12 +542,11 @@ export default function Clients({ mode = "patients" }) {
                 name="phone"
                 type="tel"
                 inputMode="numeric"
-                maxLength={11}
                 required
                 placeholder="e.g. 03001234567"
                 value={form.phone}
                 onChange={(e) =>
-                  setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })
+                  setForm({ ...form, phone: normalizePkPhone(e.target.value) })
                 }
               />
             </label>

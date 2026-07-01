@@ -5,6 +5,7 @@ import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import AvatarUpload from "../components/AvatarUpload";
+import { normalizePkPhone } from "../utils/phone";
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -172,12 +173,9 @@ export default function Profile() {
               name="phone"
               type="tel"
               inputMode="numeric"
-              maxLength={11}
               placeholder="e.g. 03001234567"
               value={form.phone}
-              onChange={(e) =>
-                setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })
-              }
+              onChange={(e) => setForm({ ...form, phone: normalizePkPhone(e.target.value) })}
             />
           </label>
           <label>
