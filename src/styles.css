@@ -415,6 +415,22 @@ a:hover { text-decoration: underline; }
   cursor: pointer;
 }
 .bell-action:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
+.bell-loadmore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+}
+.bell-loadmore:hover:not(:disabled) { background: var(--b-50); }
 
 .bell-item {
   display: flex;

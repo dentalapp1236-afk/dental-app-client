@@ -40,6 +40,8 @@ export const NotificationsProvider = ({ children }) => {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [limit, setLimit] = useState(50);
   const [enabled, setEnabledState] = useState(
     () => localStorage.getItem("notifEnabled") !== "false"
   );
@@ -52,9 +54,13 @@ export const NotificationsProvider = ({ children }) => {
 
   const refresh = useCallback(async () => {
     try {
-      const { data } = await api.get("/notifications", { skipLoader: true });
+      const { data } = await api.get("/notifications", {
+        params: { limit },
+        skipLoader: true,
+      });
       setItems(data.items);
       setUnreadCount(data.unreadCount);
+      setTotal(data.total ?? data.items.length);
       // Alert (vibrate + beep) only when enabled AND a new unread arrives after first load
       if (enabledRef.current && !firstLoad.current && data.unreadCount > prevUnread.current) {
         buzz();
@@ -65,7 +71,10 @@ export const NotificationsProvider = ({ children }) => {
     } catch {
       /* ignore poll errors */
     }
-  }, []);
+  }, [limit]);
+
+  // Show older notifications by raising the fetch limit (the next poll fills them in).
+  const loadMore = () => setLimit((n) => n + 50);
 
   useEffect(() => {
     if (!user) {
@@ -148,20 +157,22 @@ export const NotificationsProvider = ({ children }) => {
     });
   };
 
-  const clearAll = async () => {
-    try {
-      await api.delete("/notifications", { skipLoader: true });
-    } catch {
-      /* ignore */
-    }
-    setItems([]);
-    setUnreadCount(0);
-    prevUnread.current = 0;
-  };
-
   return (
     <NotificationsContext.Provider
-      value={{ items, unreadCount, refresh, markAllRead, markRead, markUnread, dismiss, clearAll, enabled, setEnabled }}
+      value={{
+        items,
+        unreadCount,
+        total,
+        hasMore: items.length < total,
+        loadMore,
+        refresh,
+        markAllRead,
+        markRead,
+        markUnread,
+        dismiss,
+        enabled,
+        setEnabled,
+      }}
     >
       {children}
     </NotificationsContext.Provider>

@@ -36,7 +36,7 @@ const routeFor = (n) => {
 };
 
 export default function NotificationBell() {
-  const { items, unreadCount, markAllRead, markRead, markUnread, dismiss, clearAll, enabled, setEnabled } =
+  const { items, unreadCount, markAllRead, markRead, markUnread, dismiss, hasMore, loadMore, enabled, setEnabled } =
     useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -72,15 +72,10 @@ export default function NotificationBell() {
               </button>
             </div>
 
-            {items.length > 0 && (
+            {unreadCount > 0 && (
               <div className="bell-actions">
-                {unreadCount > 0 && (
-                  <button className="bell-action" onClick={markAllRead}>
-                    <Icon name="done_all" size={16} /> Mark all read
-                  </button>
-                )}
-                <button className="bell-action" onClick={clearAll}>
-                  <Icon name="delete_sweep" size={16} /> Clear all
+                <button className="bell-action" onClick={markAllRead}>
+                  <Icon name="done_all" size={16} /> Mark all read
                 </button>
               </div>
             )}
@@ -125,6 +120,12 @@ export default function NotificationBell() {
                   </div>
                 </div>
               ))
+            )}
+
+            {hasMore && (
+              <button className="bell-loadmore" onClick={loadMore}>
+                <Icon name="expand_more" size={16} /> Load older
+              </button>
             )}
           </div>
         </>
