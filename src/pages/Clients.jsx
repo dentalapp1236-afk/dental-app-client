@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import { normalizePkPhone } from "../utils/phone";
+import { shareViaSheet } from "../utils/share";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import { useNotifications } from "../context/NotificationsContext";
@@ -298,14 +299,13 @@ export default function Clients({ mode = "patients" }) {
             <button type="button" className="icon" onClick={copyCreds}>
               <Icon name="content_copy" size={18} /> {copied ? "Copied!" : created.managed ? "Copy message" : "Copy credentials"}
             </button>
-            <a
+            <button
+              type="button"
               className="btn-whatsapp"
-              href={waLink}
-              target="_blank"
-              rel="noreferrer"
+              onClick={() => shareViaSheet({ text: created.shareMessage, fallbackUrl: waLink })}
             >
               <Icon name="chat" size={18} /> Share via WhatsApp
-            </a>
+            </button>
             <button
               type="button"
               className="btn-secondary"
@@ -334,9 +334,13 @@ export default function Clients({ mode = "patients" }) {
             <button type="button" className="icon" onClick={copyResetCreds}>
               <Icon name="content_copy" size={18} /> {resetCopied ? "Copied!" : "Copy credentials"}
             </button>
-            <a className="btn-whatsapp" href={resetWaLink} target="_blank" rel="noreferrer">
+            <button
+              type="button"
+              className="btn-whatsapp"
+              onClick={() => shareViaSheet({ text: resetResult.shareMessage, fallbackUrl: resetWaLink })}
+            >
               <Icon name="chat" size={18} /> Share via WhatsApp
-            </a>
+            </button>
             <button
               type="button"
               className="btn-secondary"
