@@ -4,7 +4,7 @@ import { loadingStore } from "./loading";
 // Local dev defaults to the local server. For production, set VITE_API_URL
 // (e.g. https://dentalappserver.onrender.com/api) in the build environment.
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: "https://dental-app-server-three.vercel.app/api",
 });
 
 // True when the app is running as an installed PWA (standalone), not a browser tab.
