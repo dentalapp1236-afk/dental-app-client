@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import { useNotifications } from "../context/NotificationsContext";
+import { useToast } from "../context/ToastContext";
 import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 
@@ -10,6 +12,7 @@ const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled"
 const statusLabel = (s) => (s === "no_show" ? "No-show" : s === "pending" ? "Pending" : s);
 
 export default function Appointments() {
+  const toast = useToast();
   const [appointments, setAppointments] = useState([]);
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState(empty);
@@ -129,7 +132,7 @@ export default function Appointments() {
       await loadAppointments();
       refreshNotifications();
     } catch (err) {
-      alert(err.response?.data?.message || "Could not update the request.");
+      toast.error(err.response?.data?.message || "Could not update the request.");
       loadAppointments();
     }
   };
@@ -292,7 +295,7 @@ export default function Appointments() {
           <Icon name={editingId ? "edit_calendar" : "event"} size={18} />
           {editingId ? "Edit appointment" : "Schedule appointment"}
         </h3>
-        {error && <div className="error">{error}</div>}
+        <FormError message={error} />
         <div className="grid-2">
           <label>
             Client

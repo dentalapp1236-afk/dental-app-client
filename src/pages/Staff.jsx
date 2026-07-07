@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
@@ -157,7 +158,7 @@ export default function Staff() {
                   <Icon name="close" />
                 </button>
               </div>
-              {error && <div className="error">{error}</div>}
+              <FormError message={error} />
               <div className="grid-2">
                 <label>
                   <span className="lbl">Name <span className="req">*</span></span>

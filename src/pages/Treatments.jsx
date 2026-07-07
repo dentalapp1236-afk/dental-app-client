@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
@@ -119,7 +120,7 @@ export default function Treatments() {
         <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} style={{ display: "contents" }}>
         <h3 className="icon"><Icon name="add_circle" size={18} /> Record new treatment</h3>
-        {error && <div className="error">{error}</div>}
+        <FormError message={error} />
         <div className="grid-2">
           <label>
             Client
@@ -290,7 +291,7 @@ export default function Treatments() {
                 {payTarget.procedure} · {payTarget.client?.name} — balance{" "}
                 <strong>{money(payTarget.balance)}</strong>
               </p>
-              {payError && <div className="error">{payError}</div>}
+              <FormError message={payError} />
               <div className="grid-2">
                 <label>
                   Amount

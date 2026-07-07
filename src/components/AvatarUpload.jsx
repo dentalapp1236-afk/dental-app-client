@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback } from "react";
+import FormError from "./FormError";
 import Cropper from "react-easy-crop";
 import api from "../api/axios";
 import Icon from "./Icon";
@@ -130,7 +131,7 @@ export default function AvatarUpload({ value, name = "", onChange, centered = fa
             <p className="muted" style={{ margin: 0 }}>
               Drag to position, and use the slider to zoom.
             </p>
-            {error && <div className="error">{error}</div>}
+            <FormError message={error} />
             <div className="cropper-stage">
               <Cropper
                 image={rawImage}

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 import { SkeletonTable } from "../components/Skeleton";
+import { useToast } from "../context/ToastContext";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
@@ -32,6 +34,7 @@ function MethodToggle({ value, onChange }) {
 
 export default function ClientLedger() {
   const { id } = useParams();
+  const toast = useToast();
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
   const [treatments, setTreatments] = useState([]);
@@ -220,7 +223,7 @@ export default function ClientLedger() {
       await api.delete(`/treatments/${t._id}`);
       await loadTreatments();
     } catch (err) {
-      alert(err.response?.data?.message || "Could not delete treatment.");
+      toast.error(err.response?.data?.message || "Could not delete treatment.");
     }
   };
 
@@ -229,7 +232,7 @@ export default function ClientLedger() {
       await api.put(`/treatments/${treatId}/follow-up/${fid}/resolve`);
       await loadTreatments();
     } catch (err) {
-      alert(err.response?.data?.message || "Could not update the report.");
+      toast.error(err.response?.data?.message || "Could not update the report.");
     }
   };
 
@@ -278,7 +281,7 @@ export default function ClientLedger() {
       await api.delete(`/treatments/${treatId}/payments/${paymentId}`);
       await loadTreatments();
     } catch (err) {
-      alert(err.response?.data?.message || "Could not delete payment.");
+      toast.error(err.response?.data?.message || "Could not delete payment.");
       if (err.response?.status === 409) loadTreatments();
     }
   };
@@ -519,7 +522,7 @@ export default function ClientLedger() {
                   <Icon name="close" />
                 </button>
               </div>
-              {apptError && <div className="error">{apptError}</div>}
+              <FormError message={apptError} />
               <label>
                 <span className="lbl">Purpose <span className="muted">(optional)</span></span>
                 <input
@@ -557,7 +560,7 @@ export default function ClientLedger() {
                   <Icon name="close" />
                 </button>
               </div>
-              {treatError && <div className="error">{treatError}</div>}
+              <FormError message={treatError} />
               <div className="grid-2">
                 <label>
                   <span className="lbl">Procedure <span className="req">*</span></span>
@@ -650,7 +653,7 @@ export default function ClientLedger() {
               <p className="muted" style={{ margin: 0 }}>
                 {payTarget.procedure} — balance <strong>{money(payTarget.balance)}</strong>
               </p>
-              {payError && <div className="error">{payError}</div>}
+              <FormError message={payError} />
               <div className="grid-2">
                 <label>
                   Amount
@@ -711,7 +714,7 @@ export default function ClientLedger() {
                   <Icon name="close" />
                 </button>
               </div>
-              {editPayError && <div className="error">{editPayError}</div>}
+              <FormError message={editPayError} />
               <div className="grid-2">
                 <label>
                   Amount

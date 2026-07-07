@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
@@ -127,7 +128,7 @@ export default function Maintenance() {
                   <Icon name="close" />
                 </button>
               </div>
-              {error && <div className="error">{error}</div>}
+              <FormError message={error} />
               <div className="grid-2">
                 <label>
                   <span className="lbl">Title <span className="req">*</span></span>

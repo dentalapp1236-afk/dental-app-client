@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
@@ -131,7 +132,7 @@ export default function Profile() {
 
       <form className="card" onSubmit={handleSubmit}>
         <h3 className="icon"><Icon name="badge" size={18} /> Account</h3>
-        {error && <div className="error">{error}</div>}
+        <FormError message={error} />
 
         {canPhoto && (
           <AvatarUpload
@@ -271,7 +272,7 @@ export default function Profile() {
 
       <form className="card" onSubmit={changePassword}>
         <h3 className="icon"><Icon name="lock" size={18} /> Change password</h3>
-        {pwError && <div className="error">{pwError}</div>}
+        <FormError message={pwError} />
         <label>
           <span className="lbl">Current password</span>
           <PasswordInput

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
@@ -115,7 +116,7 @@ export default function VendorDashboard() {
               <Icon name={editingId ? "edit" : "add_box"} size={18} />
               {editingId ? "Edit product" : "Add a product"}
             </h3>
-            {error && <div className="error">{error}</div>}
+            <FormError message={error} />
             <div className="grid-2">
               <label>
                 Name

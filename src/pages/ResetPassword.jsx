@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FormError from "../components/FormError";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/axios";
 import Icon from "../components/Icon";
@@ -71,7 +72,7 @@ export default function ResetPassword() {
           </>
         ) : (
           <form onSubmit={handleSubmit} noValidate style={{ display: "contents" }}>
-            {error && <div className="error">{error}</div>}
+            <FormError message={error} />
             <label>
               <span className="lbl">New password <span className="req">*</span></span>
               <PasswordInput

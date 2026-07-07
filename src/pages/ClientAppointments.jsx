@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
@@ -154,7 +155,7 @@ export default function ClientAppointments() {
               <p className="muted" style={{ margin: 0 }}>
                 Pick an available slot with Dr. {assoc?.dentist?.name}. They'll confirm your request.
               </p>
-              {reqError && <div className="error">{reqError}</div>}
+              <FormError message={reqError} />
               {deps.length > 0 && (
                 <label>
                   <span className="lbl">Who is this for?</span>

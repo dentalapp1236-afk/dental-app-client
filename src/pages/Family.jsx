@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
@@ -118,7 +119,7 @@ export default function Family() {
                   <Icon name="close" />
                 </button>
               </div>
-              {error && <div className="error">{error}</div>}
+              <FormError message={error} />
               <label>
                 <span className="lbl">Name <span className="req">*</span></span>
                 <input

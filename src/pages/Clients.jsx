@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
@@ -371,7 +372,7 @@ export default function Clients({ mode = "patients" }) {
               <p className="muted" style={{ margin: 0 }}>
                 Set a new temporary password for <strong>{resetTarget.name}</strong>. Share it with them; they can change it after signing in.
               </p>
-              {resetError && <div className="error">{resetError}</div>}
+              <FormError message={resetError} />
               <label>
                 <span className="lbl">New password <span className="req">*</span></span>
                 <div className="row gap">
@@ -412,7 +413,7 @@ export default function Clients({ mode = "patients" }) {
                 Type a message — it opens WhatsApp with <strong>{msgTarget.name}</strong>'s
                 {msgTarget.managed ? " guardian's" : ""} number and your message ready to send.
               </p>
-              {msgError && <div className="error">{msgError}</div>}
+              <FormError message={msgError} />
               <label>
                 <span className="lbl">Message <span className="req">*</span></span>
                 <textarea
@@ -461,7 +462,7 @@ export default function Clients({ mode = "patients" }) {
             <Icon name="close" />
           </button>
         </div>
-        {error && <div className="error">{error}</div>}
+        <FormError message={error} />
 
         {form.managed ? (
           <>

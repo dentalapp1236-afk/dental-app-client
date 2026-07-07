@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
@@ -130,7 +131,7 @@ export default function ClientTreatments() {
                 Facing an issue after your <strong>{reportTarget.procedure}</strong> on{" "}
                 {formatDate(reportTarget.date)}? Describe it and your clinic will be notified.
               </p>
-              {reportError && <div className="error">{reportError}</div>}
+              <FormError message={reportError} />
               <label>
                 <span className="lbl">What's the problem? <span className="req">*</span></span>
                 <textarea

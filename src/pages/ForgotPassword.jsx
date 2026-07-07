@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FormError from "../components/FormError";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import Icon from "../components/Icon";
@@ -73,7 +74,7 @@ export default function ForgotPassword() {
               Enter your account email or phone number and we’ll send you a link to reset your
               password.
             </p>
-            {error && <div className="error">{error}</div>}
+            <FormError message={error} />
             <label>
               <span className="lbl">Email or phone <span className="req">*</span></span>
               <input

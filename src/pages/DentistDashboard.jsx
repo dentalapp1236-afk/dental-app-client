@@ -4,6 +4,7 @@ import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
+import { useToast } from "../context/ToastContext";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
 
@@ -37,6 +38,7 @@ const STATUS_ACTIONS = [
 
 export default function DentistDashboard() {
   const { user } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
   const [appts, setAppts] = useState([]);
   const [availability, setAvailability] = useState([]);
@@ -125,7 +127,7 @@ export default function DentistDashboard() {
       setSelected(data);
       await load();
     } catch (err) {
-      alert(err.response?.data?.message || "Could not update status.");
+      toast.error(err.response?.data?.message || "Could not update status.");
       if (err.response?.status === 409) {
         await load();
         setSelected(null);
@@ -143,7 +145,7 @@ export default function DentistDashboard() {
       setSelected(data);
       await load();
     } catch (err) {
-      alert(err.response?.data?.message || "Could not update the request.");
+      toast.error(err.response?.data?.message || "Could not update the request.");
       await load();
       setSelected(null);
     } finally {

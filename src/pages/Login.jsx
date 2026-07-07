@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FormError from "../components/FormError";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
@@ -78,7 +79,7 @@ export default function Login() {
             <div className="auth-subtitle">Sign in to your account</div>
           </div>
         </div>
-        {error && <div className="error">{error}</div>}
+        <FormError message={error} />
         <label>
           Email or phone
           <div className="input-wrap has-leading">

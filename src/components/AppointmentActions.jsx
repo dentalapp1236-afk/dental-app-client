@@ -1,13 +1,16 @@
 import { useState } from "react";
+import FormError from "./FormError";
 import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import Icon from "./Icon";
 import SlotPicker from "./SlotPicker";
+import { useToast } from "../context/ToastContext";
 
 // Reschedule + Cancel actions for a patient's own appointment.
 // Only renders for active appointments (scheduled / pending). Calls onChanged()
 // after a successful change so the parent can refresh its list.
 export default function AppointmentActions({ appointment, onChanged }) {
+  const toast = useToast();
   const a = appointment;
   const active = a.status === "scheduled" || a.status === "pending";
   const future = new Date(a.date) > new Date();
@@ -30,7 +33,7 @@ export default function AppointmentActions({ appointment, onChanged }) {
       await api.patch(`/appointments/${a._id}/arrival`, { status });
       onChanged?.();
     } catch (e2) {
-      alert(e2.response?.data?.message || "Could not update.");
+      toast.error(e2.response?.data?.message || "Could not update.");
     } finally {
       setArrBusy(false);
     }
@@ -66,7 +69,7 @@ export default function AppointmentActions({ appointment, onChanged }) {
       await api.patch(`/appointments/${a._id}/cancel`);
       onChanged?.();
     } catch (e2) {
-      alert(e2.response?.data?.message || "Could not cancel.");
+      toast.error(e2.response?.data?.message || "Could not cancel.");
     } finally {
       setCancelling(false);
     }
@@ -123,7 +126,7 @@ export default function AppointmentActions({ appointment, onChanged }) {
               <p className="muted" style={{ margin: 0 }}>
                 {a.reason ? `${a.reason} — ` : ""}with Dr. {a.dentist?.name} — currently {formatDateTime(a.date)}
               </p>
-              {err && <div className="error">{err}</div>}
+              <FormError message={err} />
               <SlotPicker value={reschedDate} excludeId={a._id} onChange={(iso) => setReschedDate(iso)} />
               <div className="row gap">
                 <button type="submit" className="icon" disabled={busy}>

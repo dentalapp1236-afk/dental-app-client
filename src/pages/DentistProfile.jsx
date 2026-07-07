@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormError from "../components/FormError";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
@@ -215,7 +216,7 @@ export default function DentistProfile() {
       {user?.role === "client" && assoc?.dentist?._id === id && (
         <form className="card" onSubmit={submitReview}>
           <h3 className="icon"><Icon name="rate_review" size={18} /> Leave a review</h3>
-          {reviewError && <div className="error">{reviewError}</div>}
+          <FormError message={reviewError} />
           <StarRating value={myRating} onChange={setMyRating} size={28} />
           <textarea
             rows={3}

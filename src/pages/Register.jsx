@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FormError from "../components/FormError";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
@@ -176,7 +177,7 @@ export default function Register() {
             {pendingAssoc.name ? ` Dr. ${pendingAssoc.name}` : " your selected dentist"}.
           </div>
         )}
-        {error && <div className="error">{error}</div>}
+        <FormError message={error} />
         {!pendingAssoc && (
           <label>
             I am a
