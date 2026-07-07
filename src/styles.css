@@ -1047,9 +1047,13 @@ a.btn-danger-soft {
   font-weight: 600;
 }
 .avail-day.on { color: var(--primary); }
+/* Keep this ghost button readable: the global button:hover paints a solid blue
+   background, which would hide the (blue/grey) label. Use a light tint instead. */
+.avail-day:hover:not(:disabled),
+.avail-day:focus-visible { background: var(--b-50); color: var(--primary); }
 .avail-day .material-symbols-outlined { color: inherit; }
 .avail-times { display: flex; align-items: center; gap: 8px; }
-.avail-times input { width: auto; }
+.avail-times input, .avail-times .time-select { width: auto; }
 .avail-dash { color: var(--muted); }
 
 /* Interactive appointment slot picker */
