@@ -3,3 +3,7 @@ dist
 .env
 *.log
 .vite
+
+# Editor/atomic-write temp files (e.g. Foo.jsx.tmp.4414.<hash>)
+*.tmp
+*.tmp.*
