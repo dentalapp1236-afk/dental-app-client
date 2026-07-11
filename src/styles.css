@@ -1296,6 +1296,38 @@ input, select, textarea { max-width: 100%; }
   font-size: 13px;
 }
 
+/* Ledger footer: net collected (+ outstanding) shown at the bottom */
+.ledger-footer {
+  margin-top: 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ledger-net { display: flex; flex-direction: column; gap: 2px; }
+.ledger-net-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ledger-net-value { font-size: 26px; font-weight: 800; color: var(--heading); }
+.ledger-out { display: flex; flex-direction: column; gap: 2px; text-align: right; }
+.ledger-out-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ledger-out-value { font-size: 18px; font-weight: 700; color: #b8791a; }
+
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);

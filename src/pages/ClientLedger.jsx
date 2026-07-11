@@ -354,21 +354,6 @@ export default function ClientLedger() {
           : `${client.email || ""}${client.phone ? ` · ${client.phone}` : ""}`}
       </p>
 
-      <div className="summary">
-        <div className="summary-item">
-          <span className="summary-value">{money(billed)}</span>
-          <span className="summary-label">Billed</span>
-        </div>
-        <div className="summary-item">
-          <span className="summary-value">{money(collected)}</span>
-          <span className="summary-label">Collected</span>
-        </div>
-        <div className="summary-item">
-          <span className="summary-value">{money(outstanding)}</span>
-          <span className="summary-label">Outstanding</span>
-        </div>
-      </div>
-
       <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
         <h2 className="icon" style={{ margin: 0 }}><Icon name="medical_services" /> Treatments &amp; payments</h2>
         <div className="row gap" style={{ flexWrap: "wrap" }}>
@@ -404,9 +389,9 @@ export default function ClientLedger() {
                 {t.cost > 0 ? (
                   <>
                     <span className="tag">Total {money(t.cost)}</span>
-                    <span className="tag">Paid {money(t.paidAmount)}</span>
+                    <span className="tag">Collected {money(t.paidAmount)}</span>
                     <span className={t.balance > 0 ? "badge-pending" : "badge"}>
-                      {t.balance > 0 ? `Balance ${money(t.balance)}` : "Fully paid"}
+                      {t.balance > 0 ? `Outstanding ${money(t.balance)}` : "Fully paid"}
                     </span>
                     {t.balance > 0 && (
                       <button className="btn-secondary icon" onClick={() => openPayment(t)}>
@@ -506,6 +491,21 @@ export default function ClientLedger() {
             )}
           </div>
         ))
+      )}
+
+      {treatments.length > 0 && (
+        <div className="ledger-footer">
+          <div className="ledger-net">
+            <span className="ledger-net-label">Net collected</span>
+            <span className="ledger-net-value">{money(collected)}</span>
+          </div>
+          {outstanding > 0 && (
+            <div className="ledger-out">
+              <span className="ledger-out-label">Outstanding</span>
+              <span className="ledger-out-value">{money(outstanding)}</span>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Schedule-appointment modal */}
