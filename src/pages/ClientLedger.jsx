@@ -111,6 +111,7 @@ export default function ClientLedger() {
       description: t.description || "",
       cost: t.cost ?? "",
       upfront: "",
+      collected: t.paidAmount ?? 0, // read-only display on edit (from payments)
       date: t.date ? new Date(t.date).toISOString().slice(0, 10) : TREAT_EMPTY.date,
     });
     setTreatError("");
@@ -159,6 +160,11 @@ export default function ClientLedger() {
         return setTreatError("Collected amount cannot exceed the charges.");
       if (!["cash", "online"].includes(treatForm.upfrontMethod))
         return setTreatError("Select a payment method (cash or online).");
+    } else {
+      if (treatForm.collected === "" || Number(treatForm.collected) < 0)
+        return setTreatError("Collected amount is required.");
+      if (Number(treatForm.collected) > Number(treatForm.cost))
+        return setTreatError("Collected amount cannot exceed the charges.");
     }
     try {
       if (editingTreatId) {
@@ -168,6 +174,7 @@ export default function ClientLedger() {
           diagnosis: treatForm.diagnosis,
           description: treatForm.description,
           cost: Number(treatForm.cost) || 0,
+          collected: Number(treatForm.collected) || 0,
           date: treatForm.date,
           version: editTreatVersion,
         });
@@ -495,16 +502,18 @@ export default function ClientLedger() {
 
       {treatments.length > 0 && (
         <div className="ledger-footer">
-          <div className="ledger-net">
-            <span className="ledger-net-label">Net collected</span>
-            <span className="ledger-net-value">{money(collected)}</span>
+          <div className="ledger-stat">
+            <span className="ledger-stat-label">Billed</span>
+            <span className="ledger-stat-value">{money(billed)}</span>
           </div>
-          {outstanding > 0 && (
-            <div className="ledger-out">
-              <span className="ledger-out-label">Outstanding</span>
-              <span className="ledger-out-value">{money(outstanding)}</span>
-            </div>
-          )}
+          <div className="ledger-stat net">
+            <span className="ledger-stat-label">Net collected</span>
+            <span className="ledger-stat-value">{money(collected)}</span>
+          </div>
+          <div className="ledger-stat out">
+            <span className="ledger-stat-label">Outstanding</span>
+            <span className="ledger-stat-value">{money(outstanding)}</span>
+          </div>
         </div>
       )}
 
@@ -587,6 +596,23 @@ export default function ClientLedger() {
                     onChange={treatChange}
                   />
                 </label>
+                {editingTreatId && (
+                  <label>
+                    <span className="lbl">Collected amount <span className="req">*</span></span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      name="collected"
+                      value={treatForm.collected}
+                      onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
+                      onChange={treatChange}
+                    />
+                    <span className="muted" style={{ fontSize: 12 }}>
+                      Changing this adds a correcting entry to the payments below.
+                    </span>
+                  </label>
+                )}
                 {!editingTreatId && (
                   <label>
                     <span className="lbl">Collected amount <span className="req">*</span></span>

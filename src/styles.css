@@ -1296,37 +1296,45 @@ input, select, textarea { max-width: 100%; }
   font-size: 13px;
 }
 
-/* Ledger footer: net collected (+ outstanding) shown at the bottom */
+/* Ledger footer: Billed · Net collected · Outstanding shown at the bottom */
 .ledger-footer {
   margin-top: 20px;
-  padding: 16px 20px;
+  padding: 18px 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
+  justify-content: space-around;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
-.ledger-net { display: flex; flex-direction: column; gap: 2px; }
-.ledger-net-label {
+.ledger-stat {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  padding: 0 12px;
+  border-right: 1px solid var(--border);
+}
+.ledger-stat:last-child { border-right: none; }
+.ledger-stat-label {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--muted);
 }
-.ledger-net-value { font-size: 26px; font-weight: 800; color: var(--heading); }
-.ledger-out { display: flex; flex-direction: column; gap: 2px; text-align: right; }
-.ledger-out-label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--muted);
+.ledger-stat-value { font-size: 22px; font-weight: 800; color: var(--heading); }
+.ledger-stat.net .ledger-stat-value { font-size: 28px; color: #0f9d6b; }
+.ledger-stat.out .ledger-stat-value { color: #b8791a; }
+@media (max-width: 560px) {
+  .ledger-stat { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .ledger-stat:last-child { border-bottom: none; padding-bottom: 0; }
 }
-.ledger-out-value { font-size: 18px; font-weight: 700; color: #b8791a; }
 
 .stat-card {
   background: var(--surface);
