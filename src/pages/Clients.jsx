@@ -247,6 +247,7 @@ export default function Clients({ mode = "patients" }) {
         <h1 className="icon">
           <Icon name={isDependents ? "escalator_warning" : "group"} />{" "}
           {isDependents ? "Dependents" : "Patients"}
+          {clients.length > 0 && <span className="count-pill">{clients.length}</span>}
         </h1>
         {!showForm && (
           <button className="icon" onClick={openCreate}>
@@ -598,7 +599,7 @@ export default function Clients({ mode = "patients" }) {
       {clients.length === 0 ? (
         <p className="muted">{isDependents ? "No dependents yet." : "No patients yet."}</p>
       ) : (
-        <div className="appt-list">
+        <div className="appt-list patients-single">
           {clients.map((c) => (
             <div
               key={c._id}

@@ -836,6 +836,25 @@ a.btn-danger-soft {
   gap: 12px;
   margin-top: 12px;
 }
+/* Patients list: always one per row (tablet, laptop, large screens) */
+.appt-list.patients-single { grid-template-columns: 1fr; }
+
+/* Count badge next to a page title (e.g. total patients) */
+.count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 9px;
+  margin-left: 10px;
+  border-radius: 999px;
+  background: var(--b-100);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  vertical-align: middle;
+}
 .appt-card {
   display: flex;
   flex-direction: column;
