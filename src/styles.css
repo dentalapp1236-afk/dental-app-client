@@ -887,7 +887,7 @@ a.btn-danger-soft {
   background: transparent; border: 1px solid transparent; color: var(--muted);
   cursor: pointer;
 }
-.card-menu-btn:hover { background: var(--b-50); color: var(--primary); }
+.card-menu-btn:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
 .card-menu-backdrop { position: fixed; inset: 0; z-index: 40; }
 .card-menu-panel {
   position: absolute; top: 38px; right: 0; z-index: 41;
@@ -902,9 +902,9 @@ a.btn-danger-soft {
   background: transparent; color: var(--text); font-size: 14px;
   text-align: left; cursor: pointer;
 }
-.card-menu-item:hover { background: var(--b-50); }
+.card-menu-item:hover:not(:disabled) { background: var(--b-50); color: var(--text); }
 .card-menu-item.danger { color: #c0392b; }
-.card-menu-item.danger:hover { background: #fdecea; }
+.card-menu-item.danger:hover:not(:disabled) { background: #fdecea; color: #c0392b; }
 
 /* iOS install hint on the login screen */
 .auth-ios-hint {
