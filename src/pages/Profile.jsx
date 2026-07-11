@@ -3,7 +3,6 @@ import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
-import AvailabilityEditor from "../components/AvailabilityEditor";
 import AvatarUpload from "../components/AvatarUpload";
 import { normalizePkPhone } from "../utils/phone";
 
@@ -29,18 +28,7 @@ export default function Profile() {
     yearsOfExperience: user.yearsOfExperience ?? "",
     about: user.about || "",
   });
-  const [availability, setAvailability] = useState(
-    user.availability?.length
-      ? user.availability.map((a) => ({ day: a.day, start: a.start, end: a.end }))
-      : ["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => ({ day, start: "09:00", end: "17:00" }))
-  );
-  const [coords, setCoords] = useState(
-    user.location?.coordinates
-      ? { latitude: user.location.coordinates[1], longitude: user.location.coordinates[0] }
-      : null
-  );
   const [avatarUrl, setAvatarUrl] = useState(user.image || "");
-  const [locStatus, setLocStatus] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(""); // shown in a success modal
@@ -74,19 +62,6 @@ export default function Profile() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const captureLocation = () => {
-    if (!navigator.geolocation) return setLocStatus("Geolocation not supported.");
-    setLocStatus("Locating…");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-        setLocStatus("Location updated ✓");
-      },
-      (err) => setLocStatus(`Could not get location: ${err.message}`),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -107,11 +82,6 @@ export default function Profile() {
         payload.yearsOfExperience = form.yearsOfExperience;
         payload.about = form.about;
         payload.address = form.address;
-        payload.availability = availability;
-        if (coords) {
-          payload.latitude = coords.latitude;
-          payload.longitude = coords.longitude;
-        }
       }
       const { data } = await api.put("/auth/me", payload);
       updateUser(data.user);
@@ -239,26 +209,10 @@ export default function Profile() {
               <input name="address" value={form.address} onChange={handleChange} />
             </label>
 
-            <div>
-              <span className="field-label">Clinic hours</span>
-              <p className="muted" style={{ marginTop: 0 }}>
-                Set opening and closing times for each day you're open.
-              </p>
-              <AvailabilityEditor value={availability} onChange={setAvailability} />
-            </div>
-
-            <div>
-              <span className="field-label">Clinic location</span>
-              <button type="button" className="btn-secondary icon" onClick={captureLocation}>
-                <Icon name="my_location" size={18} /> Update my location
-              </button>
-              {locStatus && <p className="muted" style={{ marginTop: 6 }}>{locStatus}</p>}
-              {coords && (
-                <p className="muted" style={{ marginTop: 4 }}>
-                  {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
-                </p>
-              )}
-            </div>
+            <p className="muted" style={{ marginTop: 0 }}>
+              <Icon name="schedule" size={14} /> Clinic hours and location have moved to{" "}
+              <strong>Settings</strong>.
+            </p>
           </>
         )}
 

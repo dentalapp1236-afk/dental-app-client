@@ -10,6 +10,7 @@ export const ROLE_LINKS = {
     // { to: "/supplies", icon: "shopping_cart", label: "Supplies" },
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
     { to: "/staff", icon: "badge", label: "Staff" },
+    { to: "/settings", icon: "settings", label: "Settings" },
   ],
   // Assistant: same clinic tools as the dentist, minus staff management.
   assistant: [
