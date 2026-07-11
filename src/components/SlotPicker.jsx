@@ -47,9 +47,14 @@ export default function SlotPicker({
   dentistId,
   availabilityOverride,
   readOnly = false,
+  initialDay,
 }) {
   const valueDate = value ? new Date(value) : null;
-  const [day, setDay] = useState(valueDate ? dayStr(valueDate) : todayStr());
+  // Pre-select a day (e.g. "Add" tapped on a day header) without picking a time,
+  // so the dentist still has to choose an actual slot.
+  const [day, setDay] = useState(
+    valueDate ? dayStr(valueDate) : initialDay || todayStr()
+  );
   const [bookedISO, setBookedISO] = useState([]);
   const [fetchedAvailability, setFetchedAvailability] = useState([]);
   const [loading, setLoading] = useState(false);

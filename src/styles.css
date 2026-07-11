@@ -1605,6 +1605,13 @@ h2.icon { gap: 8px; }
 /* Day-grouped schedule (Appointments tab, home-page style) */
 .day-heading { font-size: 14px; color: var(--muted); font-weight: 700; margin: 18px 0 8px; }
 .day-group:first-of-type .day-heading { margin-top: 8px; }
+.day-head-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin: 18px 0 8px;
+}
+.day-group:first-of-type .day-head-row { margin-top: 8px; }
+.day-head-row .day-heading { margin: 0; }
+.day-add { padding: 4px 10px; font-size: 13px; }
 
 /* --- Finances chart (CSS-only bars) --- */
 .chart {

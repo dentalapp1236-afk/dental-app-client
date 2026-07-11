@@ -21,6 +21,7 @@ export default function Appointments() {
   const [sortBy, setSortBy] = useState("date-asc");
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState("upcoming"); // upcoming | past
+  const [createDay, setCreateDay] = useState(""); // pre-selected day when "Add" tapped on a day header
   const { items, refresh: refreshNotifications } = useNotifications();
   const navigate = useNavigate();
 
@@ -72,10 +73,11 @@ export default function Appointments() {
     setShowForm(false);
   };
 
-  const openCreate = () => {
+  const openCreate = (day = "") => {
     setForm(empty);
     setEditingId(null);
     setError("");
+    setCreateDay(day);
     setShowForm(true);
   };
 
@@ -217,9 +219,15 @@ export default function Appointments() {
     new Date(d).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const dayHeading = (d) =>
     new Date(d).toLocaleDateString([], { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+  // Local YYYY-MM-DD for the SlotPicker's date input (avoids UTC off-by-one).
+  const toDayInput = (d) => {
+    const x = new Date(d);
+    const p = (n) => String(n).padStart(2, "0");
+    return `${x.getFullYear()}-${p(x.getMonth() + 1)}-${p(x.getDate())}`;
+  };
 
   // Home-page style: group a (pre-sorted) list by day and show compact slot rows.
-  const renderSchedule = (list) => {
+  const renderSchedule = (list, canAdd = false) => {
     const groups = [];
     let cur = null;
     for (const a of list) {
@@ -232,7 +240,19 @@ export default function Appointments() {
     }
     return groups.map((g) => (
       <div className="day-group" key={g.key}>
-        <h3 className="day-heading icon"><Icon name="event" size={16} /> {dayHeading(g.date)}</h3>
+        <div className="day-head-row">
+          <h3 className="day-heading icon"><Icon name="event" size={16} /> {dayHeading(g.date)}</h3>
+          {canAdd && (
+            <button
+              type="button"
+              className="btn-secondary icon day-add"
+              onClick={() => openCreate(toDayInput(g.date))}
+              title="Add an appointment on this day"
+            >
+              <Icon name="add" size={16} /> Add
+            </button>
+          )}
+        </div>
         <div className="day-grid">
           {g.items.map((a) => (
             <div
@@ -264,7 +284,7 @@ export default function Appointments() {
       <div className="page-head">
         <h1 className="icon"><Icon name="calendar_month" /> Appointments</h1>
         {!showForm && (
-          <button className="icon" onClick={openCreate}>
+          <button className="icon" onClick={() => openCreate()}>
             <Icon name="event" size={18} /> Schedule appointment
           </button>
         )}
@@ -360,7 +380,9 @@ export default function Appointments() {
           </label>
           <div style={{ gridColumn: "1 / -1" }}>
             <SlotPicker
+              key={editingId || createDay || "new"}
               value={form.date}
+              initialDay={createDay}
               excludeId={editingId}
               onChange={(iso) => setForm((f) => ({ ...f, date: iso }))}
             />
@@ -449,7 +471,7 @@ export default function Appointments() {
             upcoming.length === 0 ? (
               <p className="muted">No upcoming appointments.</p>
             ) : (
-              renderSchedule(upcoming)
+              renderSchedule(upcoming, true)
             )
           ) : past.length === 0 ? (
             <p className="muted">No past appointments.</p>
