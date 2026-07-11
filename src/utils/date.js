@@ -25,3 +25,16 @@ export const formatDateTime = (value) => {
     hour12: true,
   });
 };
+
+// Time only, always 12-hour — same locale/hour12 as formatDateTime so it never
+// falls back to the device's 24-hour clock setting.
+export const formatTime = (value) => {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleTimeString("en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};

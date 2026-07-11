@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { formatDateTime } from "../utils/date";
+import { formatDateTime, formatTime } from "../utils/date";
 import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
@@ -215,8 +215,6 @@ export default function Appointments() {
     </div>
   );
 
-  const fmtTime = (d) =>
-    new Date(d).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const dayHeading = (d) =>
     new Date(d).toLocaleDateString([], { weekday: "short", day: "numeric", month: "long", year: "numeric" });
   // Local YYYY-MM-DD for the SlotPicker's date input (avoids UTC off-by-one).
@@ -261,7 +259,7 @@ export default function Appointments() {
               onClick={() => setSelected(a)}
               title="View details"
             >
-              <span className="slot-time">{fmtTime(a.date)}</span>
+              <span className="slot-time">{formatTime(a.date)}</span>
               <span className="slot-patient">{a.client?.name || "—"}</span>
               <div className="row gap" style={{ flexWrap: "wrap" }}>
                 <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
