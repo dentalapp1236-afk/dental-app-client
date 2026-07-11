@@ -50,6 +50,7 @@ export default function Clients({ mode = "patients" }) {
   const [created, setCreated] = useState(null); // { client, credentials, shareMessage }
   const [copied, setCopied] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [menuFor, setMenuFor] = useState(null); // id of the card whose action menu is open
 
   // Reset-password flow
   const [resetTarget, setResetTarget] = useState(null); // the patient being reset
@@ -631,43 +632,63 @@ export default function Clients({ mode = "patients" }) {
                   <span className="icon"><Icon name="cake" size={16} /> {formatDate(c.dateOfBirth)}</span>
                 )}
               </div>
-              <div className="row gap" style={{ flexWrap: "wrap" }}>
+              <div className="card-menu">
                 <button
-                  className="btn-secondary icon"
-                  onClick={(e) => { e.stopPropagation(); navigate(`/clients/${c._id}`); }}
+                  className="card-menu-btn"
+                  aria-label="Actions"
+                  aria-expanded={menuFor === c._id}
+                  title="Actions"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuFor((id) => (id === c._id ? null : c._id));
+                  }}
                 >
-                  <Icon name="history" size={18} /> History
+                  <Icon name="more_vert" size={20} />
                 </button>
-                <button
-                  className="btn-secondary icon"
-                  onClick={(e) => { e.stopPropagation(); handleEdit(c); }}
-                >
-                  <Icon name="edit" size={18} /> Edit
-                </button>
-                {(c.managed ? c.guardianPhone : c.phone) && (
-                  <button
-                    className="btn-secondary icon"
-                    title="Send a WhatsApp message"
-                    onClick={(e) => { e.stopPropagation(); openMessage(c); }}
-                  >
-                    <Icon name="chat" size={18} /> Message
-                  </button>
+                {menuFor === c._id && (
+                  <>
+                    <div
+                      className="card-menu-backdrop"
+                      onClick={(e) => { e.stopPropagation(); setMenuFor(null); }}
+                    />
+                    <div className="card-menu-panel" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        className="card-menu-item"
+                        onClick={() => { setMenuFor(null); navigate(`/clients/${c._id}`); }}
+                      >
+                        <Icon name="history" size={18} /> History
+                      </button>
+                      <button
+                        className="card-menu-item"
+                        onClick={() => { setMenuFor(null); handleEdit(c); }}
+                      >
+                        <Icon name="edit" size={18} /> Edit
+                      </button>
+                      {(c.managed ? c.guardianPhone : c.phone) && (
+                        <button
+                          className="card-menu-item"
+                          onClick={() => { setMenuFor(null); openMessage(c); }}
+                        >
+                          <Icon name="chat" size={18} /> Message
+                        </button>
+                      )}
+                      {!c.managed && (
+                        <button
+                          className="card-menu-item"
+                          onClick={() => { setMenuFor(null); openReset(c); }}
+                        >
+                          <Icon name="lock_reset" size={18} /> Reset password
+                        </button>
+                      )}
+                      <button
+                        className="card-menu-item danger"
+                        onClick={() => { setMenuFor(null); handleDelete(c._id); }}
+                      >
+                        <Icon name="delete" size={18} /> Delete
+                      </button>
+                    </div>
+                  </>
                 )}
-                {!c.managed && (
-                  <button
-                    className="btn-secondary icon"
-                    title="Reset password"
-                    onClick={(e) => { e.stopPropagation(); openReset(c); }}
-                  >
-                    <Icon name="lock_reset" size={18} /> Reset
-                  </button>
-                )}
-                <button
-                  className="btn-danger-soft icon"
-                  onClick={(e) => { e.stopPropagation(); handleDelete(c._id); }}
-                >
-                  <Icon name="delete" size={18} /> Delete
-                </button>
               </div>
             </div>
           ))}
