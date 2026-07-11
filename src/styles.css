@@ -1602,6 +1602,10 @@ h2.icon { gap: 8px; }
 .day-slot.booked:hover { background: var(--b-50); }
 .day-slot .slot-patient { font-size: 13px; color: var(--text); }
 
+/* Day-grouped schedule (Appointments tab, home-page style) */
+.day-heading { font-size: 14px; color: var(--muted); font-weight: 700; margin: 18px 0 8px; }
+.day-group:first-of-type .day-heading { margin-top: 8px; }
+
 /* --- Finances chart (CSS-only bars) --- */
 .chart {
   display: flex;

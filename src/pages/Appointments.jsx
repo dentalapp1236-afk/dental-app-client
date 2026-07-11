@@ -213,6 +213,52 @@ export default function Appointments() {
     </div>
   );
 
+  const fmtTime = (d) =>
+    new Date(d).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const dayHeading = (d) =>
+    new Date(d).toLocaleDateString([], { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+
+  // Home-page style: group a (pre-sorted) list by day and show compact slot rows.
+  const renderSchedule = (list) => {
+    const groups = [];
+    let cur = null;
+    for (const a of list) {
+      const key = new Date(a.date).toDateString();
+      if (!cur || cur.key !== key) {
+        cur = { key, date: a.date, items: [] };
+        groups.push(cur);
+      }
+      cur.items.push(a);
+    }
+    return groups.map((g) => (
+      <div className="day-group" key={g.key}>
+        <h3 className="day-heading icon"><Icon name="event" size={16} /> {dayHeading(g.date)}</h3>
+        <div className="day-grid">
+          {g.items.map((a) => (
+            <div
+              key={a._id}
+              className="day-slot booked"
+              onClick={() => setSelected(a)}
+              title="View details"
+            >
+              <span className="slot-time">{fmtTime(a.date)}</span>
+              <span className="slot-patient">{a.client?.name || "—"}</span>
+              <div className="row gap" style={{ flexWrap: "wrap" }}>
+                <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
+                {a.arrivalStatus && a.arrivalStatus !== "none" && (
+                  <span className={`clinic-badge ${a.arrivalStatus === "arrived" ? "open" : "soon"}`}>
+                    <Icon name={a.arrivalStatus === "arrived" ? "where_to_vote" : "directions_car"} size={14} />
+                    {a.arrivalStatus === "arrived" ? "Arrived" : "On the way"}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <div className="page">
       <div className="page-head">
@@ -403,12 +449,12 @@ export default function Appointments() {
             upcoming.length === 0 ? (
               <p className="muted">No upcoming appointments.</p>
             ) : (
-              <div className="appt-list single-col">{upcoming.map(renderCard)}</div>
+              renderSchedule(upcoming)
             )
           ) : past.length === 0 ? (
             <p className="muted">No past appointments.</p>
           ) : (
-            <div className="appt-list single-col">{past.map(renderCard)}</div>
+            renderSchedule(past)
           )}
         </>
       )}
@@ -463,6 +509,12 @@ export default function Appointments() {
                 onClick={() => { const a = selected; setSelected(null); handleEdit(a); }}
               >
                 <Icon name="edit" size={18} /> Edit
+              </button>
+              <button
+                className="btn-danger-soft icon"
+                onClick={() => { const id = selected._id; setSelected(null); handleDelete(id); }}
+              >
+                <Icon name="delete" size={18} /> Delete
               </button>
               <button type="button" className="btn-secondary" onClick={() => setSelected(null)}>
                 Close
