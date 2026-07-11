@@ -836,8 +836,9 @@ a.btn-danger-soft {
   gap: 12px;
   margin-top: 12px;
 }
-/* Patients list: always one per row (tablet, laptop, large screens) */
-.appt-list.patients-single { grid-template-columns: 1fr; }
+/* Force one card per row at all widths (tablet, laptop, large screens) */
+.appt-list.patients-single,
+.appt-list.single-col { grid-template-columns: 1fr; }
 
 /* Count badge next to a page title (e.g. total patients) */
 .count-pill {

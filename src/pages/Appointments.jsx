@@ -20,6 +20,7 @@ export default function Appointments() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date-asc");
   const [selected, setSelected] = useState(null);
+  const [tab, setTab] = useState("upcoming"); // upcoming | past
   const { items, refresh: refreshNotifications } = useNotifications();
   const navigate = useNavigate();
 
@@ -381,18 +382,33 @@ export default function Appointments() {
         </p>
       ) : (
         <>
-          <h2 className="icon"><Icon name="event_upcoming" /> Upcoming ({upcoming.length})</h2>
-          {upcoming.length === 0 ? (
-            <p className="muted">No upcoming appointments.</p>
-          ) : (
-            <div className="appt-list">{upcoming.map(renderCard)}</div>
-          )}
+          <div className="period-toggle" style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              className={`icon ${tab === "upcoming" ? "active" : ""}`}
+              onClick={() => setTab("upcoming")}
+            >
+              <Icon name="event_upcoming" size={16} /> Upcoming ({upcoming.length})
+            </button>
+            <button
+              type="button"
+              className={`icon ${tab === "past" ? "active" : ""}`}
+              onClick={() => setTab("past")}
+            >
+              <Icon name="history" size={16} /> Past ({past.length})
+            </button>
+          </div>
 
-          {past.length > 0 && (
-            <>
-              <h2 className="icon" style={{ marginTop: 24 }}><Icon name="history" /> Past ({past.length})</h2>
-              <div className="appt-list">{past.map(renderCard)}</div>
-            </>
+          {tab === "upcoming" ? (
+            upcoming.length === 0 ? (
+              <p className="muted">No upcoming appointments.</p>
+            ) : (
+              <div className="appt-list single-col">{upcoming.map(renderCard)}</div>
+            )
+          ) : past.length === 0 ? (
+            <p className="muted">No past appointments.</p>
+          ) : (
+            <div className="appt-list single-col">{past.map(renderCard)}</div>
           )}
         </>
       )}
