@@ -156,8 +156,8 @@ export default function DentistDashboard() {
   if (loading)
     return (
       <div className="page">
-        <h1 className="icon"><Icon name="waving_hand" /> {greeting}</h1>
-        <h2 className="icon"><Icon name="today" /> Today's schedule</h2>
+        <h1 className="icon dash-greeting"><Icon name="waving_hand" size={22} /> {greeting}</h1>
+        <h2 className="icon dash-subhead"><Icon name="today" size={18} /> Today's schedule</h2>
         <SkeletonTable rows={4} cols={3} />
       </div>
     );
@@ -166,10 +166,10 @@ export default function DentistDashboard() {
 
   return (
     <div className="page">
-      <h1 className="icon"><Icon name="waving_hand" /> {greeting}</h1>
+      <h1 className="icon dash-greeting"><Icon name="waving_hand" size={22} /> {greeting}</h1>
 
       <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "baseline" }}>
-        <h2 className="icon" style={{ margin: 0 }}><Icon name="today" /> Today's schedule</h2>
+        <h2 className="icon dash-subhead" style={{ margin: 0 }}><Icon name="today" size={18} /> Today's schedule</h2>
         <span className="muted">{formatDate(new Date())} · {bookedCount} booked</span>
       </div>
 
