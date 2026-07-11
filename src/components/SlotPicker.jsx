@@ -128,6 +128,16 @@ export default function SlotPicker({
         <span className="lbl">Day</span>
         <input type="date" min={todayStr()} value={day} onChange={(e) => setDay(e.target.value)} />
       </label>
+      {day && (
+        <p className="slot-day-words">
+          {new Date(`${day}T00:00:00`).toLocaleDateString([], {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+        </p>
+      )}
 
       <div className="slot-legend">
         <span><i className="slot-dot slot-dot-free" /> Available</span>

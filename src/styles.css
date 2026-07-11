@@ -1073,6 +1073,12 @@ a.btn-danger-soft {
 .avail-dash { color: var(--muted); }
 
 /* Interactive appointment slot picker */
+.slot-day-words {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
 .slot-legend {
   display: flex;
   flex-wrap: wrap;
