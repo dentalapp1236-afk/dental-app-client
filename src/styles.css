@@ -1627,10 +1627,13 @@ h2.icon { gap: 8px; }
 .day-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  /* Equal-height cards: every row takes the same track height, cells stretch. */
+  grid-auto-rows: 1fr;
   gap: 10px;
   margin-top: 10px;
 }
 .day-slot {
+  position: relative;
   text-align: left;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -1654,7 +1657,21 @@ h2.icon { gap: 8px; }
   border-color: var(--primary);
   border-style: solid;
 }
-.day-slot .slot-add { gap: 4px; font-size: 13px; font-weight: 600; color: var(--primary); }
+/* A small "+" affordance in the top-right corner instead of a text label. */
+.slot-add-corner {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--b-100);
+  color: var(--primary);
+}
+.day-slot.addable:hover .slot-add-corner { background: var(--primary); color: #fff; }
 
 /* Day-grouped schedule (Appointments tab, home-page style) */
 .day-heading { font-size: 14px; color: var(--muted); font-weight: 700; margin: 18px 0 8px; }
@@ -1793,9 +1810,10 @@ h2.icon { gap: 8px; }
   /* Auth card fills small screens with comfortable margins */
   .auth-page .card { max-width: 100%; }
 
-  /* Modals fill the small screen comfortably */
-  .modal-backdrop { padding: 12px; align-items: flex-start; padding-top: 24px; }
-  .modal { padding: 18px; border-radius: 14px; }
+  /* Modals fill the small screen comfortably, centered like on desktop.
+     max-height + internal scroll keeps tall (form) modals usable. */
+  .modal-backdrop { padding: 12px; align-items: center; }
+  .modal { padding: 18px; border-radius: 14px; max-height: 92vh; }
   .modal-lg { max-width: 100%; }
 }
 

@@ -201,8 +201,9 @@ export default function DentistDashboard() {
                     navigate("/appointments", { state: { prefillAt: slotIso.toISOString() } })
                   }
                 >
+                  <span className="slot-add-corner" aria-hidden="true"><Icon name="add" size={16} /></span>
                   <span className="slot-time">{fmt12(slot)}</span>
-                  <span className="slot-add icon"><Icon name="add" size={16} /> Add appointment</span>
+                  <span>Available</span>
                 </button>
               );
             }
