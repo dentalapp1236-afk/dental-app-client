@@ -1647,6 +1647,15 @@ h2.icon { gap: 8px; }
 .day-slot.booked:hover { background: var(--b-50); }
 .day-slot .slot-patient { font-size: 13px; color: var(--text); }
 
+/* Available future slot rendered as a button to add an appointment at that time */
+.day-slot.addable { cursor: pointer; color: var(--muted); }
+.day-slot.addable:hover:not(:disabled) {
+  background: var(--b-50);
+  border-color: var(--primary);
+  border-style: solid;
+}
+.day-slot .slot-add { gap: 4px; font-size: 13px; font-weight: 600; color: var(--primary); }
+
 /* Day-grouped schedule (Appointments tab, home-page style) */
 .day-heading { font-size: 14px; color: var(--muted); font-weight: 700; margin: 18px 0 8px; }
 .day-group:first-of-type .day-heading { margin-top: 8px; }

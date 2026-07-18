@@ -180,11 +180,30 @@ export default function DentistDashboard() {
           {slots.map((slot) => {
             const appt = apptByTime[slot];
             if (!appt) {
+              const slotIso = new Date(`${today}T${slot}:00`);
+              const isPast = slotIso.getTime() < Date.now();
+              // Past empty slots are just history; future ones can be booked.
+              if (isPast) {
+                return (
+                  <div key={slot} className="day-slot available" title="Available">
+                    <span className="slot-time">{fmt12(slot)}</span>
+                    <span>Available</span>
+                  </div>
+                );
+              }
               return (
-                <div key={slot} className="day-slot available" title="Available">
+                <button
+                  key={slot}
+                  type="button"
+                  className="day-slot available addable"
+                  title="Add an appointment at this time"
+                  onClick={() =>
+                    navigate("/appointments", { state: { prefillAt: slotIso.toISOString() } })
+                  }
+                >
                   <span className="slot-time">{fmt12(slot)}</span>
-                  <span>Available</span>
-                </div>
+                  <span className="slot-add icon"><Icon name="add" size={16} /> Add appointment</span>
+                </button>
               );
             }
             return (

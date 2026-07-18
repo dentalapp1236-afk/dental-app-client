@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import { formatDateTime, formatTime } from "../utils/date";
 import { useNotifications } from "../context/NotificationsContext";
@@ -24,6 +24,7 @@ export default function Appointments() {
   const [createDay, setCreateDay] = useState(""); // pre-selected day when "Add" tapped on a day header
   const { items, refresh: refreshNotifications } = useNotifications();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const load = async () => {
     const [a, c] = await Promise.all([
@@ -80,6 +81,28 @@ export default function Appointments() {
     setCreateDay(day);
     setShowForm(true);
   };
+
+  // Open the create form with an exact slot pre-selected (day + time), e.g. when
+  // an available slot is tapped on the dentist's Today's schedule.
+  const openCreateAt = (iso) => {
+    const day = iso ? iso.slice(0, 10) : "";
+    setForm({ ...empty, date: iso });
+    setEditingId(null);
+    setError("");
+    setCreateDay(day);
+    setShowForm(true);
+  };
+
+  // Consume a slot passed from another page (Today's schedule → "Add") once,
+  // then clear it so a refresh or back-nav doesn't reopen the form.
+  useEffect(() => {
+    const at = location.state?.prefillAt;
+    if (at) {
+      openCreateAt(at);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
