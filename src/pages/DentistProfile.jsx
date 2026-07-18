@@ -148,6 +148,17 @@ export default function DentistProfile() {
               <Icon name="workspace_premium" size={16} /> {dentist.yearsOfExperience} yrs
             </span>
           )}
+          {dentist.completedCount > 0 && (
+            <span className="tag icon">
+              <Icon name="task_alt" size={16} /> {dentist.completedCount} appointment{dentist.completedCount === 1 ? "" : "s"} completed
+            </span>
+          )}
+          {dentist.createdAt && (
+            <span className="tag icon">
+              <Icon name="calendar_month" size={16} /> Member since{" "}
+              {new Date(dentist.createdAt).toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
+            </span>
+          )}
         </div>
 
         {!user && (
