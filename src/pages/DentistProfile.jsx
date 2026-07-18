@@ -148,9 +148,9 @@ export default function DentistProfile() {
               <Icon name="workspace_premium" size={16} /> {dentist.yearsOfExperience} yrs
             </span>
           )}
-          {dentist.completedCount > 0 && (
+          {dentist.bookedCount > 0 && (
             <span className="tag icon">
-              <Icon name="task_alt" size={16} /> {dentist.completedCount} appointment{dentist.completedCount === 1 ? "" : "s"} completed
+              <Icon name="event_available" size={16} /> {dentist.bookedCount} appointment{dentist.bookedCount === 1 ? "" : "s"} booked
             </span>
           )}
           {dentist.createdAt && (
