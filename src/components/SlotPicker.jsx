@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
+import Icon from "./Icon";
 
 const pad = (n) => String(n).padStart(2, "0");
 const dayStr = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -58,6 +59,11 @@ export default function SlotPicker({
   const [bookedISO, setBookedISO] = useState([]);
   const [fetchedAvailability, setFetchedAvailability] = useState([]);
   const [loading, setLoading] = useState(false);
+  // Whether the last fetch failed (slow connection / server cold start). We must
+  // NOT fall back to default hours in that case — that would silently show the
+  // wrong slots. `null` = never loaded yet; false = loaded OK; true = failed.
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
 
   // Pull booked datetimes (+ clinic hours) for the selected day from the server.
   useEffect(() => {
@@ -68,6 +74,7 @@ export default function SlotPicker({
     const endpoint = dentistId ? `/dentists/${dentistId}/booked` : "/appointments/booked";
     let active = true;
     setLoading(true);
+    setLoadError(false);
     api
       .get(endpoint, {
         params: { from: from.toISOString(), to: to.toISOString(), exclude: excludeId },
@@ -76,29 +83,34 @@ export default function SlotPicker({
       .then((r) => {
         if (!active) return;
         setBookedISO(r.data.slots || []);
-        if (r.data.availability) setFetchedAvailability(r.data.availability);
+        setFetchedAvailability(r.data.availability || []);
       })
       .catch(() => {
         if (!active) return;
         setBookedISO([]);
+        setLoadError(true);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [day, excludeId, dentistId]);
+  }, [day, excludeId, dentistId, reload]);
 
   const availability = availabilityOverride || fetchedAvailability;
+  // Trust the fetched hours only when the request actually succeeded. When an
+  // override is supplied (public profile), the parent already has the hours.
+  const hoursKnown = !!availabilityOverride || !loadError;
 
   // Clinic hours for the selected weekday (or null when the clinic is closed).
   const hours = useMemo(() => {
+    if (!hoursKnown) return null;
     const label = JS_DAY_TO_LABEL[new Date(`${day}T00:00:00`).getDay()];
     const entry = availability.find((a) => a.day === label);
     if (entry && entry.start && entry.end) return { start: toMin(entry.start), end: toMin(entry.end) };
     // No availability configured at all -> sensible default so scheduling still works.
     if (availability.length === 0) return { start: 9 * 60, end: 18 * 60 };
     return null; // configured, but closed on this weekday
-  }, [availability, day]);
+  }, [availability, day, hoursKnown]);
 
   const slots = useMemo(
     () => (hours ? buildSlots(hours.start, hours.end, stepMin) : []),
@@ -147,6 +159,15 @@ export default function SlotPicker({
 
       {loading ? (
         <p className="muted" style={{ margin: "8px 0" }}>Loading slots…</p>
+      ) : loadError && !availabilityOverride ? (
+        <div className="slot-error" style={{ margin: "8px 0" }}>
+          <p className="muted" style={{ margin: "0 0 8px" }}>
+            Couldn't load the clinic hours — the connection may be slow. Please try again.
+          </p>
+          <button type="button" className="btn-secondary icon" onClick={() => setReload((n) => n + 1)}>
+            <Icon name="refresh" size={18} /> Retry
+          </button>
+        </div>
       ) : !hours ? (
         <p className="muted" style={{ margin: "8px 0" }}>The clinic is closed on this day.</p>
       ) : (
