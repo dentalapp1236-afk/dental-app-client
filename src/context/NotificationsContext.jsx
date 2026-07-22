@@ -2,39 +2,9 @@ import { createContext, useContext, useEffect, useRef, useState, useCallback } f
 import api from "../api/axios";
 import { useAuth } from "./AuthContext";
 import { subscribeToPush, unsubscribeFromPush } from "../push";
+import { playNotificationAlert } from "../utils/notificationSound";
 
 const NotificationsContext = createContext(null);
-
-// Short alert beep using the Web Audio API (no asset needed)
-function playBeep() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.32);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.34);
-    osc.onended = () => ctx.close();
-  } catch {
-    /* ignore */
-  }
-}
-
-function buzz() {
-  try {
-    navigator.vibrate?.([200, 100, 200]);
-  } catch {
-    /* ignore */
-  }
-}
 
 export const NotificationsProvider = ({ children }) => {
   const { user } = useAuth();
@@ -61,10 +31,9 @@ export const NotificationsProvider = ({ children }) => {
       setItems(data.items);
       setUnreadCount(data.unreadCount);
       setTotal(data.total ?? data.items.length);
-      // Alert (vibrate + beep) only when enabled AND a new unread arrives after first load
+      // Branded chime + vibration only when enabled AND a new unread arrives after first load
       if (enabledRef.current && !firstLoad.current && data.unreadCount > prevUnread.current) {
-        buzz();
-        playBeep();
+        playNotificationAlert();
       }
       prevUnread.current = data.unreadCount;
       firstLoad.current = false;
@@ -75,6 +44,22 @@ export const NotificationsProvider = ({ children }) => {
 
   // Show older notifications by raising the fetch limit (the next poll fills them in).
   const loadMore = () => setLimit((n) => n + 50);
+
+  // Play the branded chime the instant a push arrives (the service worker posts a
+  // message), instead of waiting for the next poll. Only when the tab is visible —
+  // if it's hidden, the OS notification with its own sound has already fired.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const onMessage = (event) => {
+      if (event.data?.type !== "push-received") return;
+      if (enabledRef.current && document.visibilityState === "visible") {
+        playNotificationAlert();
+      }
+      refresh();
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, [refresh]);
 
   useEffect(() => {
     if (!user) {

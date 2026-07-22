@@ -25,10 +25,31 @@ self.addEventListener("push", (event) => {
     body: data.body || "",
     icon: "/pwa-192x192.png", // full-color tooth logo (large image)
     badge: "/badge-96x96.png", // monochrome tooth silhouette (status bar)
-    vibrate: [200, 100, 200],
+    vibrate: [120, 60, 120],
     data: { url: data.url || "/" },
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      // Let any open app window play the branded MyDentalBooking chime + refresh
+      // its list immediately, without waiting for the next poll.
+      for (const client of windows) {
+        client.postMessage({ type: "push-received", url: options.data.url });
+      }
+      // If the app is already on screen, skip the OS notification so the user
+      // hears our chime rather than a duplicate system sound. (Chrome permits
+      // omitting the notification while a same-origin window is visible.)
+      const appVisible = windows.some(
+        (c) => c.visibilityState === "visible" || c.focused
+      );
+      if (!appVisible) {
+        await self.registration.showNotification(title, options);
+      }
+    })()
+  );
 });
 
 // Focus or open the app when a notification is clicked
