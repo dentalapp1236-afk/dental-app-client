@@ -11,6 +11,8 @@ import AppointmentActions from "../components/AppointmentActions";
 const statusLabel = (s) =>
   s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
 
+const money = (n) => `Rs ${(Number(n) || 0).toLocaleString("en-US")}`;
+
 const WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const toMin = (s) => {
   const [h, m] = String(s).split(":").map(Number);
@@ -22,7 +24,6 @@ const fmt12 = (s) => {
 };
 
 // Live open/closed status for a clinic, from its per-day availability.
-// green = open now, yellow = opens later today, red = closed.
 const clinicStatus = (availability) => {
   if (!availability?.length) return null;
   const now = new Date();
@@ -43,18 +44,25 @@ const clinicStatus = (availability) => {
   return { kind: "open", icon: "check_circle", text: `Open now · closes ${fmt12(entry.end)}` };
 };
 
-// Patient "Home" tab: association status + upcoming appointments. Full appointment
-// and treatment history live in their own tabs.
+// Patient "Home" tab. Three sections: (1) scheduled appointment, (2) payments /
+// outstanding balance, (3) review your dentist.
 export default function ClientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [assoc, setAssoc] = useState(null); // { dentist, pending }
   const [upcoming, setUpcoming] = useState([]);
+  const [outstanding, setOutstanding] = useState(0);
   const [showLeave, setShowLeave] = useState(false);
   const [leaveRating, setLeaveRating] = useState(5);
   const [leaveComment, setLeaveComment] = useState("");
   const [leaving, setLeaving] = useState(false);
   const [assocNotice, setAssocNotice] = useState("");
+  // Inline "review your dentist"
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewDone, setReviewDone] = useState(false);
+  const [reviewError, setReviewError] = useState("");
 
   const loadAssoc = () =>
     api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
@@ -76,9 +84,20 @@ export default function ClientDashboard() {
       })
       .catch(() => {});
 
+  // Total unpaid balance across the patient's treatments.
+  const loadBalance = () =>
+    api
+      .get("/treatments", { skipLoader: true })
+      .then((r) => {
+        const total = (r.data || []).reduce((s, t) => s + (Number(t.balance) || 0), 0);
+        setOutstanding(Math.round(total));
+      })
+      .catch(() => {});
+
   useEffect(() => {
     loadAssoc();
     loadUpcoming();
+    loadBalance();
   }, []);
 
   // If the patient arrived via the public "Associate with this clinic" flow,
@@ -127,6 +146,61 @@ export default function ClientDashboard() {
     }
   };
 
+  const submitReview = async () => {
+    if (!assoc?.dentist?._id) return;
+    setReviewError("");
+    setReviewSubmitting(true);
+    try {
+      await api.post(`/dentists/${assoc.dentist._id}/reviews`, {
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      setReviewDone(true);
+      loadAssoc(); // refresh the average shown
+    } catch (err) {
+      setReviewError(err.response?.data?.message || "Could not submit your review.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const renderAppointment = (a) => (
+    <div key={a._id} className="appt-card">
+      <div className="appt-card-head">
+        <span className="appt-when icon">
+          <Icon name="schedule" size={18} /> {formatDateTime(a.date)}
+        </span>
+        <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
+      </div>
+      <div className="appt-card-body">
+        {a.client && a.client._id !== user._id && (
+          <span className="icon"><Icon name="child_care" size={16} /> For {a.client.name}</span>
+        )}
+        <span className="icon"><Icon name="person" size={16} /> Dr. {a.dentist?.name}</span>
+        {a.dentist?.clinicName && (
+          <span className="icon"><Icon name="apartment" size={16} /> {a.dentist.clinicName}</span>
+        )}
+        {a.reason && (
+          <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
+        )}
+      </div>
+      <div className="row gap" style={{ flexWrap: "wrap" }}>
+        {a.dentist?.location?.coordinates?.length === 2 && (
+          <a
+            className="btn-secondary icon"
+            href={`https://www.google.com/maps/dir/?api=1&destination=${a.dentist.location.coordinates[1]},${a.dentist.location.coordinates[0]}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ textDecoration: "none", borderColor: "var(--primary)", color: "var(--primary)" }}
+          >
+            <Icon name="directions" size={18} /> Directions
+          </a>
+        )}
+        <AppointmentActions appointment={a} onChanged={loadUpcoming} />
+      </div>
+    </div>
+  );
+
   return (
     <div className="page">
       <h1 className="icon"><Icon name="waving_hand" /> Hello, {user.name}</h1>
@@ -139,127 +213,143 @@ export default function ClientDashboard() {
         </div>
       )}
 
-      {/* My dentist / association status */}
-      <div className="card" style={{ maxWidth: "none" }}>
-        <h3 className="icon"><Icon name="medical_information" size={18} /> My dentist</h3>
-        {assoc === null ? (
-          <p className="muted">Loading…</p>
-        ) : assoc.dentist ? (
-          <div
-            onClick={() => navigate(`/dentists/${assoc.dentist._id}`)}
-            title="View dentist details"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              gap: 8,
-              cursor: "pointer",
-            }}
-          >
-            <Avatar src={assoc.dentist.image} name={assoc.dentist.name} size={96} />
-            <div>
-              <strong>Dr. {assoc.dentist.name}</strong>
-              {assoc.dentist.clinicName && (
-                <div className="muted">{assoc.dentist.clinicName}</div>
-              )}
-              {assoc.dentist.specialization && (
-                <div className="muted" style={{ fontSize: 13 }}>{assoc.dentist.specialization}</div>
-              )}
-            </div>
-            {(() => {
-              const st = clinicStatus(assoc.dentist.availability);
-              return st ? (
-                <span className={`clinic-badge ${st.kind}`}>
-                  <Icon name={st.icon} size={16} /> {st.text}
-                </span>
-              ) : null;
-            })()}
-            {assoc.dentist.reviewCount > 0 && (
-              <div className="row gap" style={{ alignItems: "center" }}>
-                <StarRating value={assoc.dentist.rating || 0} size={16} />
-                <span className="muted" style={{ fontSize: 13 }}>
-                  {Number(assoc.dentist.rating || 0).toFixed(1)} ({assoc.dentist.reviewCount})
-                </span>
-              </div>
-            )}
+      {/* 1 — Scheduled appointment */}
+      <section>
+        <h2 className="icon" style={{ marginBottom: 8 }}>
+          <Icon name="event_upcoming" /> Scheduled appointment{upcoming.length > 1 ? "s" : ""}
+        </h2>
+        {upcoming.length > 0 ? (
+          <div className="appt-list">{upcoming.map(renderAppointment)}</div>
+        ) : (
+          <div className="card" style={{ maxWidth: "none" }}>
+            <p className="icon muted" style={{ margin: 0 }}>
+              <Icon name="event_busy" size={18} /> No scheduled appointments right now.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* 2 — Payments / outstanding balance */}
+      <section>
+        <h2 className="icon" style={{ marginBottom: 8 }}>
+          <Icon name="payments" /> Payments
+        </h2>
+        {outstanding > 0 ? (
+          <div className="card balance-due" style={{ maxWidth: "none" }}>
             <div
               className="row gap"
-              style={{ flexWrap: "wrap", justifyContent: "center" }}
-              onClick={(e) => e.stopPropagation()}
+              style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}
             >
+              <div>
+                <div className="icon" style={{ fontWeight: 700, color: "var(--heading)" }}>
+                  <Icon name="account_balance_wallet" size={18} /> Outstanding balance
+                </div>
+                <div className="balance-amount">{money(outstanding)}</div>
+                <div className="muted" style={{ fontSize: 13 }}>Please clear it at your next visit.</div>
+              </div>
               <Link
-                to={`/dentists/${assoc.dentist._id}`}
+                to="/client/treatments"
                 className="btn-secondary icon"
                 style={{ textDecoration: "none", borderColor: "var(--primary)", color: "var(--primary)" }}
               >
-                <Icon name="info" size={18} /> View details
+                <Icon name="receipt_long" size={18} /> View details
               </Link>
-              <button className="btn-secondary icon" onClick={() => setShowLeave(true)}>
-                <Icon name="logout" size={18} /> Leave / switch dentist
-              </button>
             </div>
           </div>
-        ) : assoc?.pending ? (
-          <p className="muted">
-            Request pending with Dr. {assoc.pending.dentist?.name}. You'll be notified once they respond.
-          </p>
         ) : (
-          <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
-            <span className="muted">You're not associated with a dentist yet.</span>
-            <Link to="/find-dentist" className="btn-secondary icon" style={{ textDecoration: "none" }}>
-              <Icon name="person_search" size={18} /> Find a dentist
-            </Link>
+          <div className="card" style={{ maxWidth: "none" }}>
+            <p className="icon" style={{ margin: 0, color: "#1a7f37" }}>
+              <Icon name="check_circle" size={18} /> You're all paid up.
+            </p>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Upcoming appointments (active / pending only) */}
-      {upcoming.length > 0 && (
-        <section>
-          <h2 className="icon" style={{ marginBottom: 4 }}>
-            <Icon name="event_upcoming" /> Upcoming appointment{upcoming.length > 1 ? "s" : ""}
-          </h2>
-          <div className="appt-list">
-            {upcoming.map((a) => (
-              <div key={a._id} className="appt-card">
-                <div className="appt-card-head">
-                  <span className="appt-when icon">
-                    <Icon name="schedule" size={18} /> {formatDateTime(a.date)}
-                  </span>
-                  <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
-                </div>
-                <div className="appt-card-body">
-                  {a.client && a.client._id !== user._id && (
-                    <span className="icon"><Icon name="child_care" size={16} /> For {a.client.name}</span>
+      {/* 3 — Review your dentist */}
+      <section>
+        <h2 className="icon" style={{ marginBottom: 8 }}>
+          <Icon name="reviews" /> Review your dentist
+        </h2>
+        <div className="card" style={{ maxWidth: "none" }}>
+          {assoc === null ? (
+            <p className="muted" style={{ margin: 0 }}>Loading…</p>
+          ) : assoc.dentist ? (
+            <>
+              <div
+                onClick={() => navigate(`/dentists/${assoc.dentist._id}`)}
+                title="View dentist details"
+                style={{ display: "flex", gap: 12, alignItems: "center", cursor: "pointer" }}
+              >
+                <Avatar src={assoc.dentist.image} name={assoc.dentist.name} size={56} />
+                <div>
+                  <strong>Dr. {assoc.dentist.name}</strong>
+                  {assoc.dentist.clinicName && (
+                    <div className="muted" style={{ fontSize: 13 }}>{assoc.dentist.clinicName}</div>
                   )}
-                  <span className="icon"><Icon name="person" size={16} /> Dr. {a.dentist?.name}</span>
-                  {a.dentist?.clinicName && (
-                    <span className="icon"><Icon name="apartment" size={16} /> {a.dentist.clinicName}</span>
-                  )}
-                  {a.reason && (
-                    <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
-                  )}
-                </div>
-                <div className="row gap" style={{ flexWrap: "wrap" }}>
-                  {a.dentist?.location?.coordinates?.length === 2 && (
-                    <a
-                      className="btn-secondary icon"
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${a.dentist.location.coordinates[1]},${a.dentist.location.coordinates[0]}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ textDecoration: "none", borderColor: "var(--primary)", color: "var(--primary)" }}
-                    >
-                      <Icon name="directions" size={18} /> Directions
-                    </a>
-                  )}
-                  <AppointmentActions appointment={a} onChanged={loadUpcoming} />
+                  {(() => {
+                    const st = clinicStatus(assoc.dentist.availability);
+                    return st ? (
+                      <span className={`clinic-badge ${st.kind}`} style={{ marginTop: 4 }}>
+                        <Icon name={st.icon} size={14} /> {st.text}
+                      </span>
+                    ) : null;
+                  })()}
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+
+              <hr className="divider" />
+
+              {reviewDone ? (
+                <p className="icon" style={{ margin: 0, color: "#1a7f37" }}>
+                  <Icon name="check_circle" size={18} /> Thanks for your feedback!
+                </p>
+              ) : (
+                <>
+                  <p className="muted" style={{ marginTop: 0 }}>How was your experience?</p>
+                  {reviewError && <div className="error">{reviewError}</div>}
+                  <StarRating value={reviewRating} onChange={setReviewRating} size={30} />
+                  <textarea
+                    rows={3}
+                    placeholder="Share your experience (optional)…"
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                  />
+                  <div className="row gap" style={{ flexWrap: "wrap" }}>
+                    <button className="icon" onClick={submitReview} disabled={reviewSubmitting}>
+                      <Icon name="send" size={18} /> {reviewSubmitting ? "Submitting…" : "Submit review"}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              <hr className="divider" />
+              <div className="row gap" style={{ flexWrap: "wrap" }}>
+                <Link
+                  to={`/dentists/${assoc.dentist._id}`}
+                  className="btn-secondary icon"
+                  style={{ textDecoration: "none" }}
+                >
+                  <Icon name="info" size={18} /> View details
+                </Link>
+                <button className="btn-secondary icon" onClick={() => setShowLeave(true)}>
+                  <Icon name="logout" size={18} /> Leave / switch dentist
+                </button>
+              </div>
+            </>
+          ) : assoc.pending ? (
+            <p className="muted" style={{ margin: 0 }}>
+              Request pending with Dr. {assoc.pending.dentist?.name}. You'll be notified once they respond.
+            </p>
+          ) : (
+            <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+              <span className="muted">You're not associated with a dentist yet.</span>
+              <Link to="/find-dentist" className="btn-secondary icon" style={{ textDecoration: "none" }}>
+                <Icon name="person_search" size={18} /> Find a dentist
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
 
       {showLeave && (
         <div className="modal-backdrop" onClick={() => setShowLeave(false)}>

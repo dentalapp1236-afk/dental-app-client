@@ -278,6 +278,10 @@ a:hover { text-decoration: underline; }
 }
 
 /* Modal */
+/* Outstanding balance card on the patient home */
+.balance-due { border-left: 3px solid #b8791a; }
+.balance-amount { font-size: 22px; font-weight: 800; color: #b8791a; margin-top: 2px; }
+
 /* "New version available" prompt (PWA update) — fixed banner, above everything */
 .update-toast {
   position: fixed;
