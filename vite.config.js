@@ -9,10 +9,12 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.js",
-      registerType: "autoUpdate",
-      // External registration script (not inline) so a strict CSP can omit
-      // 'unsafe-inline' from script-src.
-      injectRegister: "script",
+      // "prompt": a new build waits and we ask the user to reload (see
+      // components/UpdatePrompt.jsx) instead of silently reloading the page.
+      registerType: "prompt",
+      // We register the SW ourselves via `virtual:pwa-register/react` inside the
+      // app bundle (external, hashed JS) — CSP-safe with no 'unsafe-inline'.
+      injectRegister: null,
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "MyDentalBooking",

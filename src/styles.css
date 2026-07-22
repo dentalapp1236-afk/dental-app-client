@@ -278,6 +278,37 @@ a:hover { text-decoration: underline; }
 }
 
 /* Modal */
+/* "New version available" prompt (PWA update) — fixed banner, above everything */
+.update-toast {
+  position: fixed;
+  z-index: 4000;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(31, 45, 61, 0.22);
+}
+.update-toast-msg { display: flex; align-items: center; gap: 10px; }
+.update-toast-msg .material-symbols-outlined { color: var(--primary); }
+.update-toast-msg strong { display: block; color: var(--heading); font-size: 13.5px; }
+.update-toast-msg span { color: var(--muted); font-size: 12px; }
+.update-toast-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.update-toast-actions button { padding: 8px 12px; font-size: 13px; }
+@media (max-width: 480px) {
+  .update-toast { flex-direction: column; align-items: stretch; }
+  .update-toast-actions { justify-content: flex-end; }
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

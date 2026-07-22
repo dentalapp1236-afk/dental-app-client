@@ -1,7 +1,12 @@
 import { precacheAndRoute } from "workbox-precaching";
 import { clientsClaim } from "workbox-core";
 
-self.skipWaiting();
+// Don't auto-activate. A freshly installed worker waits until the user taps
+// "Reload" in the update prompt, which posts SKIP_WAITING (below). This is what
+// makes the "new version available" popup possible instead of a silent reload.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+});
 clientsClaim();
 
 // Precache the build assets injected by vite-plugin-pwa

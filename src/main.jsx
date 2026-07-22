@@ -18,17 +18,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   </React.StrictMode>
 );
 
-// Keep already-open tabs current with new deploys. The service worker auto-updates
-// and reloads the page once a new build's worker activates — but an idle, open tab
-// only looks for a new build when something triggers a check. Poll periodically and
-// whenever the tab regains focus, so the dentist's laptop picks up new versions on
-// its own instead of needing a manual hard refresh.
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.ready.then((reg) => {
-    const check = () => reg.update().catch(() => {});
-    setInterval(check, 60 * 1000);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") check();
-    });
-  });
-}
+// Service worker registration, update checks, and the "new version" prompt are
+// handled in components/UpdatePrompt.jsx via virtual:pwa-register/react.

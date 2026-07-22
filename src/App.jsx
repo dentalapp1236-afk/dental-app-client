@@ -9,6 +9,7 @@ import NotificationBell from "./components/NotificationBell";
 import { useNotifications } from "./context/NotificationsContext";
 import Icon from "./components/Icon";
 import GlobalLoader from "./components/GlobalLoader";
+import UpdatePrompt from "./components/UpdatePrompt";
 import FullScreenLoader from "./components/FullScreenLoader";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
@@ -99,6 +100,7 @@ export default function App() {
   return (
     <>
       <GlobalLoader />
+      <UpdatePrompt />
       <Shell>
         <Routes>
         <Route path="/login" element={<Login />} />
