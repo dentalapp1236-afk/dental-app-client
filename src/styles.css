@@ -282,6 +282,20 @@ a:hover { text-decoration: underline; }
 .balance-due { border-left: 3px solid #b8791a; }
 .balance-amount { font-size: 22px; font-weight: 800; color: #b8791a; margin-top: 2px; }
 
+/* Outstanding-balance badge on today's schedule slots */
+.balance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #fff4e5;
+  color: #a85b00;
+}
+.balance-badge .material-symbols-outlined { color: #a85b00; }
+
 /* "New version available" prompt (PWA update) — fixed banner, above everything */
 .update-toast {
   position: fixed;

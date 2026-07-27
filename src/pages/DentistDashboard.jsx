@@ -27,6 +27,7 @@ const buildSlots = (startMin, endMin, step) => {
   return out;
 };
 const statusLabel = (s) => (s === "no_show" ? "No-show" : s);
+const money = (n) => `Rs ${(Number(n) || 0).toLocaleString("en-US")}`;
 
 const STATUS_ACTIONS = [
   { value: "completed", label: "Mark done", icon: "task_alt" },
@@ -40,6 +41,7 @@ export default function DentistDashboard() {
   const navigate = useNavigate();
   const [appts, setAppts] = useState([]);
   const [availability, setAvailability] = useState([]);
+  const [balances, setBalances] = useState({}); // { clientId: outstanding }
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -51,15 +53,17 @@ export default function DentistDashboard() {
     const from = new Date(`${today}T00:00:00`);
     const to = new Date(`${today}T00:00:00`);
     to.setDate(to.getDate() + 1);
-    const [all, booked] = await Promise.all([
+    const [all, booked, outstanding] = await Promise.all([
       api.get("/appointments", { skipLoader: true }),
       api.get("/appointments/booked", {
         params: { from: from.toISOString(), to: to.toISOString() },
         skipLoader: true,
       }),
+      api.get("/treatments/outstanding", { skipLoader: true }).catch(() => ({ data: {} })),
     ]);
     setAppts(all.data);
     setAvailability(booked.data.availability || []);
+    setBalances(outstanding.data || {});
   }, [today]);
 
   useEffect(() => {
@@ -218,6 +222,11 @@ export default function DentistDashboard() {
                 <span className="slot-patient">{appt.client?.name || "—"}</span>
                 <div className="row gap" style={{ flexWrap: "wrap" }}>
                   <span className={`st st-${appt.status}`}>{statusLabel(appt.status)}</span>
+                  {balances[appt.client?._id] > 0 && (
+                    <span className="balance-badge" title="Outstanding balance">
+                      <Icon name="account_balance_wallet" size={13} /> {money(balances[appt.client._id])}
+                    </span>
+                  )}
                   {appt.arrivalStatus && appt.arrivalStatus !== "none" && (
                     <span className={`clinic-badge ${appt.arrivalStatus === "arrived" ? "open" : "soon"}`}>
                       <Icon name={appt.arrivalStatus === "arrived" ? "where_to_vote" : "directions_car"} size={14} />
@@ -249,6 +258,14 @@ export default function DentistDashboard() {
                 <Icon name="person" size={18} />
                 <span>{selected.client?.name || "—"}</span>
               </div>
+              {balances[selected.client?._id] > 0 && (
+                <div className="detail-row">
+                  <Icon name="account_balance_wallet" size={18} />
+                  <span style={{ color: "#b8791a", fontWeight: 700 }}>
+                    Outstanding balance: {money(balances[selected.client._id])}
+                  </span>
+                </div>
+              )}
               {selected.client?.phone && (
                 <div className="detail-row">
                   <Icon name="call" size={18} />
