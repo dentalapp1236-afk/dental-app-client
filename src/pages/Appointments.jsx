@@ -22,6 +22,7 @@ export default function Appointments() {
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState("upcoming"); // upcoming | past
   const [createDay, setCreateDay] = useState(""); // pre-selected day when "Add" tapped on a day header
+  const [saving, setSaving] = useState(false); // in-flight lock so a double-click can't create two
   const { items, refresh: refreshNotifications } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
@@ -107,9 +108,11 @@ export default function Appointments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (saving) return; // ignore a second click while the first is still saving
     if (!form.date) return setError("Please pick a time slot.");
     if (new Date(form.date).getTime() < Date.now())
       return setError("Appointment cannot be in the past.");
+    setSaving(true);
     try {
       // form.date is already an ISO instant from the slot picker
       const payload = { ...form };
@@ -127,6 +130,8 @@ export default function Appointments() {
       // On a conflict (slot taken or record changed by someone else), pull the
       // latest so the dentist/assistant sees the current state before retrying.
       if (err.response?.status === 409) loadAppointments();
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -429,9 +434,9 @@ export default function Appointments() {
           )}
         </div>
         <div className="row gap">
-          <button type="submit" className="icon">
+          <button type="submit" className="icon" disabled={saving}>
             <Icon name={editingId ? "save" : "add"} size={18} />
-            {editingId ? "Update" : "Create"}
+            {saving ? "Saving…" : editingId ? "Update" : "Create"}
           </button>
           <button type="button" className="btn-secondary" onClick={resetForm}>
             Cancel

@@ -80,7 +80,16 @@ export default function ClientDashboard() {
               new Date(a.date).getTime() >= now
           )
           .sort((a, b) => new Date(a.date) - new Date(b.date));
-        setUpcoming(list);
+        // Defensive: collapse any accidental duplicate records for the same
+        // patient + dentist + slot so the same appointment never shows twice.
+        const seen = new Set();
+        const deduped = list.filter((a) => {
+          const key = `${a.client?._id || a.client}|${a.dentist?._id || a.dentist}|${a.date}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setUpcoming(deduped);
       })
       .catch(() => {});
 
