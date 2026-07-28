@@ -51,6 +51,8 @@ export default function Clients({ mode = "patients" }) {
   const [copied, setCopied] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [menuFor, setMenuFor] = useState(null); // id of the card whose action menu is open
+  const [balances, setBalances] = useState({}); // { clientId: outstanding }
+  const [onlyOutstanding, setOnlyOutstanding] = useState(false); // filter pill
 
   // Reset-password flow
   const [resetTarget, setResetTarget] = useState(null); // the patient being reset
@@ -130,9 +132,16 @@ export default function Clients({ mode = "patients" }) {
     const { data } = await api.get("/associations/requests");
     setRequests(data);
   };
+  // Per-patient outstanding balance for the clinic, to power the filter pill + badges.
+  const loadBalances = () =>
+    api
+      .get("/treatments/outstanding", { skipLoader: true })
+      .then((r) => setBalances(r.data || {}))
+      .catch(() => {});
 
   useEffect(() => {
     loadRequests();
+    loadBalances();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -143,9 +152,11 @@ export default function Clients({ mode = "patients" }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  // Refresh the pending-requests list whenever notifications change (new request arrived)
+  // Refresh the pending-requests list + balances whenever notifications change
+  // (e.g. a new request arrived, or a payment was recorded).
   useEffect(() => {
     loadRequests();
+    loadBalances();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
@@ -241,6 +252,12 @@ export default function Clients({ mode = "patients" }) {
   const waLink = created
     ? waChatUrl(created.credentials?.phone, created.shareMessage)
     : "#";
+
+  const money = (n) => `Rs ${(Number(n) || 0).toLocaleString("en-US")}`;
+  const outstandingCount = clients.filter((c) => balances[c._id] > 0).length;
+  const visibleClients = onlyOutstanding
+    ? clients.filter((c) => balances[c._id] > 0)
+    : clients;
 
   return (
     <div className="page">
@@ -449,6 +466,25 @@ export default function Clients({ mode = "patients" }) {
         </button>
       </div>
 
+      {clients.length > 0 && (
+        <div className="period-toggle" style={{ marginBottom: 12 }}>
+          <button
+            type="button"
+            className={`icon ${!onlyOutstanding ? "active" : ""}`}
+            onClick={() => setOnlyOutstanding(false)}
+          >
+            <Icon name="group" size={16} /> All ({clients.length})
+          </button>
+          <button
+            type="button"
+            className={`icon ${onlyOutstanding ? "active" : ""}`}
+            onClick={() => setOnlyOutstanding(true)}
+          >
+            <Icon name="account_balance_wallet" size={16} /> Outstanding ({outstandingCount})
+          </button>
+        </div>
+      )}
+
       {showForm && (
       <div className="modal-backdrop" onClick={resetForm}>
         <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
@@ -597,11 +633,17 @@ export default function Clients({ mode = "patients" }) {
       </div>
       )}
 
-      {clients.length === 0 ? (
-        <p className="muted">{isDependents ? "No dependents yet." : "No patients yet."}</p>
+      {visibleClients.length === 0 ? (
+        <p className="muted">
+          {onlyOutstanding
+            ? `No ${isDependents ? "dependents" : "patients"} with an outstanding balance. 🎉`
+            : isDependents
+            ? "No dependents yet."
+            : "No patients yet."}
+        </p>
       ) : (
         <div className="appt-list patients-single">
-          {clients.map((c) => (
+          {visibleClients.map((c) => (
             <div
               key={c._id}
               className="appt-card"
@@ -613,7 +655,14 @@ export default function Clients({ mode = "patients" }) {
                 <span className="appt-when icon">
                   <Icon name="person" size={18} /> {c.name}
                 </span>
-                {c.managed && <span className="st st-scheduled">Child</span>}
+                <span className="row gap" style={{ gap: 6, flexWrap: "wrap" }}>
+                  {c.managed && <span className="st st-scheduled">Child</span>}
+                  {balances[c._id] > 0 && (
+                    <span className="balance-badge" title="Outstanding balance">
+                      <Icon name="account_balance_wallet" size={13} /> {money(balances[c._id])}
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="appt-card-body">
                 {c.managed ? (
