@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
@@ -18,6 +19,7 @@ const CARDS = [
 ];
 
 export default function Finances() {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState("day");
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState(null);
@@ -51,6 +53,13 @@ export default function Finances() {
   const markPaid = async (id) => {
     await api.put(`/treatments/${id}`, { paid: true });
     await load();
+  };
+
+  // Open the patient's full treatment + payment record for a finance entry.
+  const openRecord = (clientId) => {
+    if (!clientId) return;
+    setDetail(null);
+    navigate(`/clients/${clientId}`);
   };
 
   return (
@@ -163,7 +172,12 @@ export default function Finances() {
               <div className="fin-detail-list">
                 {detail === "collected" &&
                   data.collected.items.map((it, i) => (
-                    <div key={i} className="fin-detail-row">
+                    <div
+                      key={i}
+                      className={`fin-detail-row${it.clientId ? " clickable" : ""}`}
+                      onClick={it.clientId ? () => openRecord(it.clientId) : undefined}
+                      title={it.clientId ? "View patient record" : undefined}
+                    >
                       <div className="fin-detail-main">
                         <strong>{it.client || "Patient"}</strong>
                         {it.procedure && <span className="muted"> · {it.procedure}</span>}
@@ -177,6 +191,7 @@ export default function Finances() {
                           {it.method === "online" ? "Online" : it.method === "cash" ? "Cash" : "—"}
                         </span>
                       </div>
+                      {it.clientId && <Icon name="chevron_right" size={18} className="fin-detail-go" />}
                     </div>
                   ))}
 
@@ -197,7 +212,12 @@ export default function Finances() {
 
                 {detail === "outstanding" &&
                   data.outstanding.items.map((it) => (
-                    <div key={it._id} className="fin-detail-row">
+                    <div
+                      key={it._id}
+                      className={`fin-detail-row${it.clientId ? " clickable" : ""}`}
+                      onClick={it.clientId ? () => openRecord(it.clientId) : undefined}
+                      title={it.clientId ? "View patient record" : undefined}
+                    >
                       <div className="fin-detail-main">
                         <strong>{it.client || "Patient"}</strong>
                         {it.procedure && <span className="muted"> · {it.procedure}</span>}
@@ -207,7 +227,10 @@ export default function Finances() {
                       </div>
                       <div className="fin-detail-right">
                         <span className="fin-amt pending">{money(it.balance)}</span>
-                        <button className="btn-secondary icon" onClick={() => markPaid(it._id)}>
+                        <button
+                          className="btn-secondary icon"
+                          onClick={(e) => { e.stopPropagation(); markPaid(it._id); }}
+                        >
                           <Icon name="check_circle" size={18} /> Mark paid
                         </button>
                       </div>
