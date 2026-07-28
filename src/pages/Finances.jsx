@@ -22,14 +22,25 @@ export default function Finances() {
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false); // true when the fetch failed (e.g. slow connection)
   const [detail, setDetail] = useState(null); // "collected" | "expenses" | "outstanding"
 
-  const load = () =>
-    api
+  const load = () => {
+    setLoadError(false);
+    return api
       .get("/finances/period", { params: { period, offset }, skipLoader: true })
       .then((r) => setData(r.data))
-      .catch(() => setData(null))
+      .catch(() => {
+        setData(null);
+        setLoadError(true);
+      })
       .finally(() => setLoading(false));
+  };
+
+  const refresh = () => {
+    setLoading(true);
+    load();
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -44,7 +55,12 @@ export default function Finances() {
 
   return (
     <div className="page">
-      <h1 className="icon"><Icon name="payments" /> Finances</h1>
+      <div className="page-head">
+        <h1 className="icon"><Icon name="payments" /> Finances</h1>
+        <button type="button" className="btn-secondary icon" onClick={refresh} disabled={loading}>
+          <Icon name="refresh" size={18} /> {loading ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
 
       <div className="period-toggle">
         {PERIODS.map((p) => (
@@ -83,28 +99,42 @@ export default function Finances() {
         </button>
       </div>
 
-      <div className="fin-cards">
-        {CARDS.map((c) => {
-          const section = data?.[c.key];
-          const count = section?.items?.length || 0;
-          return (
-            <button
-              key={c.key}
-              type="button"
-              className={`fin-card ${c.cls}`}
-              onClick={() => count && setDetail(c.key)}
-              disabled={loading}
-            >
-              <Icon name={c.icon} size={26} />
-              <div className="fin-card-value">{money(section?.total || 0)}</div>
-              <div className="fin-card-label">{c.label}</div>
-              <div className="fin-card-meta">
-                {count} {count === 1 ? "item" : "items"}{count ? " · tap for details" : ""}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      {loading && !data ? (
+        <p className="muted" style={{ margin: "20px 0" }}>Loading finances…</p>
+      ) : loadError && !data ? (
+        <div className="card fin-error">
+          <Icon name="cloud_off" size={28} />
+          <p style={{ margin: 0 }}>
+            Couldn't load your finances — the connection may be slow. Nothing was lost; just try again.
+          </p>
+          <button type="button" className="icon" onClick={refresh} disabled={loading}>
+            <Icon name="refresh" size={18} /> {loading ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      ) : (
+        <div className="fin-cards">
+          {CARDS.map((c) => {
+            const section = data?.[c.key];
+            const count = section?.items?.length || 0;
+            return (
+              <button
+                key={c.key}
+                type="button"
+                className={`fin-card ${c.cls}`}
+                onClick={() => count && setDetail(c.key)}
+                disabled={loading}
+              >
+                <Icon name={c.icon} size={26} />
+                <div className="fin-card-value">{money(section?.total || 0)}</div>
+                <div className="fin-card-label">{c.label}</div>
+                <div className="fin-card-meta">
+                  {count} {count === 1 ? "item" : "items"}{count ? " · tap for details" : ""}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {detail && data && (
         <div className="modal-backdrop" onClick={() => setDetail(null)}>
