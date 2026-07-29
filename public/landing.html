@@ -92,14 +92,13 @@
 
     /* Nav */
     header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-    .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--navy);font-size:18px}
-    .brand img{width:32px;height:32px;border-radius:8px}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:10px;height:64px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--navy);font-size:18px;white-space:nowrap;min-width:0}
+    .brand img{width:32px;height:32px;border-radius:8px;flex:none}
     .nav-links{display:flex;align-items:center;gap:24px}
     .nav-links .lk{color:var(--ink);font-weight:600;font-size:15px}
     .nav-links .lk:hover{color:var(--primary)}
-    .nav-cta{display:flex;align-items:center;gap:10px}
-    @media(max-width:760px){.nav-links .lk{display:none}}
+    .nav-cta{display:flex;align-items:center;gap:10px;flex:none}
 
     /* Hero */
     .hero{background:linear-gradient(180deg,var(--tint),var(--surface));padding:64px 0 40px}
@@ -190,6 +189,39 @@
     footer a{color:#cfe0ff}
     footer a:hover{color:#fff}
     .foot-cities{font-size:13px;color:#6f88ad;margin-top:18px;border-top:1px solid #22344f;padding-top:16px;text-align:center}
+
+    /* ---------- Responsive ---------- */
+    /* Tablet / small laptop */
+    @media(max-width:760px){
+      .nav-links{display:none}
+      .nav-inner{height:56px}
+      .brand{font-size:15px}
+      .brand img{width:28px;height:28px}
+      .nav-cta{gap:6px}
+      .nav-cta .btn{padding:9px 13px;font-size:13px}
+      .nav-cta .btn-ghost{border:none;padding:9px 6px}
+    }
+    /* Phones */
+    @media(max-width:640px){
+      .wrap{padding:0 16px}
+      section{padding:40px 0}
+      .hero{padding:36px 0 26px}
+      .hero p.sub{margin-bottom:20px}
+      .hero-cta{gap:10px}
+      .hero-cta .btn{flex:1 1 auto;justify-content:center}
+      .section-head{margin-bottom:26px}
+      .section-head p{font-size:15px}
+      .card,.quote{padding:18px}
+      .price-card{padding:24px 20px}
+      .price-amt{font-size:40px}
+      .cta-band{padding:30px 20px}
+      .foot-grid{flex-direction:column;gap:18px}
+    }
+    /* Small phones — logo only, keep the two buttons inline */
+    @media(max-width:380px){
+      .brand .brand-txt{display:none}
+      .nav-cta .btn{padding:8px 11px;font-size:12.5px}
+    }
   </style>
 </head>
 <body>
@@ -198,7 +230,7 @@
 
   <header class="nav">
     <div class="wrap nav-inner">
-      <a href="/" class="brand"><img src="/favicon.svg" alt="MyDentalBooking logo" /> MyDentalBooking</a>
+      <a href="/" class="brand"><img src="/favicon.svg" alt="MyDentalBooking logo" /> <span class="brand-txt">MyDentalBooking</span></a>
       <nav class="nav-links">
         <a class="lk" href="#features">Features</a>
         <a class="lk" href="#pricing">Pricing</a>
