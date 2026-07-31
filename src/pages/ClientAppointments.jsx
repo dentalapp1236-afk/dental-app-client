@@ -135,7 +135,9 @@ export default function ClientAppointments() {
                     <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
                   )}
                 </div>
-                <AppointmentActions appointment={a} onChanged={loadAppointments} />
+                <div className="appt-card-actions">
+                  <AppointmentActions appointment={a} onChanged={loadAppointments} />
+                </div>
               </div>
             ))}
         </div>

@@ -309,6 +309,22 @@ a:hover { text-decoration: underline; }
 }
 .balance-badge .material-symbols-outlined { color: #a85b00; }
 
+/* Appointment card actions: all buttons equal width + consistent padding. The
+   AppointmentActions wrapper uses display:contents so its buttons join this grid
+   alongside any sibling (e.g. Directions). */
+.appt-card-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+.appt-actions-contents { display: contents; }
+.appt-card-actions > button,
+.appt-card-actions > a {
+  width: 100%;
+  justify-content: center;
+}
+
 /* Appointment detail modal: equal-width, consistently outlined action buttons */
 .appt-detail-actions {
   display: grid;

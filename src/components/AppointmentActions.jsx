@@ -73,7 +73,7 @@ export default function AppointmentActions({ appointment, onChanged }) {
   };
 
   return (
-    <div className="row gap" style={{ flexWrap: "wrap" }}>
+    <div className="appt-actions-contents">
       {showArrival && a.arrivalStatus === "arrived" ? (
         <span className="clinic-badge open">
           <Icon name="where_to_vote" size={16} /> Marked arrived

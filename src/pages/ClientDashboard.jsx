@@ -193,14 +193,14 @@ export default function ClientDashboard() {
           <span className="icon"><Icon name="medical_services" size={16} /> {a.reason}</span>
         )}
       </div>
-      <div className="row gap" style={{ flexWrap: "wrap" }}>
+      <div className="appt-card-actions">
         {a.dentist?.location?.coordinates?.length === 2 && (
           <a
             className="btn-secondary icon"
             href={`https://www.google.com/maps/dir/?api=1&destination=${a.dentist.location.coordinates[1]},${a.dentist.location.coordinates[0]}`}
             target="_blank"
             rel="noreferrer"
-            style={{ textDecoration: "none", borderColor: "var(--primary)", color: "var(--primary)" }}
+            style={{ textDecoration: "none", color: "var(--primary)" }}
           >
             <Icon name="directions" size={18} /> Directions
           </a>
