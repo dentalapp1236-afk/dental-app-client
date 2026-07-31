@@ -106,7 +106,7 @@ export default function AppointmentActions({ appointment, onChanged }) {
           <Icon name="edit_calendar" size={18} /> Reschedule
         </button>
       )}
-      <button className="btn-danger-soft icon" onClick={cancel} disabled={cancelling}>
+      <button className="btn-secondary icon btn-cancel" onClick={cancel} disabled={cancelling}>
         <Icon name="cancel" size={18} /> {cancelling ? "Cancelling…" : "Cancel"}
       </button>
 

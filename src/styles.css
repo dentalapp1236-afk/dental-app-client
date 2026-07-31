@@ -891,6 +891,11 @@ a.btn-danger-soft {
 }
 .btn-secondary:hover:not(:disabled) { background: #d8dadf !important; }
 
+/* Destructive secondary (e.g. Cancel appointment): same gray fill as the other
+   card buttons, red text/icon as the cue — so it's consistent, not an outlier. */
+.btn-secondary.btn-cancel { color: var(--danger); }
+.btn-secondary.btn-cancel .material-symbols-outlined { color: var(--danger); }
+
 .btn-danger { background: var(--danger); }
 .btn-danger:hover { background: #b91c1c; }
 
