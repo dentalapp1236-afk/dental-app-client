@@ -61,7 +61,7 @@ export default function ClientDashboard() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
-  const [reviewDone, setReviewDone] = useState(false);
+  const [editingReview, setEditingReview] = useState(false); // showing the review form
   const [reviewError, setReviewError] = useState("");
 
   const loadAssoc = () =>
@@ -164,8 +164,8 @@ export default function ClientDashboard() {
         rating: reviewRating,
         comment: reviewComment,
       });
-      setReviewDone(true);
-      loadAssoc(); // refresh the average shown
+      setEditingReview(false);
+      loadAssoc(); // refresh myReview + the dentist's average
     } catch (err) {
       setReviewError(err.response?.data?.message || "Could not submit your review.");
     } finally {
@@ -308,13 +308,39 @@ export default function ClientDashboard() {
 
               <hr className="divider" />
 
-              {reviewDone ? (
-                <p className="icon" style={{ margin: 0, color: "#1a7f37" }}>
-                  <Icon name="check_circle" size={18} /> Thanks for your feedback!
-                </p>
+              {assoc.myReview && !editingReview ? (
+                <>
+                  <p className="icon" style={{ margin: 0, color: "#1a7f37" }}>
+                    <Icon name="check_circle" size={18} /> Thanks — you've reviewed this dentist.
+                  </p>
+                  <div className="row gap" style={{ alignItems: "center", marginTop: 6 }}>
+                    <StarRating value={assoc.myReview.rating} size={20} />
+                    <span className="muted" style={{ fontSize: 13 }}>Your rating</span>
+                  </div>
+                  {assoc.myReview.comment && (
+                    <p style={{ margin: "2px 0 0", fontStyle: "italic", color: "var(--text)" }}>
+                      "{assoc.myReview.comment}"
+                    </p>
+                  )}
+                  <div className="row gap" style={{ flexWrap: "wrap", marginTop: 4 }}>
+                    <button
+                      className="btn-secondary icon"
+                      onClick={() => {
+                        setReviewRating(assoc.myReview.rating);
+                        setReviewComment(assoc.myReview.comment || "");
+                        setReviewError("");
+                        setEditingReview(true);
+                      }}
+                    >
+                      <Icon name="edit" size={18} /> Edit review
+                    </button>
+                  </div>
+                </>
               ) : (
                 <>
-                  <p className="muted" style={{ marginTop: 0 }}>How was your experience?</p>
+                  <p className="muted" style={{ marginTop: 0 }}>
+                    {assoc.myReview ? "Update your review" : "How was your experience?"}
+                  </p>
                   {reviewError && <div className="error">{reviewError}</div>}
                   <StarRating value={reviewRating} onChange={setReviewRating} size={30} />
                   <textarea
@@ -325,8 +351,14 @@ export default function ClientDashboard() {
                   />
                   <div className="row gap" style={{ flexWrap: "wrap" }}>
                     <button className="icon" onClick={submitReview} disabled={reviewSubmitting}>
-                      <Icon name="send" size={18} /> {reviewSubmitting ? "Submitting…" : "Submit review"}
+                      <Icon name="send" size={18} />{" "}
+                      {reviewSubmitting ? "Submitting…" : assoc.myReview ? "Update review" : "Submit review"}
                     </button>
+                    {assoc.myReview && (
+                      <button className="btn-secondary" onClick={() => setEditingReview(false)}>
+                        Cancel
+                      </button>
+                    )}
                   </div>
                 </>
               )}

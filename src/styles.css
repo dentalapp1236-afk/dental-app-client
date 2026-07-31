@@ -309,6 +309,26 @@ a:hover { text-decoration: underline; }
 }
 .balance-badge .material-symbols-outlined { color: #a85b00; }
 
+/* Appointment detail modal: equal-width, consistently outlined action buttons */
+.appt-detail-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+.appt-detail-actions > button,
+.appt-detail-actions > a { width: 100%; justify-content: center; }
+/* Non-destructive actions: white, outlined, dark text */
+.appt-detail-actions > button:not(.btn-danger-soft),
+.appt-detail-actions > a:not(.btn-danger-soft) {
+  background: var(--surface) !important;
+  border: 1px solid var(--table-border);
+  color: var(--text);
+}
+.appt-detail-actions > button:not(.btn-danger-soft):hover:not(:disabled),
+.appt-detail-actions > a:not(.btn-danger-soft):hover { background: var(--bg) !important; }
+.appt-detail-actions > button:not(.btn-danger-soft) .material-symbols-outlined { color: var(--muted); }
+/* Delete keeps its red outline (already .btn-danger-soft) */
+
 /* "New version available" prompt (PWA update) — fixed banner, above everything */
 .update-toast {
   position: fixed;

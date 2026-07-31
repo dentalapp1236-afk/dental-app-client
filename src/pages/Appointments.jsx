@@ -576,7 +576,7 @@ export default function Appointments() {
                 <span className={`st st-${selected.status}`}>{statusLabel(selected.status)}</span>
               </div>
             </div>
-            <div className="row gap" style={{ flexWrap: "wrap" }}>
+            <div className="appt-detail-actions">
               {selected.client?._id && (
                 <button className="icon" onClick={() => navigate(`/clients/${selected.client._id}`)}>
                   <Icon name="badge" size={18} /> Patient details
@@ -594,8 +594,8 @@ export default function Appointments() {
               >
                 <Icon name="delete" size={18} /> Delete
               </button>
-              <button type="button" className="btn-secondary" onClick={() => setSelected(null)}>
-                Close
+              <button type="button" className="btn-secondary icon" onClick={() => setSelected(null)}>
+                <Icon name="close" size={18} /> Close
               </button>
             </div>
           </div>
