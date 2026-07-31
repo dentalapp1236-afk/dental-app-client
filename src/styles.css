@@ -1226,6 +1226,13 @@ a.btn-danger-soft {
   font-weight: 600;
   color: var(--primary);
 }
+.slot-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .slot-legend {
   display: flex;
   flex-wrap: wrap;
@@ -1233,6 +1240,39 @@ a.btn-danger-soft {
   font-size: 12px;
   color: var(--muted);
   margin: 10px 0 8px;
+}
+.slot-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.slot-refresh:hover:not(:disabled) { background: var(--b-50); }
+.slot-refresh:disabled { opacity: 0.6; cursor: default; }
+.slot-refresh .spin { animation: slot-spin 0.8s linear infinite; }
+@keyframes slot-spin { to { transform: rotate(360deg); } }
+/* Loading placeholders shaped like slots */
+.slot-skeleton {
+  height: 34px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e9ebee 25%, #f2f3f5 37%, #e9ebee 63%);
+  background-size: 400% 100%;
+  animation: slot-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes slot-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .slot-skeleton { animation: none; }
+  .slot-refresh .spin { animation: none; }
 }
 .slot-dot {
   display: inline-block;

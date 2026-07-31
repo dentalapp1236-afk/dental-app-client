@@ -151,14 +151,32 @@ export default function SlotPicker({
         </p>
       )}
 
-      <div className="slot-legend">
-        <span><i className="slot-dot slot-dot-free" /> Available</span>
-        <span><i className="slot-dot slot-dot-booked" /> Booked</span>
-        {!readOnly && <span><i className="slot-dot slot-dot-sel" /> Selected</span>}
+      <div className="slot-legend-row">
+        <div className="slot-legend">
+          <span><i className="slot-dot slot-dot-free" /> Available</span>
+          <span><i className="slot-dot slot-dot-booked" /> Booked</span>
+          {!readOnly && <span><i className="slot-dot slot-dot-sel" /> Selected</span>}
+        </div>
+        {!readOnly && (
+          <button
+            type="button"
+            className="slot-refresh"
+            onClick={() => setReload((n) => n + 1)}
+            disabled={loading}
+            title="Refresh slots for this day"
+          >
+            <Icon name="refresh" size={16} className={loading ? "spin" : ""} />
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
+        )}
       </div>
 
       {loading ? (
-        <p className="muted" style={{ margin: "8px 0" }}>Loading slots…</p>
+        <div className={`slot-grid${readOnly ? " readonly" : ""}`} aria-busy="true">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="slot-skeleton" />
+          ))}
+        </div>
       ) : loadError && !availabilityOverride ? (
         <div className="slot-error" style={{ margin: "8px 0" }}>
           <p className="muted" style={{ margin: "0 0 8px" }}>
