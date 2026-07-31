@@ -53,6 +53,8 @@ export default function Clients({ mode = "patients" }) {
   const [menuFor, setMenuFor] = useState(null); // id of the card whose action menu is open
   const [balances, setBalances] = useState({}); // { clientId: outstanding }
   const [onlyOutstanding, setOnlyOutstanding] = useState(false); // filter pill
+  const [loadError, setLoadError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Reset-password flow
   const [resetTarget, setResetTarget] = useState(null); // the patient being reset
@@ -122,10 +124,22 @@ export default function Clients({ mode = "patients" }) {
     : "#";
 
   const load = async () => {
-    const { data } = await api.get("/clients", {
-      params: { search, managed: isDependents },
-    });
-    setClients(data);
+    try {
+      const { data } = await api.get("/clients", {
+        params: { search, managed: isDependents },
+      });
+      setClients(data);
+      setLoadError(false);
+    } catch (e) {
+      console.error(e);
+      setLoadError(true);
+    }
+  };
+
+  // Manual refresh — reloads the list + balances; spins the button.
+  const refresh = () => {
+    setRefreshing(true);
+    Promise.all([load(), loadBalances()]).finally(() => setRefreshing(false));
   };
   const loadRequests = async () => {
     if (isDependents) return; // dependents don't self-request association
@@ -267,11 +281,23 @@ export default function Clients({ mode = "patients" }) {
           {isDependents ? "Dependents" : "Patients"}
           {clients.length > 0 && <span className="count-pill">{clients.length}</span>}
         </h1>
+        <div className="row gap" style={{ alignItems: "center" }}>
+          <button
+            type="button"
+            className="slot-refresh"
+            onClick={refresh}
+            disabled={refreshing}
+            title={isDependents ? "Refresh dependents" : "Refresh patients"}
+          >
+            <Icon name="refresh" size={16} className={refreshing ? "spin" : ""} />
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
         {!showForm && (
           <button className="icon" onClick={openCreate}>
             <Icon name="person_add" size={18} /> {isDependents ? "Add dependent" : "Add patient"}
           </button>
         )}
+        </div>
       </div>
 
       {/* Pending association requests */}
@@ -633,7 +659,18 @@ export default function Clients({ mode = "patients" }) {
       </div>
       )}
 
-      {visibleClients.length === 0 ? (
+      {loadError && clients.length === 0 ? (
+        <div className="card fin-error">
+          <Icon name="cloud_off" size={28} />
+          <p style={{ margin: 0 }}>
+            Couldn't load {isDependents ? "dependents" : "patients"} — the connection may be slow.
+            Nothing was lost; just try again.
+          </p>
+          <button type="button" className="icon" onClick={refresh} disabled={refreshing}>
+            <Icon name="refresh" size={18} /> {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      ) : visibleClients.length === 0 ? (
         <p className="muted">
           {onlyOutstanding
             ? `No ${isDependents ? "dependents" : "patients"} with an outstanding balance. 🎉`

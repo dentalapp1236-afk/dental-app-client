@@ -24,6 +24,8 @@ export default function Appointments() {
   const [tab, setTab] = useState("upcoming"); // upcoming | past
   const [createDay, setCreateDay] = useState(""); // pre-selected day when "Add" tapped on a day header
   const [saving, setSaving] = useState(false); // in-flight lock so a double-click can't create two
+  const [loadError, setLoadError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { items, refresh: refreshNotifications } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,12 +37,24 @@ export default function Appointments() {
     ]);
     setAppointments(a.data);
     setClients(c.data);
+    setLoadError(false);
   };
   const loadAppointments = () =>
-    api.get("/appointments").then((r) => setAppointments(r.data)).catch(() => {});
+    api
+      .get("/appointments")
+      .then((r) => { setAppointments(r.data); setLoadError(false); })
+      .catch(() => {});
+
+  // Manual refresh — spins the button; keeps existing data visible.
+  const refresh = () => {
+    setRefreshing(true);
+    load()
+      .catch((e) => { console.error(e); setLoadError(true); })
+      .finally(() => setRefreshing(false));
+  };
 
   useEffect(() => {
-    load();
+    load().catch((e) => { console.error(e); setLoadError(true); });
   }, []);
 
   // Reflect reschedules made by clients: refetch when a notification arrives or the tab regains focus
@@ -311,11 +325,23 @@ export default function Appointments() {
     <div className="page">
       <div className="page-head">
         <h1 className="icon"><Icon name="calendar_month" /> Appointments</h1>
-        {!showForm && (
-          <button className="icon" onClick={() => openCreate()}>
-            <Icon name="event" size={18} /> Schedule appointment
+        <div className="row gap" style={{ alignItems: "center" }}>
+          <button
+            type="button"
+            className="slot-refresh"
+            onClick={refresh}
+            disabled={refreshing}
+            title="Refresh appointments"
+          >
+            <Icon name="refresh" size={16} className={refreshing ? "spin" : ""} />
+            {refreshing ? "Refreshing…" : "Refresh"}
           </button>
-        )}
+          {!showForm && (
+            <button className="icon" onClick={() => openCreate()}>
+              <Icon name="event" size={18} /> Schedule appointment
+            </button>
+          )}
+        </div>
       </div>
 
       {pendingRequests.length > 0 && (
@@ -389,7 +415,7 @@ export default function Appointments() {
         </h3>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
-          <label>
+          <label style={{ gridColumn: "1 / -1" }}>
             Client
             <ClientSearchSelect
               clients={clients}
@@ -464,7 +490,17 @@ export default function Appointments() {
         </label>
       </div>
 
-      {visible.length === 0 ? (
+      {loadError && appointments.length === 0 ? (
+        <div className="card fin-error">
+          <Icon name="cloud_off" size={28} />
+          <p style={{ margin: 0 }}>
+            Couldn't load appointments — the connection may be slow. Nothing was lost; just try again.
+          </p>
+          <button type="button" className="icon" onClick={refresh} disabled={refreshing}>
+            <Icon name="refresh" size={18} /> {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      ) : visible.length === 0 ? (
         <p className="muted">
           {search.trim() ? "No appointments match your search." : "No appointments scheduled."}
         </p>
