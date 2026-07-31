@@ -44,16 +44,19 @@ export default function DentistDashboard() {
   const [balances, setBalances] = useState({}); // { clientId: outstanding }
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
 
   const { items } = useNotifications();
-  const today = useMemo(() => dayStr(new Date()), []);
+  const [today, setToday] = useState(() => dayStr(new Date()));
 
   const load = useCallback(async () => {
-    const from = new Date(`${today}T00:00:00`);
-    const to = new Date(`${today}T00:00:00`);
+    // Recompute the current day on every load so an open dashboard rolls over to
+    // the new day (via refresh or the poll) without needing a full page reload.
+    const day = dayStr(new Date());
+    setToday(day);
+    const from = new Date(`${day}T00:00:00`);
+    const to = new Date(`${day}T00:00:00`);
     to.setDate(to.getDate() + 1);
     const [all, booked, outstanding] = await Promise.all([
       api.get("/appointments", { skipLoader: true }),
@@ -67,14 +70,15 @@ export default function DentistDashboard() {
     setAvailability(booked.data.availability || []);
     setBalances(outstanding.data || {});
     setLoadError(false); // any successful load (incl. background) clears the error
-  }, [today]);
+  }, []);
 
-  // Manual refresh — keeps the board visible, just spins the button.
+  // Manual refresh — shows the loading skeleton (like a page reload) so the
+  // dentist clearly sees it refresh, then swaps in the fresh data.
   const refresh = () => {
-    setRefreshing(true);
+    setLoading(true);
     load()
       .catch((e) => { console.error(e); setLoadError(true); })
-      .finally(() => setRefreshing(false));
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -193,11 +197,9 @@ export default function DentistDashboard() {
             type="button"
             className="slot-refresh"
             onClick={refresh}
-            disabled={refreshing}
             title="Refresh today's schedule"
           >
-            <Icon name="refresh" size={16} className={refreshing ? "spin" : ""} />
-            {refreshing ? "Refreshing…" : "Refresh"}
+            <Icon name="refresh" size={16} /> Refresh
           </button>
         </div>
       </div>
@@ -208,8 +210,8 @@ export default function DentistDashboard() {
           <p style={{ margin: 0 }}>
             Couldn't load today's schedule — the connection may be slow. Nothing was lost; just try again.
           </p>
-          <button type="button" className="icon" onClick={refresh} disabled={refreshing}>
-            <Icon name="refresh" size={18} /> {refreshing ? "Refreshing…" : "Refresh"}
+          <button type="button" className="icon" onClick={refresh}>
+            <Icon name="refresh" size={18} /> Refresh
           </button>
         </div>
       ) : !hours ? (

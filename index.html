@@ -12,10 +12,18 @@
     <!-- Critical splash styles in <head> so the splash is centered on the very
          first paint (avoids a flash where it renders un-positioned, then jumps). -->
     <style>
-      html, body { margin: 0; background: #f2f6fc; }
+      html, body { margin: 0; height: 100%; background: #f2f6fc; }
       #splash {
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* Use the DYNAMIC viewport height on mobile so the splash is sized to the
+           actually-visible area and its flex-centered content doesn't jump when
+           the browser address bar shows/hides. 100vh is the fallback. */
+        height: 100vh;
+        height: 100dvh;
         z-index: 9999;
         display: flex;
         align-items: center;
