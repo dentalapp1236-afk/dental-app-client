@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
+import ClientSearchSelect from "../components/ClientSearchSelect";
 
 const money = (n) =>
   `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -64,6 +65,7 @@ export default function Treatments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!form.client) return setError("Please select a patient.");
     try {
       await api.post("/treatments", { ...form, cost: Number(form.cost) || 0 });
       resetForm();
@@ -123,19 +125,11 @@ export default function Treatments() {
         <div className="grid-2">
           <label>
             Client
-            <select
-              name="client"
-              required
+            <ClientSearchSelect
+              clients={clients}
               value={form.client}
-              onChange={handleChange}
-            >
-              <option value="">Select a client…</option>
-              {clients.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={(id) => setForm((f) => ({ ...f, client: id }))}
+            />
           </label>
           <label>
             Procedure
@@ -218,19 +212,14 @@ export default function Treatments() {
       )}
 
       <div className="row gap">
-        <label>
-          Filter by client:
-          <select
+        <label style={{ minWidth: 260 }}>
+          Filter by patient:
+          <ClientSearchSelect
+            clients={clients}
             value={filterClient}
-            onChange={(e) => setFilterClient(e.target.value)}
-          >
-            <option value="">All clients</option>
-            {clients.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={setFilterClient}
+            placeholder="All patients — search to filter…"
+          />
         </label>
       </div>
 

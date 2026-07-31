@@ -5,6 +5,7 @@ import { formatDateTime, formatTime } from "../utils/date";
 import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
+import ClientSearchSelect from "../components/ClientSearchSelect";
 
 const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled" };
 const statusLabel = (s) => (s === "no_show" ? "No-show" : s === "pending" ? "Pending" : s);
@@ -109,6 +110,7 @@ export default function Appointments() {
     e.preventDefault();
     setError("");
     if (saving) return; // ignore a second click while the first is still saving
+    if (!form.client) return setError("Please select a patient.");
     if (!form.date) return setError("Please pick a time slot.");
     if (new Date(form.date).getTime() < Date.now())
       return setError("Appointment cannot be in the past.");
@@ -389,20 +391,12 @@ export default function Appointments() {
         <div className="grid-2">
           <label>
             Client
-            <select
-              name="client"
-              required
+            <ClientSearchSelect
+              clients={clients}
               value={form.client}
-              onChange={handleChange}
+              onChange={(id) => setForm((f) => ({ ...f, client: id }))}
               disabled={!!editingId}
-            >
-              <option value="">Select a client…</option>
-              {clients.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name} ({c.email})
-                </option>
-              ))}
-            </select>
+            />
           </label>
           <div style={{ gridColumn: "1 / -1" }}>
             <SlotPicker

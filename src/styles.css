@@ -787,6 +787,35 @@ label {
   color: var(--muted);
 }
 
+/* Searchable patient picker (type to filter instead of scrolling a long list) */
+.cs-select { position: relative; }
+.cs-inputwrap { position: relative; display: flex; align-items: center; }
+.cs-inputwrap .cs-icon { position: absolute; left: 10px; color: var(--muted); pointer-events: none; }
+.cs-input { width: 100%; padding-left: 34px; padding-right: 32px; }
+.cs-clear {
+  position: absolute; right: 6px; width: 26px; height: 26px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--muted); border: none; border-radius: 50%;
+}
+.cs-clear:hover:not(:disabled) { background: #e4e6eb; color: var(--text); }
+.cs-backdrop { position: fixed; inset: 0; z-index: 40; }
+.cs-list {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 41;
+  max-height: 280px; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.16); padding: 6px;
+}
+.cs-item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  width: 100%; padding: 9px 10px; border: none; border-radius: 6px;
+  background: transparent; color: var(--text); text-align: left; cursor: pointer;
+}
+.cs-item:hover:not(:disabled) { background: #f0f2f5; }
+.cs-item.selected { background: var(--b-50); }
+.cs-name { font-weight: 600; font-size: 15px; }
+.cs-sub { font-size: 12.5px; color: var(--muted); }
+.cs-empty { padding: 14px 10px; color: var(--muted); text-align: center; }
+
 input, select, textarea {
   padding: 10px 12px;
   border: 1px solid var(--table-border);
