@@ -43,6 +43,8 @@ export default function DentistDashboard() {
   const [availability, setAvailability] = useState([]);
   const [balances, setBalances] = useState({}); // { clientId: outstanding }
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -64,11 +66,20 @@ export default function DentistDashboard() {
     setAppts(all.data);
     setAvailability(booked.data.availability || []);
     setBalances(outstanding.data || {});
+    setLoadError(false); // any successful load (incl. background) clears the error
   }, [today]);
+
+  // Manual refresh — keeps the board visible, just spins the button.
+  const refresh = () => {
+    setRefreshing(true);
+    load()
+      .catch((e) => { console.error(e); setLoadError(true); })
+      .finally(() => setRefreshing(false));
+  };
 
   useEffect(() => {
     load()
-      .catch((e) => console.error(e))
+      .catch((e) => { console.error(e); setLoadError(true); })
       .finally(() => setLoading(false));
   }, [load]);
 
@@ -172,12 +183,36 @@ export default function DentistDashboard() {
     <div className="page">
       <h1 className="icon dash-greeting"><Icon name="waving_hand" size={22} /> {greeting}</h1>
 
-      <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "baseline" }}>
+      <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
         <h2 className="icon dash-subhead" style={{ margin: 0 }}><Icon name="today" size={18} /> Today's schedule</h2>
-        <span className="muted">{formatDate(new Date())} · {bookedCount} booked</span>
+        <div className="row gap" style={{ alignItems: "center", gap: 12 }}>
+          {!loadError && (
+            <span className="muted">{formatDate(new Date())} · {bookedCount} booked</span>
+          )}
+          <button
+            type="button"
+            className="slot-refresh"
+            onClick={refresh}
+            disabled={refreshing}
+            title="Refresh today's schedule"
+          >
+            <Icon name="refresh" size={16} className={refreshing ? "spin" : ""} />
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
       </div>
 
-      {!hours ? (
+      {loadError ? (
+        <div className="card fin-error">
+          <Icon name="cloud_off" size={28} />
+          <p style={{ margin: 0 }}>
+            Couldn't load today's schedule — the connection may be slow. Nothing was lost; just try again.
+          </p>
+          <button type="button" className="icon" onClick={refresh} disabled={refreshing}>
+            <Icon name="refresh" size={18} /> {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      ) : !hours ? (
         <p className="muted">The clinic is closed today.</p>
       ) : (
         <div className="day-grid">
