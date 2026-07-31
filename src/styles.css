@@ -1,28 +1,28 @@
 :root {
-  /* Monochromatic blue (single hue ~218°): tints, tones & shades */
-  --bg: #f2f6fc;            /* lightest tint (page) */
+  /* Facebook-style system: neutral grays with blue reserved for accents. */
+  --bg: #f0f2f5;            /* FB page gray */
   --surface: #ffffff;
-  --border: #d9e4f4;        /* light blue-gray tint */
-  --table-border: #c4cad2;  /* neutral grey for the table's outer border */
-  --text: #1b2c49;          /* dark blue shade */
-  --muted: #6480a6;         /* blue-gray tone */
-  --primary: #3a72e3;       /* base blue */
-  --primary-hover: #2f60c6; /* shade */
+  --border: #dadde1;        /* FB card divider */
+  --table-border: #ced0d4;  /* slightly stronger neutral border */
+  --text: #1c1e21;          /* FB near-black text */
+  --muted: #65676b;         /* FB secondary text */
+  --primary: #1877f2;       /* FB blue */
+  --primary-hover: #166fe5; /* FB blue hover */
   --danger: #dc2626;        /* red for errors / destructive actions */
-  --success: #3a72e3;       /* base blue */
-  /* Blue ramp: light tints → dark shades */
-  --b-50: #eef4fd;
-  --b-100: #dde9fb;
-  --b-200: #bdd3f6;
-  --b-300: #94b6ef;
-  --b-400: #6693e6;
-  --b-600: #2f60c6;
-  --b-700: #244e9e;
-  /* Darkest shades (sidebar bg) */
-  --navy: #14233c;
-  --navy-soft: #93a6c4;
-  /* Heading color — clearly blue (not near-black) */
-  --heading: #21437f;
+  --success: #31a24c;       /* FB green */
+  /* Blue accent ramp: light selected/hover tints → darker shades */
+  --b-50: #e7f3ff;          /* FB light-blue hover / selected */
+  --b-100: #ddebff;
+  --b-200: #bcdaff;
+  --b-300: #8fc0ff;
+  --b-400: #4a9eff;
+  --b-600: #166fe5;
+  --b-700: #1461cc;
+  /* Dark chrome (desktop sidebar) — neutral graphite, not navy */
+  --navy: #242526;          /* FB dark surface */
+  --navy-soft: #b0b3b8;     /* FB dark-mode secondary text */
+  /* Headings near-black (FB), not blue */
+  --heading: #1c1e21;
 }
 
 * { box-sizing: border-box; }
@@ -31,22 +31,23 @@ html, body, #root { margin: 0; min-height: 100%; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  /* Fluid body: ~15px on phones → 16px on desktop */
+  /* Facebook-style system font stack — no webfont dependency, native + fast. */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* ~15px on phones → 16px on desktop */
   font-size: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
-/* Clean professional sans headings (Inter) */
+/* Headings: system font, semibold, near-black (Facebook) */
 h1, h2, h3, h4, .sidebar-brand a, .topbar-brand, .stat-value {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--heading);
   line-height: 1.25;
 }
@@ -763,13 +764,13 @@ h4 { font-size: 0.9rem; line-height: 1.4; margin: 0 0 6px; }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  margin: 20px 0;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   max-width: 900px;
 }
@@ -787,30 +788,29 @@ label {
 }
 
 input, select, textarea {
-  padding: 11px 14px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--table-border);
+  border-radius: 8px;
+  font-size: 15px;
   font-family: inherit;
   background: var(--surface);
   color: var(--text);
 }
 
 input:focus, select:focus, textarea:focus {
-  outline: 2px solid var(--primary);
-  outline-offset: -1px;
+  outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--b-100);
 }
 
 button {
-  padding: 11px 20px;
+  padding: 9px 16px;
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 15px;
   font-weight: 600;
-  letter-spacing: 0.01em;
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -827,19 +827,20 @@ a.btn-danger-soft {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 11px 20px;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
 
+/* Facebook secondary button: solid light-gray fill, no border. */
 .btn-secondary {
-  background: var(--surface);
+  background: #e4e6eb;
   color: var(--text);
-  border: 1px solid var(--border);
+  border: none;
 }
-.btn-secondary:hover { background: var(--b-50) !important; }
+.btn-secondary:hover:not(:disabled) { background: #d8dadf !important; }
 
 .btn-danger { background: var(--danger); }
 .btn-danger:hover { background: #b91c1c; }

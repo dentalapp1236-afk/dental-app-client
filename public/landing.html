@@ -70,9 +70,9 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --primary:#2563eb;--primary-dark:#1d4ed8;--navy:#0f1e36;--ink:#334155;
-      --muted:#64748b;--line:#e2e8f0;--bg:#f2f6fc;--surface:#fff;--tint:#eff4ff;
-      --green:#0f9d6b;--amber:#b8791a;
+      --primary:#1877f2;--primary-dark:#166fe5;--navy:#0f1e36;--ink:#334155;
+      --muted:#64748b;--line:#e2e8f0;--bg:#f0f2f5;--surface:#fff;--tint:#e7f3ff;
+      --green:#31a24c;--amber:#b8791a;
     }
     html{scroll-behavior:smooth}
     body{
@@ -104,8 +104,8 @@
     .hero{background:linear-gradient(180deg,var(--tint),var(--surface));padding:64px 0 40px}
     .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
     .eyebrow{display:inline-block;background:var(--tint);color:var(--primary);font-weight:700;font-size:13px;padding:5px 12px;border-radius:20px;border:1px solid #dbe6ff;margin-bottom:16px}
-    .hero h1{font-size:clamp(22px,4.6vw,38px);margin-bottom:14px}
-    .hero p.sub{font-size:clamp(14.5px,2vw,17px);color:var(--muted);margin-bottom:24px;max-width:560px}
+    .hero h1{font-size:clamp(20px,4.6vw,38px);margin-bottom:14px}
+    .hero p.sub{font-size:clamp(13.5px,2vw,17px);color:var(--muted);margin-bottom:24px;max-width:560px}
     .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
     .hero-trust{font-size:14px;color:var(--muted)}
     .hero-trust b{color:var(--navy)}
@@ -128,7 +128,7 @@
     .section-head h2{font-size:clamp(24px,4vw,34px);margin-bottom:10px}
     .section-head p{color:var(--muted);font-size:17px}
 
-    .trust-bar{background:var(--navy);color:#cfe0ff;text-align:center;padding:14px 0;font-weight:600;font-size:14px}
+    .trust-bar{background:var(--navy);color:#cfe0ff;text-align:center;padding:13px 16px;font-weight:600;font-size:12px}
     .trust-bar b{color:#fff}
 
     .grid{display:grid;gap:20px}
@@ -140,7 +140,7 @@
     .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
     .feat .ic{width:44px;height:44px;border-radius:11px;background:var(--tint);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px}
     .feat h3{font-size:18px;margin-bottom:6px}
-    .feat p{color:var(--muted);font-size:15px}
+    .feat p{color:var(--muted);font-size:13px}
 
     .steps{counter-reset:s}
     .step{position:relative;padding-left:56px}
@@ -204,19 +204,32 @@
     /* Phones */
     @media(max-width:640px){
       .wrap{padding:0 16px}
-      section{padding:40px 0}
-      .hero{padding:36px 0 26px}
-      .hero p.sub{margin-bottom:20px}
+      section{padding:38px 0}
+      .hero{padding:30px 0 24px}
+      .eyebrow{font-size:12px;margin-bottom:12px}
+      .hero p.sub{margin-bottom:18px}
       .hero-cta{gap:10px}
-      .hero-cta .btn{flex:1 1 auto;justify-content:center;font-size:14px;padding:11px 14px}
-      .section-head{margin-bottom:26px}
-      .section-head h2{font-size:22px}
-      .section-head p{font-size:15px}
-      .feat h3{font-size:16px}
+      .hero-cta .btn{flex:1 1 auto;justify-content:center;font-size:12px;padding:11px 14px}
+      .hero-trust{font-size:12px}
+      .section-head{margin-bottom:24px}
+      .section-head h2{font-size:20px}
+      .section-head p{font-size:13px}
+      .feat .ic{width:40px;height:40px;font-size:20px}
+      .feat h3{font-size:15px}
+      .feat p{font-size:12px}
+      .step h3{font-size:15px}
+      .step p{font-size:13px}
       .card,.quote{padding:18px}
-      .price-card{padding:24px 20px}
-      .price-amt{font-size:38px}
-      .cta-band{padding:30px 20px}
+      .quote p{font-size:14px}
+      .price-card{padding:22px 18px}
+      .price-trial{font-size:12px}
+      .price-amt{font-size:34px}
+      .price-list li{font-size:14px}
+      .faq summary{font-size:14px}
+      .faq p{font-size:13px}
+      .cta-band{padding:28px 18px}
+      .cta-band h2{font-size:20px}
+      .cta-band p{font-size:14px}
       .foot-grid{flex-direction:column;gap:18px}
     }
     /* Small phones — logo only, keep the two buttons inline */
