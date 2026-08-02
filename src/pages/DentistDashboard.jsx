@@ -11,7 +11,6 @@ const pad = (n) => String(n).padStart(2, "0");
 const dayStr = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const JS_DAY_TO_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const STEP = 15;
 
 const fmt12 = (s) => {
   const [h, m] = s.split(":").map(Number);
@@ -28,6 +27,21 @@ const buildSlots = (startMin, endMin, step) => {
 };
 const statusLabel = (s) => (s === "no_show" ? "No-show" : s);
 const money = (n) => `Rs ${(Number(n) || 0).toLocaleString("en-US")}`;
+
+// Waiting time since the patient was marked "arrived".
+const waitMins = (arrivedAt, now) =>
+  Math.max(0, Math.floor((now - new Date(arrivedAt).getTime()) / 60000));
+const fmtWait = (arrivedAt, now) => {
+  const m = waitMins(arrivedAt, now);
+  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${pad(m % 60)}m`;
+};
+// Escalate the counter's colour the longer someone has been waiting.
+const waitLevel = (arrivedAt, now) => {
+  const m = waitMins(arrivedAt, now);
+  if (m >= 30) return " wait-high";
+  if (m >= 15) return " wait-mid";
+  return "";
+};
 
 const STATUS_ACTIONS = [
   { value: "completed", label: "Mark done", icon: "task_alt" },
@@ -46,6 +60,9 @@ export default function DentistDashboard() {
   const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState(15); // clinic's slot length (minutes)
+  // Ticks every 30s so the waiting-time counters advance without a data refetch.
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   const { items } = useNotifications();
   const [today, setToday] = useState(() => dayStr(new Date()));
@@ -68,6 +85,7 @@ export default function DentistDashboard() {
     ]);
     setAppts(all.data);
     setAvailability(booked.data.availability || []);
+    setStep(booked.data.slotDuration || 15);
     setBalances(outstanding.data || {});
     setLoadError(false); // any successful load (incl. background) clears the error
   }, []);
@@ -107,6 +125,12 @@ export default function DentistDashboard() {
     return () => clearInterval(id);
   }, [load]);
 
+  // Advance the waiting-time counters live (independent of data refetches).
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+
   // Today's appointments, keyed by their slot start time (HH:mm)
   const apptByTime = useMemo(() => {
     const map = {};
@@ -129,8 +153,8 @@ export default function DentistDashboard() {
   }, [availability, today]);
 
   const slots = useMemo(
-    () => (hours ? buildSlots(hours.start, hours.end, STEP) : []),
-    [hours]
+    () => (hours ? buildSlots(hours.start, hours.end, step) : []),
+    [hours, step]
   );
 
   const updateStatus = async (status) => {
@@ -149,6 +173,22 @@ export default function DentistDashboard() {
         await load();
         setSelected(null);
       }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Staff (dentist or assistant) can also mark a patient arrived — starts the
+  // same waiting counter — or undo it. The patient can still do it themselves.
+  const setArrival = async (status) => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const { data } = await api.patch(`/appointments/${selected._id}/arrival`, { status });
+      setSelected(data);
+      await load();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not update arrival.");
     } finally {
       setBusy(false);
     }
@@ -270,6 +310,14 @@ export default function DentistDashboard() {
                       {appt.arrivalStatus === "arrived" ? "Arrived" : "On the way"}
                     </span>
                   )}
+                  {appt.status === "scheduled" && appt.arrivalStatus === "arrived" && appt.arrivedAt && (
+                    <span
+                      className={`wait-badge${waitLevel(appt.arrivedAt, nowTick)}`}
+                      title={`Waiting since ${formatDateTime(appt.arrivedAt)}`}
+                    >
+                      <Icon name="timer" size={13} /> {fmtWait(appt.arrivedAt, nowTick)}
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -329,6 +377,11 @@ export default function DentistDashboard() {
                   <span className={`clinic-badge ${selected.arrivalStatus === "arrived" ? "open" : "soon"}`}>
                     {selected.arrivalStatus === "arrived" ? "Patient has arrived" : "Patient is on the way"}
                   </span>
+                  {selected.status === "scheduled" && selected.arrivalStatus === "arrived" && selected.arrivedAt && (
+                    <span className={`wait-badge${waitLevel(selected.arrivedAt, nowTick)}`}>
+                      <Icon name="timer" size={14} /> Waiting {fmtWait(selected.arrivedAt, nowTick)}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -347,6 +400,22 @@ export default function DentistDashboard() {
               </>
             ) : (
               <>
+                {selected.status === "scheduled" && (
+                  <>
+                    <div className="lbl" style={{ marginTop: 4 }}>Arrival</div>
+                    <div className="row gap" style={{ flexWrap: "wrap" }}>
+                      {selected.arrivalStatus !== "arrived" ? (
+                        <button type="button" className="icon" disabled={busy} onClick={() => setArrival("arrived")}>
+                          <Icon name="where_to_vote" size={18} /> Mark arrived
+                        </button>
+                      ) : (
+                        <button type="button" className="btn-secondary icon" disabled={busy} onClick={() => setArrival("none")}>
+                          <Icon name="undo" size={18} /> Undo arrived
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
                 <div className="lbl" style={{ marginTop: 4 }}>Update status</div>
                 <div className="row gap" style={{ flexWrap: "wrap" }}>
                   {STATUS_ACTIONS.filter((a) => a.value !== selected.status).map((a) => (
