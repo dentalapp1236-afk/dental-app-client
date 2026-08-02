@@ -447,6 +447,7 @@ export default function Appointments() {
               value={form.date}
               initialDay={createDay}
               excludeId={editingId}
+              allowPast={!!editingId}
               onChange={(iso) => setForm((f) => ({ ...f, date: iso }))}
             />
           </div>

@@ -49,6 +49,7 @@ export default function SlotPicker({
   availabilityOverride,
   readOnly = false,
   initialDay,
+  allowPast = false, // when editing a passed appointment, don't block past days
 }) {
   const valueDate = value ? new Date(value) : null;
   // Pre-select a day (e.g. "Add" tapped on a day header) without picking a time,
@@ -154,7 +155,12 @@ export default function SlotPicker({
     <div className="slotpicker">
       <label>
         <span className="lbl">Day</span>
-        <input type="date" min={todayStr()} value={day} onChange={(e) => setDay(e.target.value)} />
+        <input
+          type="date"
+          min={allowPast ? undefined : todayStr()}
+          value={day}
+          onChange={(e) => setDay(e.target.value)}
+        />
       </label>
       {day && (
         <p className="slot-day-words">
