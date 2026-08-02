@@ -17,11 +17,13 @@
         position: fixed;
         top: 0;
         left: 0;
-        right: 0;
-        bottom: 0;
-        /* Use the DYNAMIC viewport height on mobile so the splash is sized to the
-           actually-visible area and its flex-centered content doesn't jump when
-           the browser address bar shows/hides. 100vh is the fallback. */
+        /* Size to the DYNAMIC viewport (both axes) and anchor from the top-left
+           only — never to right/bottom. This keeps the splash locked to the
+           actually-visible area so its flex-centered content can't drift when the
+           mobile address bar shows/hides (vertical) or content briefly overflows
+           (horizontal). vw/vh are the fallbacks for older browsers. */
+        width: 100vw;
+        width: 100dvw;
         height: 100vh;
         height: 100dvh;
         z-index: 9999;
