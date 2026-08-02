@@ -24,6 +24,7 @@ export default function Treatments() {
   const [form, setForm] = useState(empty);
   const [filterClient, setFilterClient] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false); // in-flight lock so a double-click can't create duplicates
   const [showForm, setShowForm] = useState(false);
   // Record-payment modal
   const [payTarget, setPayTarget] = useState(null); // treatment being paid
@@ -65,13 +66,17 @@ export default function Treatments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (saving) return; // ignore a second click while the first is still saving
     if (!form.client) return setError("Please select a patient.");
+    setSaving(true);
     try {
       await api.post("/treatments", { ...form, cost: Number(form.cost) || 0 });
       resetForm();
       load();
     } catch (err) {
       setError(err.response?.data?.message || "Save failed");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -203,7 +208,9 @@ export default function Treatments() {
           />
         </label>
         <div className="row gap">
-          <button type="submit" className="icon"><Icon name="save" size={18} /> Save treatment</button>
+          <button type="submit" className="icon" disabled={saving}>
+            <Icon name="save" size={18} /> {saving ? "Saving…" : "Save treatment"}
+          </button>
           <button type="button" className="btn-secondary" onClick={resetForm}>Cancel</button>
         </div>
         </form>

@@ -59,6 +59,7 @@ export default function ClientLedger() {
   const [showTreat, setShowTreat] = useState(false);
   const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
   const [treatError, setTreatError] = useState("");
+  const [savingTreat, setSavingTreat] = useState(false); // in-flight lock (prevents duplicate records)
   const [editingTreatId, setEditingTreatId] = useState(null);
   const [editTreatVersion, setEditTreatVersion] = useState(undefined);
   // Schedule-appointment modal
@@ -149,6 +150,7 @@ export default function ClientLedger() {
   const submitTreat = async (e) => {
     e.preventDefault();
     setTreatError("");
+    if (savingTreat) return; // ignore a second click while the first is still saving
     if (!treatForm.procedure.trim()) return setTreatError("Procedure is required.");
     if (treatForm.cost === "" || Number(treatForm.cost) < 0)
       return setTreatError("Charges are required.");
@@ -166,6 +168,7 @@ export default function ClientLedger() {
       if (Number(treatForm.collected) > Number(treatForm.cost))
         return setTreatError("Collected amount cannot exceed the charges.");
     }
+    setSavingTreat(true);
     try {
       if (editingTreatId) {
         await api.put(`/treatments/${editingTreatId}`, {
@@ -196,6 +199,8 @@ export default function ClientLedger() {
     } catch (err) {
       setTreatError(err.response?.data?.message || "Could not save treatment.");
       if (err.response?.status === 409) loadTreatments();
+    } finally {
+      setSavingTreat(false);
     }
   };
 
@@ -655,8 +660,9 @@ export default function ClientLedger() {
                 <textarea name="description" rows={2} value={treatForm.description} onChange={treatChange} />
               </label>
               <div className="row gap">
-                <button type="submit" className="icon">
-                  <Icon name="save" size={18} /> {editingTreatId ? "Save changes" : "Save treatment"}
+                <button type="submit" className="icon" disabled={savingTreat}>
+                  <Icon name="save" size={18} />{" "}
+                  {savingTreat ? "Saving…" : editingTreatId ? "Save changes" : "Save treatment"}
                 </button>
                 <button type="button" className="btn-secondary" onClick={() => setShowTreat(false)}>
                   Cancel
