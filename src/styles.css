@@ -319,6 +319,28 @@ a:hover { text-decoration: underline; }
   margin-top: 2px;
 }
 .appt-actions-contents { display: contents; }
+/* Patient's own "arrived" confirmation + live waiting timer (spans the row) */
+.arrived-panel {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #cfe6d8;
+  background: #f2faf5;
+  border-radius: 10px;
+}
+.arrived-panel-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.arrived-note {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: #1a7f37;
+}
+.arrived-note .material-symbols-outlined { color: #1a7f37; flex-shrink: 0; margin-top: 1px; }
 .appt-card-actions > button,
 .appt-card-actions > a {
   width: 100%;
@@ -971,6 +993,24 @@ a.btn-danger-soft {
 .clinic-badge.open { background: #e7f6ec; color: #1a7f37; }
 .clinic-badge.soon { background: #fff4e5; color: #a85b00; }
 .clinic-badge.closed { background: #fdecea; color: #b42318; }
+
+/* Live waiting-time counter (starts when a patient is marked "arrived") */
+.wait-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: #eaf1fb;
+  color: #1c56b0;
+}
+.wait-badge .material-symbols-outlined { font-size: 15px; color: inherit; }
+/* Escalate colour the longer the wait: amber after 15m, red after 30m. */
+.wait-badge.wait-mid { background: #fff4e5; color: #a85b00; }
+.wait-badge.wait-high { background: #fdecea; color: #b42318; }
 
 /* Patient appointment cards (mobile-friendly, no horizontal scroll) */
 .appt-list {

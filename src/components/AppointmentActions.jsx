@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import Icon from "./Icon";
 import SlotPicker from "./SlotPicker";
+
+// Elapsed waiting time since the patient marked themselves arrived.
+const waitLabel = (arrivedAt, now) => {
+  const m = Math.max(0, Math.floor((now - new Date(arrivedAt).getTime()) / 60000));
+  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`;
+};
 
 // Reschedule + Cancel actions for a patient's own appointment.
 // Only renders for active appointments (scheduled / pending). Calls onChanged()
@@ -21,6 +27,16 @@ export default function AppointmentActions({ appointment, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [arrBusy, setArrBusy] = useState(false);
+  const [justArrived, setJustArrived] = useState(false); // show confirmation on click
+  // Ticks every 30s so the patient's own waiting timer advances live.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+
+  const arrived = a.status === "scheduled" && a.arrivalStatus === "arrived";
+  useEffect(() => {
+    if (!arrived) return;
+    const id = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, [arrived]);
 
   if (!active) return null;
 
@@ -28,6 +44,10 @@ export default function AppointmentActions({ appointment, onChanged }) {
     setArrBusy(true);
     try {
       await api.patch(`/appointments/${a._id}/arrival`, { status });
+      if (status === "arrived") {
+        setNowTick(Date.now());
+        setJustArrived(true);
+      }
       onChanged?.();
     } catch (e2) {
       alert(e2.response?.data?.message || "Could not update.");
@@ -75,9 +95,24 @@ export default function AppointmentActions({ appointment, onChanged }) {
   return (
     <div className="appt-actions-contents">
       {showArrival && a.arrivalStatus === "arrived" ? (
-        <span className="clinic-badge open">
-          <Icon name="where_to_vote" size={16} /> Marked arrived
-        </span>
+        <div className="arrived-panel">
+          <div className="arrived-panel-row">
+            <span className="clinic-badge open">
+              <Icon name="where_to_vote" size={16} /> Marked arrived
+            </span>
+            {a.arrivedAt && (
+              <span className="wait-badge">
+                <Icon name="timer" size={14} /> Waiting {waitLabel(a.arrivedAt, nowTick)}
+              </span>
+            )}
+          </div>
+          <p className="arrived-note icon">
+            <Icon name="check_circle" size={14} />
+            {justArrived
+              ? "Your timer has started — the clinic can see how long you've been waiting."
+              : "Your waiting time is being tracked by the clinic."}
+          </p>
+        </div>
       ) : showArrival && a.arrivalStatus === "on_the_way" ? (
         <>
           <span className="badge icon">
