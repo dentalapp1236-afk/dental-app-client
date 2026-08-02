@@ -67,17 +67,23 @@ export default function ClientDashboard() {
   const loadAssoc = () =>
     api.get("/associations/me").then((r) => setAssoc(r.data)).catch(() => {});
 
-  // Upcoming = active (scheduled or pending) appointments still in the future.
+  // Upcoming = active (scheduled or pending) appointments that are today or later.
+  // We compare against the START of today, not the current minute, so an
+  // appointment doesn't vanish the instant its start time passes — a patient who
+  // is a few minutes late still sees today's appointment until the day ends (it
+  // only leaves once the clinic marks it completed/cancelled/no-show).
   const loadUpcoming = () =>
     api
       .get("/appointments", { skipLoader: true })
       .then((r) => {
-        const now = Date.now();
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const todayStart = startOfToday.getTime();
         const list = (r.data || [])
           .filter(
             (a) =>
               ["scheduled", "pending"].includes(a.status) &&
-              new Date(a.date).getTime() >= now
+              new Date(a.date).getTime() >= todayStart
           )
           .sort((a, b) => new Date(a.date) - new Date(b.date));
         // Defensive: collapse any accidental duplicate records for the same
@@ -173,7 +179,12 @@ export default function ClientDashboard() {
     }
   };
 
-  const renderAppointment = (a) => (
+  const renderAppointment = (a) => {
+    // Start time has passed but the appointment is still active (not yet
+    // completed/cancelled) — reassure a late patient instead of hiding it.
+    const started =
+      a.status === "scheduled" && new Date(a.date).getTime() < Date.now();
+    return (
     <div key={a._id} className="appt-card">
       <div className="appt-card-head">
         <span className="appt-when icon">
@@ -181,6 +192,12 @@ export default function ClientDashboard() {
         </span>
         <span className={`st st-${a.status}`}>{statusLabel(a.status)}</span>
       </div>
+      {started && (
+        <p className="appt-late icon">
+          <Icon name="info" size={16} /> Scheduled time has started — running late?
+          Let the clinic know you're on your way.
+        </p>
+      )}
       <div className="appt-card-body">
         {a.client && a.client._id !== user._id && (
           <span className="icon"><Icon name="child_care" size={16} /> For {a.client.name}</span>
@@ -208,7 +225,8 @@ export default function ClientDashboard() {
         <AppointmentActions appointment={a} onChanged={loadUpcoming} />
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="page">
