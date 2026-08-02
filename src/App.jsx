@@ -210,7 +210,7 @@ export default function App() {
         <Route
           path="/settings"
           element={
-            <ProtectedRoute role="dentist">
+            <ProtectedRoute role={["dentist", "assistant"]}>
               <Settings />
             </ProtectedRoute>
           }

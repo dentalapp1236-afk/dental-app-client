@@ -58,6 +58,10 @@ export default function SlotPicker({
   );
   const [bookedISO, setBookedISO] = useState([]);
   const [fetchedAvailability, setFetchedAvailability] = useState([]);
+  // Slot length (minutes) as configured by the dentist; falls back to `stepMin`.
+  const [fetchedStep, setFetchedStep] = useState(null);
+  // Per-date exceptions to the weekly hours (early leave / day off).
+  const [dayOverrides, setDayOverrides] = useState([]);
   const [loading, setLoading] = useState(false);
   // Whether the last fetch failed (slow connection / server cold start). We must
   // NOT fall back to default hours in that case — that would silently show the
@@ -84,6 +88,8 @@ export default function SlotPicker({
         if (!active) return;
         setBookedISO(r.data.slots || []);
         setFetchedAvailability(r.data.availability || []);
+        setDayOverrides(r.data.dayOverrides || []);
+        if (r.data.slotDuration) setFetchedStep(Number(r.data.slotDuration));
       })
       .catch(() => {
         if (!active) return;
@@ -101,20 +107,30 @@ export default function SlotPicker({
   // override is supplied (public profile), the parent already has the hours.
   const hoursKnown = !!availabilityOverride || !loadError;
 
-  // Clinic hours for the selected weekday (or null when the clinic is closed).
+  // Clinic hours for the selected day. A per-date override (early leave / day
+  // off) wins over the normal weekly hours for that specific date.
   const hours = useMemo(() => {
     if (!hoursKnown) return null;
+    const override = dayOverrides.find((o) => o.date === day);
+    if (override) {
+      if (override.closed) return null; // day off — no slots
+      if (override.start && override.end)
+        return { start: toMin(override.start), end: toMin(override.end) };
+      // Malformed override -> fall through to weekly hours below.
+    }
     const label = JS_DAY_TO_LABEL[new Date(`${day}T00:00:00`).getDay()];
     const entry = availability.find((a) => a.day === label);
     if (entry && entry.start && entry.end) return { start: toMin(entry.start), end: toMin(entry.end) };
     // No availability configured at all -> sensible default so scheduling still works.
     if (availability.length === 0) return { start: 9 * 60, end: 18 * 60 };
     return null; // configured, but closed on this weekday
-  }, [availability, day, hoursKnown]);
+  }, [availability, dayOverrides, day, hoursKnown]);
 
+  // Prefer the dentist's configured slot length; fall back to the prop default.
+  const effectiveStep = fetchedStep || stepMin;
   const slots = useMemo(
-    () => (hours ? buildSlots(hours.start, hours.end, stepMin) : []),
-    [hours, stepMin]
+    () => (hours ? buildSlots(hours.start, hours.end, effectiveStep) : []),
+    [hours, effectiveStep]
   );
 
   const bookedSet = useMemo(() => {

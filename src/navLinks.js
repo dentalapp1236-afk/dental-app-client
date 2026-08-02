@@ -20,6 +20,7 @@ export const ROLE_LINKS = {
     { to: "/dependents", icon: "escalator_warning", label: "Dependents" },
     { to: "/finances", icon: "payments", label: "Finances" },
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
+    { to: "/settings", icon: "settings", label: "Settings" },
   ],
   client: [
     { to: "/client", icon: "home", label: "Home" },
