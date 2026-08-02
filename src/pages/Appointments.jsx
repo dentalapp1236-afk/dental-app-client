@@ -181,11 +181,24 @@ export default function Appointments() {
     }
   };
 
-  const pendingRequests = appointments.filter((a) => a.status === "pending");
+  // Defensive: collapse accidental duplicate records — the same patient at the
+  // exact same slot with the same status — that a rare double-submit/race can
+  // create, so staff never see two identical cards. (Keep the earliest-created.)
+  const seenKeys = new Set();
+  const uniqueAppointments = [...appointments]
+    .sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0))
+    .filter((a) => {
+      const key = `${a.client?._id || a.client}|${a.date}|${a.status}`;
+      if (seenKeys.has(key)) return false;
+      seenKeys.add(key);
+      return true;
+    });
+
+  const pendingRequests = uniqueAppointments.filter((a) => a.status === "pending");
 
   // Filter by client name/email, then sort by the chosen key.
   // Pending requests are shown in their own panel, not the main table.
-  const visible = appointments
+  const visible = uniqueAppointments
     .filter((a) => a.status !== "pending")
     .filter((a) => {
       const q = search.trim().toLowerCase();
