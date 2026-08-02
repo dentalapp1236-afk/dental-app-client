@@ -15,7 +15,6 @@ export default function Appointments() {
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
-  const [editOrigDate, setEditOrigDate] = useState(null); // original date of the edited appt
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [scheduled, setScheduled] = useState(null); // { shareMessage, whatsappUrl } after creating
@@ -87,7 +86,6 @@ export default function Appointments() {
   const resetForm = () => {
     setForm(empty);
     setEditingId(null);
-    setEditOrigDate(null);
     setError("");
     setShowForm(false);
   };
@@ -128,13 +126,11 @@ export default function Appointments() {
     if (saving) return; // ignore a second click while the first is still saving
     if (!form.client) return setError("Please select a patient.");
     if (!form.date) return setError("Please pick a time slot.");
-    // Block a past time only when creating, or when actually MOVING the
-    // appointment to a past time. Editing a past appointment that keeps its
-    // original time (e.g. marking it completed / no-show) must stay allowed.
-    const dateChanged =
-      !editingId || !editOrigDate ||
-      new Date(form.date).getTime() !== new Date(editOrigDate).getTime();
-    if (dateChanged && new Date(form.date).getTime() < Date.now())
+    // Enforce "not in the past" only when CREATING. When editing an existing
+    // appointment the slot picker already disables past slots, and staff must be
+    // able to update a passed appointment (e.g. mark it completed / no-show), so
+    // we never block the edit on its (past) date.
+    if (!editingId && new Date(form.date).getTime() < Date.now())
       return setError("Appointment cannot be in the past.");
     setSaving(true);
     try {
@@ -161,7 +157,6 @@ export default function Appointments() {
 
   const handleEdit = (a) => {
     setEditingId(a._id);
-    setEditOrigDate(a.date);
     setShowForm(true);
     setForm({
       client: a.client?._id || "",
