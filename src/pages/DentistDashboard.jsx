@@ -157,6 +157,16 @@ export default function DentistDashboard() {
     [hours, step]
   );
 
+  // Times to render = the clinic-hours grid PLUS any appointment whose time
+  // doesn't fall on the current grid (e.g. a 9:15 booking made under 15-min
+  // slots, now that slots are 20-min). Merging them in — sorted by time — makes
+  // sure NO existing appointment is ever hidden just because it's "off-grid".
+  const rows = useMemo(() => {
+    const set = new Set(slots);
+    for (const t of Object.keys(apptByTime)) set.add(t);
+    return [...set].sort((a, b) => toMin(a) - toMin(b));
+  }, [slots, apptByTime]);
+
   const updateStatus = async (status) => {
     if (!selected) return;
     setBusy(true);
@@ -221,7 +231,7 @@ export default function DentistDashboard() {
       </div>
     );
 
-  const bookedCount = slots.filter((s) => apptByTime[s]).length;
+  const bookedCount = Object.keys(apptByTime).length;
 
   return (
     <div className="page">
@@ -254,11 +264,11 @@ export default function DentistDashboard() {
             <Icon name="refresh" size={18} /> Refresh
           </button>
         </div>
-      ) : !hours ? (
+      ) : rows.length === 0 ? (
         <p className="muted">The clinic is closed today.</p>
       ) : (
         <div className="day-grid">
-          {slots.map((slot) => {
+          {rows.map((slot) => {
             const appt = apptByTime[slot];
             if (!appt) {
               const slotIso = new Date(`${today}T${slot}:00`);
