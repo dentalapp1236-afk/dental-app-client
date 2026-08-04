@@ -1,6 +1,13 @@
 User-agent: *
 Allow: /$
 Allow: /landing.html
+Allow: /dentists-in-lahore
+Allow: /fixed-braces-in-lahore
+Allow: /dental-implants-in-lahore
+Allow: /teeth-whitening-in-lahore
+Allow: /root-canal-in-lahore
+Allow: /teeth-scaling-in-lahore
+Allow: /find-dentist
 Allow: /favicon.svg
 # App routes are a private, login-gated single-page app — not for indexing.
 Disallow: /login
