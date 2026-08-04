@@ -80,6 +80,15 @@ export default function Appointments() {
     return () => clearInterval(id);
   }, []);
 
+  // Reset sort to appropriate default when switching tabs
+  useEffect(() => {
+    if (tab === "past") {
+      setSortBy("date-desc");
+    } else {
+      setSortBy("date-asc");
+    }
+  }, [tab]);
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
