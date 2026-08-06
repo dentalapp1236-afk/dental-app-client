@@ -1,11 +1,16 @@
 import axios from "axios";
 import { loadingStore } from "./loading";
 
-// Local dev defaults to the local server. For production, set VITE_API_URL
-// (e.g. https://dentalappserver.onrender.com/api) in the build environment.
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-});
+// Production always talks to the deployed Render API — this is the backend the
+// app has always used, and the one the Content-Security-Policy allows. We do NOT
+// read VITE_API_URL in production on purpose, so a stray build-time env override
+// can't repoint the live app at another host and get blocked by the CSP.
+// Dev still uses VITE_API_URL (or localhost).
+const baseURL = import.meta.env.PROD
+  ? "https://dentalappserver.onrender.com/api"
+  : import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+const api = axios.create({ baseURL });
 
 // True when the app is running as an installed PWA (standalone), not a browser tab.
 const isStandalone = () =>
