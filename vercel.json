@@ -1,8 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/dentists-in-lahore", "destination": "/dentists-in-lahore.html" },
+    { "source": "/fixed-braces-in-lahore", "destination": "/fixed-braces-in-lahore.html" },
+    { "source": "/dental-implants-in-lahore", "destination": "/dental-implants-in-lahore.html" },
+    { "source": "/teeth-whitening-in-lahore", "destination": "/teeth-whitening-in-lahore.html" },
+    { "source": "/root-canal-in-lahore", "destination": "/root-canal-in-lahore.html" },
+    { "source": "/teeth-scaling-in-lahore", "destination": "/teeth-scaling-in-lahore.html" },
+    { "source": "/dentist/:slug", "destination": "/dentist/:slug.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
