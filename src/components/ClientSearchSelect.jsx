@@ -74,6 +74,11 @@ export default function ClientSearchSelect({
                   type="button"
                   key={c._id}
                   className={`cs-item${c._id === value ? " selected" : ""}`}
+                  // Keep focus on the input during the click. Without this, when
+                  // this widget sits inside a <label> the label forwards a click
+                  // to the input, refocusing it and reopening the list — making
+                  // the selection appear to fail.
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => pick(c)}
                 >
                   <span className="cs-name">{c.name}</span>
