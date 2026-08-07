@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import Icon from "./Icon";
+import {
+  clinicDayStr,
+  clinicMinutes,
+  clinicToday,
+  clinicDow,
+  clinicToInstant,
+} from "../utils/clinicTime";
 
 const pad = (n) => String(n).padStart(2, "0");
-const dayStr = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-const todayStr = () => dayStr(new Date());
+// All slot math is in the clinic's timezone (see utils/clinicTime), so the grid
+// and booked slots look the same on every device.
+const dayStr = clinicDayStr;
+const todayStr = clinicToday;
 
 // Matches the day labels the dentist picks at sign up (Register WEEKDAYS).
 // JS getDay(): 0=Sun … 6=Sat.
@@ -73,9 +81,9 @@ export default function SlotPicker({
   // Pull booked datetimes (+ clinic hours) for the selected day from the server.
   useEffect(() => {
     if (!day) return;
-    const from = new Date(`${day}T00:00:00`);
-    const to = new Date(`${day}T00:00:00`);
-    to.setDate(to.getDate() + 1);
+    // Fetch the booked appointments for the clinic-timezone day [00:00, next 00:00).
+    const from = clinicToInstant(day, 0);
+    const to = clinicToInstant(day, 24 * 60);
     const endpoint = dentistId ? `/dentists/${dentistId}/booked` : "/appointments/booked";
     let active = true;
     setLoading(true);
@@ -119,7 +127,7 @@ export default function SlotPicker({
         return { start: toMin(override.start), end: toMin(override.end) };
       // Malformed override -> fall through to weekly hours below.
     }
-    const label = JS_DAY_TO_LABEL[new Date(`${day}T00:00:00`).getDay()];
+    const label = JS_DAY_TO_LABEL[clinicDow(day)];
     const entry = availability.find((a) => a.day === label);
     if (entry && entry.start && entry.end) return { start: toMin(entry.start), end: toMin(entry.end) };
     // No availability configured at all -> sensible default so scheduling still works.
@@ -134,21 +142,29 @@ export default function SlotPicker({
     [hours, effectiveStep]
   );
 
-  const bookedSet = useMemo(() => {
-    const s = new Set();
+  // Minutes-since-midnight (clinic time) of every booked appointment on this day.
+  const bookedMins = useMemo(() => {
+    const out = [];
     for (const iso of bookedISO) {
-      const d = new Date(iso);
-      if (dayStr(d) === day) s.add(hm(d));
+      if (clinicDayStr(iso) === day) out.push(clinicMinutes(iso));
     }
-    return s;
+    return out;
   }, [bookedISO, day]);
 
-  const selectedHM = valueDate && dayStr(valueDate) === day ? hm(valueDate) : null;
+  // A grid slot [start, start+step) is taken if ANY booked appointment falls
+  // inside that window — even one that doesn't sit exactly on the grid (e.g. an
+  // 8:45 booking from an old 15-min grid blocks the 8:40 slot on a 20-min grid).
+  // This is what prevents two appointments a few minutes apart on the same chair.
+  const isTaken = (slotMin) =>
+    bookedMins.some((m) => m >= slotMin && m < slotMin + effectiveStep);
+
+  const selectedMin =
+    valueDate && clinicDayStr(valueDate) === day ? clinicMinutes(valueDate) : null;
   const now = Date.now();
 
   const pick = (slot) => {
     const [h, m] = slot.split(":").map(Number);
-    onChange(new Date(`${day}T${pad(h)}:${pad(m)}:00`).toISOString());
+    onChange(clinicToInstant(day, h * 60 + m).toISOString());
   };
 
   return (
@@ -164,7 +180,8 @@ export default function SlotPicker({
       </label>
       {day && (
         <p className="slot-day-words">
-          {new Date(`${day}T00:00:00`).toLocaleDateString([], {
+          {new Date(`${day}T12:00:00Z`).toLocaleDateString([], {
+            timeZone: "Asia/Karachi",
             weekday: "long",
             day: "numeric",
             month: "long",
@@ -214,10 +231,11 @@ export default function SlotPicker({
         <div className={`slot-grid${readOnly ? " readonly" : ""}`}>
           {slots.map((slot) => {
             const [h, m] = slot.split(":").map(Number);
-            const slotTime = new Date(`${day}T${pad(h)}:${pad(m)}:00`).getTime();
-            const booked = bookedSet.has(slot);
+            const slotMin = h * 60 + m;
+            const slotTime = clinicToInstant(day, slotMin).getTime();
+            const booked = isTaken(slotMin);
             const past = slotTime < now;
-            const selected = !readOnly && selectedHM === slot;
+            const selected = !readOnly && selectedMin === slotMin;
             const cls = `slot${selected ? " selected" : ""}${booked ? " booked" : ""}${
               past && !booked ? " past" : ""
             }`;

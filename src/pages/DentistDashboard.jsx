@@ -6,10 +6,19 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
+import {
+  clinicDayStr,
+  clinicHM,
+  clinicToday,
+  clinicDow,
+  clinicToInstant,
+} from "../utils/clinicTime";
 
 const pad = (n) => String(n).padStart(2, "0");
-const dayStr = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+// Today's Schedule is computed in the clinic's timezone (see utils/clinicTime),
+// so the board is identical on every device regardless of its timezone setting.
+const dayStr = (d) => clinicDayStr(d);
+const hm = (d) => clinicHM(d);
 const JS_DAY_TO_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const fmt12 = (s) => {
@@ -70,11 +79,10 @@ export default function DentistDashboard() {
   const load = useCallback(async () => {
     // Recompute the current day on every load so an open dashboard rolls over to
     // the new day (via refresh or the poll) without needing a full page reload.
-    const day = dayStr(new Date());
+    const day = clinicToday();
     setToday(day);
-    const from = new Date(`${day}T00:00:00`);
-    const to = new Date(`${day}T00:00:00`);
-    to.setDate(to.getDate() + 1);
+    const from = clinicToInstant(day, 0);
+    const to = clinicToInstant(day, 24 * 60);
     const [all, booked, outstanding] = await Promise.all([
       api.get("/appointments", { skipLoader: true }),
       api.get("/appointments/booked", {
@@ -145,7 +153,7 @@ export default function DentistDashboard() {
 
   // Clinic hours for today (or null if closed)
   const hours = useMemo(() => {
-    const label = JS_DAY_TO_LABEL[new Date(`${today}T00:00:00`).getDay()];
+    const label = JS_DAY_TO_LABEL[clinicDow(today)];
     const entry = availability.find((a) => a.day === label);
     if (entry?.start && entry?.end) return { start: toMin(entry.start), end: toMin(entry.end) };
     if (availability.length === 0) return { start: 9 * 60, end: 18 * 60 };
@@ -271,7 +279,7 @@ export default function DentistDashboard() {
           {rows.map((slot) => {
             const appt = apptByTime[slot];
             if (!appt) {
-              const slotIso = new Date(`${today}T${slot}:00`);
+              const slotIso = clinicToInstant(today, toMin(slot));
               const isPast = slotIso.getTime() < Date.now();
               // Past empty slots are just history; future ones can be booked.
               if (isPast) {
