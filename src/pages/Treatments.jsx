@@ -128,14 +128,14 @@ export default function Treatments() {
         <h3 className="icon"><Icon name="add_circle" size={18} /> Record new treatment</h3>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
-          <label>
+          <div className="field">
             Client
             <ClientSearchSelect
               clients={clients}
               value={form.client}
               onChange={(id) => setForm((f) => ({ ...f, client: id }))}
             />
-          </label>
+          </div>
           <label>
             Procedure
             <input
@@ -219,7 +219,7 @@ export default function Treatments() {
       )}
 
       <div className="row gap">
-        <label style={{ minWidth: 260 }}>
+        <div className="field" style={{ minWidth: 260 }}>
           Filter by patient:
           <ClientSearchSelect
             clients={clients}
@@ -227,7 +227,7 @@ export default function Treatments() {
             onChange={setFilterClient}
             placeholder="All patients — search to filter…"
           />
-        </label>
+        </div>
       </div>
 
       <table className="table">

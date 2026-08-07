@@ -441,7 +441,7 @@ export default function Appointments() {
         </h3>
         {error && <div className="error">{error}</div>}
         <div className="grid-2">
-          <label style={{ gridColumn: "1 / -1" }}>
+          <div className="field" style={{ gridColumn: "1 / -1" }}>
             Client
             <ClientSearchSelect
               clients={clients}
@@ -449,7 +449,7 @@ export default function Appointments() {
               onChange={(id) => setForm((f) => ({ ...f, client: id }))}
               disabled={!!editingId}
             />
-          </label>
+          </div>
           <div style={{ gridColumn: "1 / -1" }}>
             <SlotPicker
               key={editingId || createDay || "new"}

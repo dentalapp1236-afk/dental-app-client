@@ -835,7 +835,8 @@ h4 { font-size: 0.9rem; line-height: 1.4; margin: 0 0 6px; }
 
 .auth-page .card { max-width: 420px; }
 
-label {
+label,
+.field {
   display: flex;
   flex-direction: column;
   gap: 6px;
