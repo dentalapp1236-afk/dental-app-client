@@ -223,7 +223,8 @@ export default function ClientLedger() {
   const submitPayment = async (e) => {
     e.preventDefault();
     setPayError("");
-    if (!payForm.amount || Number(payForm.amount) <= 0)
+    // Allow 0 (a "visit / no collection" log); reject only empty or negative.
+    if (payForm.amount === "" || Number(payForm.amount) < 0)
       return setPayError("Enter a valid amount.");
     if (Number(payForm.amount) > payTarget.balance)
       return setPayError(`Amount cannot exceed the remaining balance (${money(payTarget.balance)}).`);
