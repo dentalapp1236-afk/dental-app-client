@@ -679,25 +679,40 @@ export default function ClientLedger() {
                     </span>
                   </label>
                 )}
-                {!editingTreatId && Number(treatForm.cost) > 0 && (
+                {!editingTreatId && (
                   <label>
-                    <span className="lbl">Collected amount <span className="req">*</span></span>
+                    <span className="lbl">
+                      Collected now{" "}
+                      {Number(treatForm.cost) > 0
+                        ? <span className="req">*</span>
+                        : <span className="muted">(optional)</span>}
+                    </span>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       name="upfront"
-                      required
-                      placeholder="e.g. 25000"
+                      required={Number(treatForm.cost) > 0}
+                      placeholder="e.g. 3000"
                       value={treatForm.upfront}
                       onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
                       onChange={treatChange}
                     />
+                    {Number(treatForm.cost) > 0 && treatForm.upfront !== "" && (
+                      <span className="muted" style={{ fontSize: 12 }}>
+                        Outstanding: {money(Math.max(0, Number(treatForm.cost) - Number(treatForm.upfront || 0)))}
+                      </span>
+                    )}
                   </label>
                 )}
-                {!editingTreatId && Number(treatForm.cost) > 0 && (
+                {!editingTreatId && (
                   <label>
-                    <span className="lbl">Payment method <span className="req">*</span></span>
+                    <span className="lbl">
+                      Payment method{" "}
+                      {Number(treatForm.cost) > 0
+                        ? <span className="req">*</span>
+                        : <span className="muted">(optional)</span>}
+                    </span>
                     <MethodToggle
                       value={treatForm.upfrontMethod}
                       onChange={(m) => setTreatForm({ ...treatForm, upfrontMethod: m })}
