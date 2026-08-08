@@ -502,8 +502,8 @@ export default function ClientLedger() {
                     <div className="timeline-item" key={p._id || i}>
                       <Icon name="payments" size={16} />
                       <span className="muted">{fmtDate(p.date)}</span>
-                      <strong>{money(p.amount)}</strong>
-                      {p.method && (
+                      <strong>{p.amount > 0 ? money(p.amount) : "No charge"}</strong>
+                      {p.amount > 0 && p.method && (
                         <span className="tag icon">
                           <Icon name={p.method === "online" ? "account_balance" : "payments"} size={14} />
                           {p.method === "online" ? "Online" : "Cash"}
