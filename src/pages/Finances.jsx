@@ -160,7 +160,8 @@ export default function Finances() {
 
             <div className="fin-detail-total">
               <span className="muted">
-                Total {detail} · {data[detail].items.length}{" "}
+                {detail === "collected" ? "Grand total (cash + online)" : `Total ${detail}`} ·{" "}
+                {data[detail].items.length}{" "}
                 {data[detail].items.length === 1 ? "entry" : "entries"}
               </span>
               <strong>{money(data[detail].total)}</strong>
@@ -171,29 +172,44 @@ export default function Finances() {
             ) : (
               <div className="fin-detail-list">
                 {detail === "collected" &&
-                  data.collected.items.map((it, i) => (
-                    <div
-                      key={i}
-                      className={`fin-detail-row${it.clientId ? " clickable" : ""}`}
-                      onClick={it.clientId ? () => openRecord(it.clientId) : undefined}
-                      title={it.clientId ? "View patient record" : undefined}
-                    >
-                      <div className="fin-detail-main">
-                        <strong>{it.client || "Patient"}</strong>
-                        {it.procedure && <span className="muted"> · {it.procedure}</span>}
-                        <div className="fin-detail-sub muted">
-                          {formatDate(it.date)}{it.note ? ` · ${it.note}` : ""}
+                  [
+                    { key: "cash", label: "Cash", icon: "payments" },
+                    { key: "online", label: "Online", icon: "account_balance" },
+                  ].map((g) => {
+                    const grp = data.collected[g.key] || { total: 0, items: [] };
+                    return (
+                      <div key={g.key} className="fin-method-group">
+                        <div className="fin-method-head">
+                          <span className="icon"><Icon name={g.icon} size={16} /> Collected via {g.label}</span>
+                          <strong>{money(grp.total)}</strong>
                         </div>
+                        {grp.items.length === 0 ? (
+                          <p className="muted fin-method-empty">No {g.label.toLowerCase()} payments in this period.</p>
+                        ) : (
+                          grp.items.map((it, i) => (
+                            <div
+                              key={i}
+                              className={`fin-detail-row${it.clientId ? " clickable" : ""}`}
+                              onClick={it.clientId ? () => openRecord(it.clientId) : undefined}
+                              title={it.clientId ? "View patient record" : undefined}
+                            >
+                              <div className="fin-detail-main">
+                                <strong>{it.client || "Patient"}</strong>
+                                {it.procedure && <span className="muted"> · {it.procedure}</span>}
+                                <div className="fin-detail-sub muted">
+                                  {formatDate(it.date)}{it.note ? ` · ${it.note}` : ""}
+                                </div>
+                              </div>
+                              <div className="fin-detail-right">
+                                <span className="fin-amt earned">{money(it.amount)}</span>
+                              </div>
+                              {it.clientId && <Icon name="chevron_right" size={18} className="fin-detail-go" />}
+                            </div>
+                          ))
+                        )}
                       </div>
-                      <div className="fin-detail-right">
-                        <span className="fin-amt earned">{money(it.amount)}</span>
-                        <span className={`tag ${it.method === "online" ? "tag-online" : "tag-cash"}`}>
-                          {it.method === "online" ? "Online" : it.method === "cash" ? "Cash" : "—"}
-                        </span>
-                      </div>
-                      {it.clientId && <Icon name="chevron_right" size={18} className="fin-detail-go" />}
-                    </div>
-                  ))}
+                    );
+                  })}
 
                 {detail === "expenses" &&
                   data.expenses.items.map((it, i) => (
