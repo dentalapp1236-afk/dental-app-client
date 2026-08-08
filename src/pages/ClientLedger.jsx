@@ -58,6 +58,7 @@ export default function ClientLedger() {
   };
   const [showTreat, setShowTreat] = useState(false);
   const [openMenu, setOpenMenu] = useState(null); // id of the open ⋯ menu (treatment or payment)
+  const [noCharge, setNoCharge] = useState(false); // form locked to Rs 0 (no-charge visit)
   const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
   const [treatError, setTreatError] = useState("");
   const [savingTreat, setSavingTreat] = useState(false); // in-flight lock (prevents duplicate records)
@@ -98,13 +99,25 @@ export default function ClientLedger() {
 
   const openTreat = () => {
     setEditingTreatId(null);
+    setNoCharge(false);
     setTreatForm(TREAT_EMPTY);
+    setTreatError("");
+    setShowTreat(true);
+  };
+
+  // Shown when the patient has an outstanding balance: log a visit with the
+  // charges locked to Rs 0, so no new bill is added until the balance is cleared.
+  const openNoChargeTreat = () => {
+    setEditingTreatId(null);
+    setNoCharge(true);
+    setTreatForm({ ...TREAT_EMPTY, cost: "0" });
     setTreatError("");
     setShowTreat(true);
   };
 
   const openEditTreat = (t) => {
     setEditingTreatId(t._id);
+    setNoCharge(false);
     setEditTreatVersion(t.__v);
     setTreatForm({
       procedure: t.procedure || "",
@@ -395,9 +408,19 @@ export default function ClientLedger() {
               </select>
             </label>
           )}
-          <button className="icon" onClick={openTreat}>
-            <Icon name="add_circle" size={18} /> Record treatment
-          </button>
+          {outstanding > 0 ? (
+            <button
+              className="btn-secondary icon"
+              onClick={openNoChargeTreat}
+              title={`${money(outstanding)} outstanding — record that payment to add a charged treatment. You can still log a no-charge visit.`}
+            >
+              <Icon name="add_circle" size={18} /> Record no-charge visit
+            </button>
+          ) : (
+            <button className="icon" onClick={openTreat}>
+              <Icon name="add_circle" size={18} /> Record treatment
+            </button>
+          )}
         </div>
       </div>
       {treatments.length === 0 ? (
@@ -613,17 +636,21 @@ export default function ClientLedger() {
               <div className="modal-head">
                 <h3 className="icon">
                   <Icon name={editingTreatId ? "edit" : "add_circle"} size={18} />
-                  {editingTreatId ? "Edit treatment" : `Record treatment for ${client.name}`}
+                  {editingTreatId
+                    ? "Edit treatment"
+                    : noCharge
+                    ? `Record no-charge visit for ${client.name}`
+                    : `Record treatment for ${client.name}`}
                 </h3>
                 <button type="button" className="modal-close" aria-label="Close" onClick={() => setShowTreat(false)}>
                   <Icon name="close" />
                 </button>
               </div>
               {treatError && <div className="error">{treatError}</div>}
-              {!editingTreatId && outstanding > 0 && (
+              {noCharge && (
                 <p className="treat-locked icon" style={{ margin: 0 }}>
-                  <Icon name="info" size={16} /> {money(outstanding)} still outstanding — record that
-                  payment first to add a charge, or leave the charges at 0 for a no-charge visit.
+                  <Icon name="info" size={16} /> {money(outstanding)} outstanding — charges are locked
+                  to 0. Record that payment to add a charged treatment.
                 </p>
               )}
               <div className="grid-2">
@@ -642,15 +669,18 @@ export default function ClientLedger() {
                   <input name="toothNumber" value={treatForm.toothNumber} onChange={treatChange} />
                 </label>
                 <label>
-                  <span className="lbl">Charges <span className="req">*</span></span>
+                  <span className="lbl">
+                    Charges {noCharge ? <span className="muted">(locked — no charge)</span> : <span className="req">*</span>}
+                  </span>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
                     name="cost"
                     required
+                    disabled={noCharge}
                     placeholder="e.g. 50000"
-                    value={treatForm.cost}
+                    value={noCharge ? "0" : treatForm.cost}
                     onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
                     onChange={treatChange}
                   />
