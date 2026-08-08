@@ -1314,6 +1314,8 @@ a.btn-danger-soft {
   font-weight: 600;
 }
 .avail-day.on { color: var(--primary); }
+/* Subtle on-brand hover (overrides the generic solid-blue button:hover) */
+.avail-day:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
 .avail-day .material-symbols-outlined { color: inherit; }
 .avail-times { display: flex; align-items: center; gap: 8px; }
 .avail-times input { width: auto; }
