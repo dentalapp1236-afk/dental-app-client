@@ -34,6 +34,7 @@ import Finances from "./pages/Finances";
 import Maintenance from "./pages/Maintenance";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Agreement from "./pages/Agreement";
 
 function Home() {
   const { user, loading } = useAuth();
@@ -212,6 +213,14 @@ export default function App() {
           element={
             <ProtectedRoute role={["dentist", "assistant"]}>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agreement"
+          element={
+            <ProtectedRoute role="dentist">
+              <Agreement />
             </ProtectedRoute>
           }
         />

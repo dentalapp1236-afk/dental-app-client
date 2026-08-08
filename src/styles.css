@@ -769,6 +769,21 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.9s linear infinite; }
 
+/* E-Agreement page */
+.agreement-accepted { display: flex; align-items: center; gap: 12px; border-color: #bfe6cc; background: #f2faf5; }
+.agreement-accepted .material-symbols-outlined { color: #1a7f37; }
+.agreement-pricing { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.agreement-pricing .ap-item { display: flex; flex-direction: column; }
+.agreement-pricing .ap-value { font-size: 24px; font-weight: 800; color: var(--heading); line-height: 1.1; }
+.agreement-pricing .ap-value span { font-size: 14px; font-weight: 600; color: var(--muted); }
+.agreement-pricing .ap-label { font-size: 13px; color: var(--muted); }
+.agreement-pricing .ap-sep { color: var(--muted); font-weight: 600; }
+.agreement-doc .agreement-clause { margin-bottom: 14px; }
+.agreement-doc .agreement-clause strong { color: var(--heading); }
+.agreement-doc .agreement-clause p { margin: 4px 0 0; color: var(--text); font-size: 14.5px; line-height: 1.55; }
+.agreement-check { flex-direction: row !important; align-items: center; gap: 10px; margin: 14px 0; cursor: pointer; }
+.agreement-check input { width: auto; }
+
 /* Per-section Save/Cancel row in Settings */
 .settings-actions { margin-top: 14px; align-items: center; flex-wrap: wrap; }
 .settings-saved { color: #1a7f37; font-size: 13px; font-weight: 600; }

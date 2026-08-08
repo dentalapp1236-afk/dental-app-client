@@ -11,6 +11,7 @@ export const ROLE_LINKS = {
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
     { to: "/staff", icon: "badge", label: "Staff" },
     { to: "/settings", icon: "settings", label: "Settings" },
+    { to: "/agreement", icon: "handshake", label: "E-Agreement" },
   ],
   // Assistant: same clinic tools as the dentist, minus staff management.
   assistant: [
