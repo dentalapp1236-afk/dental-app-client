@@ -769,6 +769,11 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.9s linear infinite; }
 
+/* Per-section Save/Cancel row in Settings */
+.settings-actions { margin-top: 14px; align-items: center; flex-wrap: wrap; }
+.settings-saved { color: #1a7f37; font-size: 13px; font-weight: 600; }
+.settings-saved .material-symbols-outlined { color: #1a7f37; }
+
 /* Required-field marker (inline with the label caption) */
 .lbl { display: inline; }
 .req { color: var(--danger); font-weight: 600; }
