@@ -168,12 +168,16 @@ export default function ClientLedger() {
     }
     if (!treatForm.date) return setTreatError("Date is required.");
     if (!editingTreatId) {
-      if (treatForm.upfront === "" || Number(treatForm.upfront) < 0)
-        return setTreatError("Collected amount is required.");
-      if (Number(treatForm.upfront) > Number(treatForm.cost))
-        return setTreatError("Collected amount cannot exceed the charges.");
-      if (!["cash", "online"].includes(treatForm.upfrontMethod))
-        return setTreatError("Select a payment method (cash or online).");
+      // A no-charge visit (charges = 0, e.g. a check-up) has nothing to collect,
+      // so the collected amount and payment method aren't required.
+      if (Number(treatForm.cost) > 0) {
+        if (treatForm.upfront === "" || Number(treatForm.upfront) < 0)
+          return setTreatError("Collected amount is required.");
+        if (Number(treatForm.upfront) > Number(treatForm.cost))
+          return setTreatError("Collected amount cannot exceed the charges.");
+        if (!["cash", "online"].includes(treatForm.upfrontMethod))
+          return setTreatError("Select a payment method (cash or online).");
+      }
     } else {
       if (treatForm.collected === "" || Number(treatForm.collected) < 0)
         return setTreatError("Collected amount is required.");
@@ -667,7 +671,7 @@ export default function ClientLedger() {
                     </span>
                   </label>
                 )}
-                {!editingTreatId && (
+                {!editingTreatId && Number(treatForm.cost) > 0 && (
                   <label>
                     <span className="lbl">Collected amount <span className="req">*</span></span>
                     <input
@@ -683,7 +687,7 @@ export default function ClientLedger() {
                     />
                   </label>
                 )}
-                {!editingTreatId && (
+                {!editingTreatId && Number(treatForm.cost) > 0 && (
                   <label>
                     <span className="lbl">Payment method <span className="req">*</span></span>
                     <MethodToggle
