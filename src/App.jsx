@@ -219,7 +219,7 @@ export default function App() {
         <Route
           path="/agreement"
           element={
-            <ProtectedRoute role={["dentist", "assistant"]}>
+            <ProtectedRoute role="dentist">
               <Agreement />
             </ProtectedRoute>
           }
@@ -251,7 +251,7 @@ export default function App() {
         <Route
           path="/expenses"
           element={
-            <ProtectedRoute role={["dentist", "assistant"]}>
+            <ProtectedRoute role="dentist">
               <Maintenance />
             </ProtectedRoute>
           }
