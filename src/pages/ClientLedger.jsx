@@ -155,6 +155,17 @@ export default function ClientLedger() {
     if (!treatForm.procedure.trim()) return setTreatError("Procedure is required.");
     if (treatForm.cost === "" || Number(treatForm.cost) < 0)
       return setTreatError("Charges are required.");
+    // A patient with an outstanding balance may still get a NO-CHARGE visit (e.g.
+    // a check-up), but not a new billed treatment — that forces the earlier
+    // payment to be recorded first without blocking a free visit.
+    if (!editingTreatId) {
+      const due = treatments.reduce((s, t) => s + (Number(t.balance) || 0), 0);
+      if (due > 0 && Number(treatForm.cost) > 0) {
+        return setTreatError(
+          `This patient has ${money(due)} outstanding. Record that payment first, or set the charges to 0 for a no-charge visit.`
+        );
+      }
+    }
     if (!treatForm.date) return setTreatError("Date is required.");
     if (!editingTreatId) {
       if (treatForm.upfront === "" || Number(treatForm.upfront) < 0)
@@ -379,18 +390,9 @@ export default function ClientLedger() {
               </select>
             </label>
           )}
-          {outstanding > 0 ? (
-            <span
-              className="treat-locked icon"
-              title={`This patient has ${money(outstanding)} outstanding. Record the payment on the existing treatment before adding a new one.`}
-            >
-              <Icon name="lock" size={16} /> Clear {money(outstanding)} due before adding a treatment
-            </span>
-          ) : (
-            <button className="icon" onClick={openTreat}>
-              <Icon name="add_circle" size={18} /> Record treatment
-            </button>
-          )}
+          <button className="icon" onClick={openTreat}>
+            <Icon name="add_circle" size={18} /> Record treatment
+          </button>
         </div>
       </div>
       {treatments.length === 0 ? (
@@ -613,6 +615,12 @@ export default function ClientLedger() {
                 </button>
               </div>
               {treatError && <div className="error">{treatError}</div>}
+              {!editingTreatId && outstanding > 0 && (
+                <p className="treat-locked icon" style={{ margin: 0 }}>
+                  <Icon name="info" size={16} /> {money(outstanding)} still outstanding — record that
+                  payment first to add a charge, or leave the charges at 0 for a no-charge visit.
+                </p>
+              )}
               <div className="grid-2">
                 <label>
                   <span className="lbl">Procedure <span className="req">*</span></span>
