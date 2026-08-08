@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import { formatDateTime } from "../utils/date";
+import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 
 // Bump this when the terms change so re-acceptance can be required/tracked.
@@ -56,6 +56,22 @@ export default function Agreement() {
   const { user, updateUser } = useAuth();
   const accepted = user.agreement?.acceptedAt ? user.agreement : null;
 
+  // Enrollment / billing tracker, derived from the sign date: 3-month free
+  // discovery, then Rs 2,000/month.
+  let enroll = null;
+  if (accepted) {
+    const enrolledAt = new Date(accepted.acceptedAt);
+    const discoveryEnd = new Date(enrolledAt);
+    discoveryEnd.setMonth(discoveryEnd.getMonth() + 3);
+    const dayMs = 86400000;
+    const now = new Date();
+    const inDiscovery = now < discoveryEnd;
+    const daysLeft = Math.max(0, Math.ceil((discoveryEnd - now) / dayMs));
+    const totalDays = Math.max(1, Math.round((discoveryEnd - enrolledAt) / dayMs));
+    const pct = Math.min(100, Math.max(0, Math.round(((totalDays - daysLeft) / totalDays) * 100)));
+    enroll = { enrolledAt, discoveryEnd, inDiscovery, daysLeft, pct };
+  }
+
   const [name, setName] = useState(user.name || "");
   const [agree, setAgree] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -101,7 +117,44 @@ export default function Agreement() {
             </div>
           </div>
         </div>
-      ) : (
+      ) : null}
+
+      {enroll && (
+        <div className="card enroll-card">
+          <h3 style={{ marginTop: 0 }} className="icon"><Icon name="event_available" size={18} /> Enrollment</h3>
+          <div className="enroll-grid">
+            <div>
+              <div className="enroll-label">Enrolled on</div>
+              <div className="enroll-value">{formatDate(enroll.enrolledAt)}</div>
+            </div>
+            <div>
+              <div className="enroll-label">Discovery ends</div>
+              <div className="enroll-value">{formatDate(enroll.discoveryEnd)}</div>
+            </div>
+            <div>
+              <div className="enroll-label">Monthly fee after</div>
+              <div className="enroll-value">Rs 2,000<span className="muted" style={{ fontWeight: 500 }}> /month</span></div>
+            </div>
+          </div>
+
+          {enroll.inDiscovery ? (
+            <>
+              <div className="enroll-status discovery icon">
+                <Icon name="card_giftcard" size={16} /> Free discovery phase — {enroll.daysLeft} day
+                {enroll.daysLeft !== 1 ? "s" : ""} left
+              </div>
+              <div className="enroll-bar"><span style={{ width: `${enroll.pct}%` }} /></div>
+            </>
+          ) : (
+            <div className="enroll-status active icon">
+              <Icon name="workspace_premium" size={16} /> Subscription active — Rs 2,000 / month
+              (discovery ended {formatDate(enroll.discoveryEnd)})
+            </div>
+          )}
+        </div>
+      )}
+
+      {!accepted && (
         <div className="card" style={{ borderColor: "var(--primary)" }}>
           <p className="icon" style={{ margin: 0 }}>
             <Icon name="info" size={18} /> Please read the terms below and e-sign to activate your

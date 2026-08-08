@@ -783,6 +783,16 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
 .agreement-doc .agreement-clause p { margin: 4px 0 0; color: var(--text); font-size: 14.5px; line-height: 1.55; }
 .agreement-check { flex-direction: row !important; align-items: center; gap: 10px; margin: 14px 0; cursor: pointer; }
 .agreement-check input { width: auto; }
+.enroll-grid { display: flex; gap: 28px; flex-wrap: wrap; margin: 4px 0 14px; }
+.enroll-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
+.enroll-value { font-size: 18px; font-weight: 700; color: var(--heading); }
+.enroll-status { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+.enroll-status.discovery { background: #e7f3ff; color: #1a5fb4; }
+.enroll-status.discovery .material-symbols-outlined { color: #1a5fb4; }
+.enroll-status.active { background: #e7f6ec; color: #1a7f37; }
+.enroll-status.active .material-symbols-outlined { color: #1a7f37; }
+.enroll-bar { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 10px; max-width: 420px; }
+.enroll-bar span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
 
 /* Per-section Save/Cancel row in Settings */
 .settings-actions { margin-top: 14px; align-items: center; flex-wrap: wrap; }
