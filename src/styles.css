@@ -901,6 +901,7 @@ label,
 .cs-inputwrap { position: relative; display: flex; align-items: center; }
 .cs-inputwrap .cs-icon { position: absolute; left: 10px; color: var(--muted); pointer-events: none; }
 .cs-input { width: 100%; padding-left: 34px; padding-right: 32px; }
+.combo-input { width: 100%; }
 .cs-clear {
   position: absolute; right: 6px; width: 26px; height: 26px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;

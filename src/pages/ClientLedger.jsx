@@ -6,6 +6,7 @@ import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 import { SkeletonTable } from "../components/Skeleton";
 import { COMMON_PROCEDURES } from "../data/procedures";
+import ProcedureInput from "../components/ProcedureInput";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
@@ -622,18 +623,12 @@ export default function ClientLedger() {
               <div className="grid-2">
                 <label>
                   <span className="lbl">Procedure <span className="req">*</span></span>
-                  <input
-                    name="procedure"
-                    required
-                    list="procedure-suggestions"
-                    autoComplete="off"
-                    placeholder="e.g. Root Canal Treatment"
+                  <ProcedureInput
                     value={treatForm.procedure}
-                    onChange={treatChange}
+                    onChange={(v) => setTreatForm((f) => ({ ...f, procedure: v }))}
+                    options={COMMON_PROCEDURES}
+                    required
                   />
-                  <datalist id="procedure-suggestions">
-                    {COMMON_PROCEDURES.map((p) => <option key={p} value={p} />)}
-                  </datalist>
                 </label>
                 <label>
                   Tooth #

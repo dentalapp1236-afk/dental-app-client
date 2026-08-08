@@ -4,6 +4,7 @@ import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
 import ClientSearchSelect from "../components/ClientSearchSelect";
 import { COMMON_PROCEDURES } from "../data/procedures";
+import ProcedureInput from "../components/ProcedureInput";
 
 const money = (n) =>
   `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -139,18 +140,12 @@ export default function Treatments() {
           </div>
           <label>
             Procedure
-            <input
-              name="procedure"
-              required
-              list="procedure-suggestions"
-              autoComplete="off"
+            <ProcedureInput
               value={form.procedure}
-              onChange={handleChange}
-              placeholder="e.g. Root Canal Treatment"
+              onChange={(v) => setForm((f) => ({ ...f, procedure: v }))}
+              options={COMMON_PROCEDURES}
+              required
             />
-            <datalist id="procedure-suggestions">
-              {COMMON_PROCEDURES.map((p) => <option key={p} value={p} />)}
-            </datalist>
           </label>
           <label>
             Tooth #
