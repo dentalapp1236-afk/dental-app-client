@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import { normalizePkPhone } from "../utils/phone";
@@ -52,7 +52,20 @@ export default function Clients({ mode = "patients" }) {
   const [showForm, setShowForm] = useState(false);
   const [menuFor, setMenuFor] = useState(null); // id of the card whose action menu is open
   const [balances, setBalances] = useState({}); // { clientId: outstanding }
-  const [onlyOutstanding, setOnlyOutstanding] = useState(false); // filter pill
+  // Keep the "Outstanding" filter in the URL so navigating into a patient and
+  // pressing Back restores the filtered view instead of resetting to All.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const onlyOutstanding = searchParams.get("filter") === "outstanding";
+  const setOnlyOutstanding = (on) =>
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (on) next.set("filter", "outstanding");
+        else next.delete("filter");
+        return next;
+      },
+      { replace: true }
+    );
   const [loadError, setLoadError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
