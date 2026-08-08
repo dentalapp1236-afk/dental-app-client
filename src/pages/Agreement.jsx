@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { formatDate, formatDateTime } from "../utils/date";
@@ -54,7 +54,31 @@ const TERMS = [
 
 export default function Agreement() {
   const { user, updateUser } = useAuth();
-  const accepted = user.agreement?.acceptedAt ? user.agreement : null;
+  const isDentist = user.role === "dentist";
+
+  // The agreement lives on the clinic OWNER. We fetch it so an assistant can view
+  // it read-only, and the dentist sees their own to sign.
+  const [agreement, setAgreement] = useState(null);
+  const [clinicName, setClinicName] = useState(user.clinicName || "");
+  const [loadingAgreement, setLoadingAgreement] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    api
+      .get("/auth/agreement")
+      .then(({ data }) => {
+        if (!active) return;
+        setAgreement(data.agreement || null);
+        setClinicName(data.clinicName || "");
+      })
+      .catch(() => {})
+      .finally(() => active && setLoadingAgreement(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const accepted = agreement?.acceptedAt ? agreement : null;
 
   // Enrollment / billing tracker, derived from the sign date: 3-month free
   // discovery, then Rs 2,000/month.
@@ -88,12 +112,28 @@ export default function Agreement() {
         version: AGREEMENT_VERSION,
       });
       updateUser(data.user);
+      setAgreement(data.user.agreement || null);
     } catch (err) {
       setError(err.response?.data?.message || "Could not save your acceptance. Please try again.");
     } finally {
       setSaving(false);
     }
   };
+
+  if (loadingAgreement) {
+    return (
+      <div className="page agreement-page">
+        <div className="page-head">
+          <h1 className="icon"><Icon name="handshake" /> Service Agreement</h1>
+        </div>
+        <div className="card">
+          <p className="muted icon" style={{ margin: 0 }}>
+            <Icon name="progress_activity" size={18} className="spin" /> Loading…
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page agreement-page">
@@ -154,11 +194,19 @@ export default function Agreement() {
         </div>
       )}
 
-      {!accepted && (
+      {!accepted && isDentist && (
         <div className="card" style={{ borderColor: "var(--primary)" }}>
           <p className="icon" style={{ margin: 0 }}>
             <Icon name="info" size={18} /> Please read the terms below and e-sign to activate your
             agreement — no printing or paper signature needed.
+          </p>
+        </div>
+      )}
+      {!accepted && !isDentist && (
+        <div className="card" style={{ borderColor: "var(--amber, #d98a00)" }}>
+          <p className="icon" style={{ margin: 0 }}>
+            <Icon name="visibility" size={18} /> View only — the agreement has not been signed yet.
+            Only the clinic owner (dentist) can sign it.
           </p>
         </div>
       )}
@@ -180,7 +228,7 @@ export default function Agreement() {
       <div className="card agreement-doc">
         <h3 style={{ marginTop: 0 }}>MyDentalBooking — Service Agreement</h3>
         <p className="muted" style={{ marginTop: 0 }}>
-          Between MyDentalBooking (“we”, “us”) and {user.clinicName || "your clinic"} (“the Clinic”, “you”).
+          Between MyDentalBooking (“we”, “us”) and {clinicName || "your clinic"} (“the Clinic”, “you”).
         </p>
         {TERMS.map((t) => (
           <div key={t.title} className="agreement-clause">
@@ -194,8 +242,8 @@ export default function Agreement() {
         </p>
       </div>
 
-      {/* Signature */}
-      {!accepted && (
+      {/* Signature — only the clinic owner (dentist) can sign */}
+      {!accepted && isDentist && (
         <div className="card">
           <h3 style={{ marginTop: 0 }} className="icon"><Icon name="draw" size={18} /> E-signature</h3>
           {error && <div className="error">{error}</div>}

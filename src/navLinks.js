@@ -22,6 +22,7 @@ export const ROLE_LINKS = {
     { to: "/finances", icon: "payments", label: "Finances" },
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
     { to: "/settings", icon: "settings", label: "Settings" },
+    { to: "/agreement", icon: "handshake", label: "E-Agreement" },
   ],
   client: [
     { to: "/client", icon: "home", label: "Home" },

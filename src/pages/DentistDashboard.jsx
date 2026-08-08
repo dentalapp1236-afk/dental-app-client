@@ -69,6 +69,7 @@ export default function DentistDashboard() {
   const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [dismissEnroll, setDismissEnroll] = useState(false); // hide discovery reminder
   const [step, setStep] = useState(15); // clinic's slot length (minutes)
   // Ticks every 30s so the waiting-time counters advance without a data refetch.
   const [nowTick, setNowTick] = useState(() => Date.now());
@@ -230,6 +231,17 @@ export default function DentistDashboard() {
 
   const greeting = `Welcome, ${user.role === "dentist" ? "Dr. " : ""}${user.name}`;
 
+  // Gentle reminder when the free discovery period is ending or has just ended
+  // (only the dentist's record carries the signed agreement).
+  let enrollReminder = null;
+  if (user.agreement?.acceptedAt && !dismissEnroll) {
+    const de = new Date(user.agreement.acceptedAt);
+    de.setMonth(de.getMonth() + 3);
+    const daysLeft = Math.ceil((de.getTime() - Date.now()) / 86400000);
+    if (daysLeft > 0 && daysLeft <= 7) enrollReminder = { kind: "ending", daysLeft };
+    else if (daysLeft <= 0 && daysLeft > -14) enrollReminder = { kind: "ended" };
+  }
+
   if (loading)
     return (
       <div className="page">
@@ -244,6 +256,28 @@ export default function DentistDashboard() {
   return (
     <div className="page">
       <h1 className="icon dash-greeting"><Icon name="waving_hand" size={22} /> {greeting}</h1>
+
+      {enrollReminder && (
+        <div className="enroll-reminder">
+          <Icon name="schedule" size={18} />
+          <span>
+            {enrollReminder.kind === "ending"
+              ? `Your free discovery period ends in ${enrollReminder.daysLeft} day${enrollReminder.daysLeft !== 1 ? "s" : ""} — Rs 2,000/month begins after that.`
+              : "Your free discovery period has ended — the Rs 2,000/month subscription is now active."}
+          </span>
+          <button type="button" className="enroll-reminder-link" onClick={() => navigate("/agreement")}>
+            View agreement
+          </button>
+          <button
+            type="button"
+            className="enroll-reminder-x"
+            aria-label="Dismiss"
+            onClick={() => setDismissEnroll(true)}
+          >
+            <Icon name="close" size={16} />
+          </button>
+        </div>
+      )}
 
       <div className="row gap" style={{ justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
         <h2 className="icon dash-subhead" style={{ margin: 0 }}><Icon name="today" size={18} /> Today's schedule</h2>

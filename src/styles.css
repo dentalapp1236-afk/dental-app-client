@@ -794,6 +794,25 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
 .enroll-bar { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 10px; max-width: 420px; }
 .enroll-bar span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
 
+/* Discovery-period reminder banner on Today's Schedule */
+.enroll-reminder {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: #fff8e6; border: 1px solid #ffe2a8; color: #8a5a00;
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 14px; font-weight: 500;
+}
+.enroll-reminder .material-symbols-outlined { color: #d98a00; }
+.enroll-reminder span { flex: 1; min-width: 180px; }
+.enroll-reminder-link {
+  background: transparent; border: none; color: var(--primary); font-weight: 700;
+  padding: 4px 6px; cursor: pointer; font-size: 14px;
+}
+.enroll-reminder-link:hover:not(:disabled) { background: transparent; text-decoration: underline; }
+.enroll-reminder-x {
+  background: transparent; border: none; color: #8a5a00; padding: 4px; cursor: pointer;
+  display: inline-flex;
+}
+.enroll-reminder-x:hover:not(:disabled) { background: rgba(0,0,0,0.05); }
+
 /* Per-section Save/Cancel row in Settings */
 .settings-actions { margin-top: 14px; align-items: center; flex-wrap: wrap; }
 .settings-saved { color: #1a7f37; font-size: 13px; font-weight: 600; }
