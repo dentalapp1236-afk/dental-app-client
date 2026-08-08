@@ -175,6 +175,17 @@ export default function ClientLedger() {
       if (Number(treatForm.collected) > Number(treatForm.cost))
         return setTreatError("Collected amount cannot exceed the charges.");
     }
+    const createPayload = {
+      client: id,
+      procedure: treatForm.procedure,
+      toothNumber: treatForm.toothNumber,
+      diagnosis: treatForm.diagnosis,
+      description: treatForm.description,
+      cost: Number(treatForm.cost) || 0,
+      upfront: Number(treatForm.upfront) || 0,
+      upfrontMethod: treatForm.upfrontMethod,
+      date: treatForm.date,
+    };
     setSavingTreat(true);
     try {
       if (editingTreatId) {
@@ -189,23 +200,26 @@ export default function ClientLedger() {
           version: editTreatVersion,
         });
       } else {
-        await api.post("/treatments", {
-          client: id,
-          procedure: treatForm.procedure,
-          toothNumber: treatForm.toothNumber,
-          diagnosis: treatForm.diagnosis,
-          description: treatForm.description,
-          cost: Number(treatForm.cost) || 0,
-          upfront: Number(treatForm.upfront) || 0,
-          upfrontMethod: treatForm.upfrontMethod,
-          date: treatForm.date,
-        });
+        await api.post("/treatments", createPayload);
       }
       setShowTreat(false);
       await loadTreatments();
     } catch (err) {
-      setTreatError(err.response?.data?.message || "Could not save treatment.");
-      if (err.response?.status === 409) loadTreatments();
+      // A same-day duplicate for this patient — confirm before recording another.
+      if (err.response?.status === 409 && err.response?.data?.code === "DUP_TREATMENT") {
+        if (window.confirm("A matching treatment for this patient is already recorded today. Record it again anyway?")) {
+          try {
+            await api.post("/treatments", { ...createPayload, force: true });
+            setShowTreat(false);
+            await loadTreatments();
+          } catch (e2) {
+            setTreatError(e2.response?.data?.message || "Could not save treatment.");
+          }
+        }
+      } else {
+        setTreatError(err.response?.data?.message || "Could not save treatment.");
+        if (err.response?.status === 409) loadTreatments();
+      }
     } finally {
       setSavingTreat(false);
     }

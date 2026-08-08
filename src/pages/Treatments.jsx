@@ -70,13 +70,27 @@ export default function Treatments() {
     setError("");
     if (saving) return; // ignore a second click while the first is still saving
     if (!form.client) return setError("Please select a patient.");
+    const payload = { ...form, cost: Number(form.cost) || 0 };
     setSaving(true);
     try {
-      await api.post("/treatments", { ...form, cost: Number(form.cost) || 0 });
+      await api.post("/treatments", payload);
       resetForm();
       load();
     } catch (err) {
-      setError(err.response?.data?.message || "Save failed");
+      // Same-day duplicate for this patient — confirm before recording another.
+      if (err.response?.status === 409 && err.response?.data?.code === "DUP_TREATMENT") {
+        if (window.confirm("A matching treatment for this patient is already recorded today. Record it again anyway?")) {
+          try {
+            await api.post("/treatments", { ...payload, force: true });
+            resetForm();
+            load();
+          } catch (e2) {
+            setError(e2.response?.data?.message || "Save failed");
+          }
+        }
+      } else {
+        setError(err.response?.data?.message || "Save failed");
+      }
     } finally {
       setSaving(false);
     }
