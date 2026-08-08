@@ -19,7 +19,6 @@ export const ROLE_LINKS = {
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/clients", icon: "group", label: "Patients" },
     { to: "/dependents", icon: "escalator_warning", label: "Dependents" },
-    { to: "/finances", icon: "payments", label: "Finances" },
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
     { to: "/settings", icon: "settings", label: "Settings" },
     { to: "/agreement", icon: "handshake", label: "E-Agreement" },

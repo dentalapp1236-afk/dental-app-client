@@ -243,7 +243,7 @@ export default function App() {
         <Route
           path="/finances"
           element={
-            <ProtectedRoute role={["dentist", "assistant"]}>
+            <ProtectedRoute role="dentist">
               <Finances />
             </ProtectedRoute>
           }
