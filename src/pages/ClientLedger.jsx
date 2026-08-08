@@ -57,6 +57,7 @@ export default function ClientLedger() {
     date: new Date().toISOString().slice(0, 10),
   };
   const [showTreat, setShowTreat] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null); // id of the open ⋯ menu (treatment or payment)
   const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
   const [treatError, setTreatError] = useState("");
   const [savingTreat, setSavingTreat] = useState(false); // in-flight lock (prevents duplicate records)
@@ -409,9 +410,9 @@ export default function ClientLedger() {
               <div className="row gap" style={{ flexWrap: "wrap", alignItems: "center" }}>
                 {t.cost > 0 ? (
                   <>
-                    <span className="tag">Total {money(t.cost)}</span>
-                    <span className="tag">Collected {money(t.paidAmount)}</span>
-                    <span className={t.balance > 0 ? "badge-pending" : "badge"}>
+                    <span className="tag pill-billed">Billed {money(t.cost)}</span>
+                    <span className="tag pill-collected">Collected {money(t.paidAmount)}</span>
+                    <span className={`tag ${t.balance > 0 ? "pill-outstanding" : "pill-collected"}`}>
                       {t.balance > 0 ? `Outstanding ${money(t.balance)}` : "Fully paid"}
                     </span>
                     {t.balance > 0 && (
@@ -421,14 +422,32 @@ export default function ClientLedger() {
                     )}
                   </>
                 ) : (
-                  <span className="badge">No charge</span>
+                  <span className="tag pill-billed">No charge</span>
                 )}
-                <button className="btn-secondary icon" onClick={() => openEditTreat(t)}>
-                  <Icon name="edit" size={18} /> Edit
-                </button>
-                <button className="btn-danger-soft icon" onClick={() => deleteTreat(t)}>
-                  <Icon name="delete" size={18} /> Delete
-                </button>
+                <span className="row-menu">
+                  <button
+                    className="card-menu-btn"
+                    aria-label="More actions"
+                    aria-expanded={openMenu === t._id}
+                    title="More actions"
+                    onClick={() => setOpenMenu((id) => (id === t._id ? null : t._id))}
+                  >
+                    <Icon name="more_vert" size={20} />
+                  </button>
+                  {openMenu === t._id && (
+                    <>
+                      <div className="card-menu-backdrop" onClick={() => setOpenMenu(null)} />
+                      <div className="card-menu-panel">
+                        <button className="card-menu-item" onClick={() => { setOpenMenu(null); openEditTreat(t); }}>
+                          <Icon name="edit" size={18} /> Edit
+                        </button>
+                        <button className="card-menu-item danger" onClick={() => { setOpenMenu(null); deleteTreat(t); }}>
+                          <Icon name="delete" size={18} /> Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </span>
               </div>
             </div>
 
@@ -485,25 +504,38 @@ export default function ClientLedger() {
                       )}
                       {p.note && <span className="muted">· {p.note}</span>}
                       {p._id && (
-                        <span className="timeline-actions">
+                        <span className="row-menu timeline-actions">
                           <button
                             type="button"
-                            className="timeline-action"
-                            title="Edit payment"
-                            aria-label="Edit payment"
-                            onClick={() => openEditPayment(t._id, p)}
+                            className="card-menu-btn"
+                            title="Payment actions"
+                            aria-label="Payment actions"
+                            aria-expanded={openMenu === p._id}
+                            onClick={() => setOpenMenu((id) => (id === p._id ? null : p._id))}
                           >
-                            <Icon name="edit" size={16} />
+                            <Icon name="more_vert" size={18} />
                           </button>
-                          <button
-                            type="button"
-                            className="timeline-action danger"
-                            title="Delete payment"
-                            aria-label="Delete payment"
-                            onClick={() => deletePayment(t._id, p._id)}
-                          >
-                            <Icon name="delete" size={16} />
-                          </button>
+                          {openMenu === p._id && (
+                            <>
+                              <div className="card-menu-backdrop" onClick={() => setOpenMenu(null)} />
+                              <div className="card-menu-panel">
+                                <button
+                                  type="button"
+                                  className="card-menu-item"
+                                  onClick={() => { setOpenMenu(null); openEditPayment(t._id, p); }}
+                                >
+                                  <Icon name="edit" size={16} /> Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="card-menu-item danger"
+                                  onClick={() => { setOpenMenu(null); deletePayment(t._id, p._id); }}
+                                >
+                                  <Icon name="delete" size={16} /> Delete
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </span>
                       )}
                     </div>

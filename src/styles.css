@@ -1789,6 +1789,14 @@ h2.icon { gap: 8px; }
   font-weight: 500;
 }
 
+/* Ledger amount pills — billed (black), collected (green), outstanding (brown) */
+.pill-billed { background: #eceef1; color: #14181d; border-color: #d5dae0; font-weight: 600; }
+.pill-collected { background: #e7f6ec; color: #1a7f37; border-color: #bfe6cc; font-weight: 600; }
+.pill-outstanding { background: #f6ecdf; color: #8a5a1b; border-color: #e6d4bd; font-weight: 600; }
+
+/* Inline overflow (⋯) menu inside a card's action row — reuses the .card-menu-* styles */
+.row-menu { position: relative; display: inline-flex; }
+
 .dentist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
