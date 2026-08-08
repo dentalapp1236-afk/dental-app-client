@@ -767,6 +767,7 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
   cursor: progress;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.9s linear infinite; }
 
 /* Required-field marker (inline with the label caption) */
 .lbl { display: inline; }

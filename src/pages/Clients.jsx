@@ -52,6 +52,8 @@ export default function Clients({ mode = "patients" }) {
   const [showForm, setShowForm] = useState(false);
   const [menuFor, setMenuFor] = useState(null); // id of the card whose action menu is open
   const [balances, setBalances] = useState({}); // { clientId: outstanding }
+  const [loading, setLoading] = useState(true); // first load of the patient list
+  const [balancesLoaded, setBalancesLoaded] = useState(false); // outstanding filter needs balances
   // Keep the "Outstanding" filter in the URL so navigating into a patient and
   // pressing Back restores the filtered view instead of resetting to All.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -146,6 +148,8 @@ export default function Clients({ mode = "patients" }) {
     } catch (e) {
       console.error(e);
       setLoadError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -164,7 +168,8 @@ export default function Clients({ mode = "patients" }) {
     api
       .get("/treatments/outstanding", { skipLoader: true })
       .then((r) => setBalances(r.data || {}))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setBalancesLoaded(true));
 
   useEffect(() => {
     loadRequests();
@@ -685,6 +690,8 @@ export default function Clients({ mode = "patients" }) {
             <Icon name="refresh" size={18} /> {refreshing ? "Refreshing…" : "Refresh"}
           </button>
         </div>
+      ) : loading || (onlyOutstanding && !balancesLoaded) ? (
+        <p className="muted icon"><Icon name="progress_activity" size={18} className="spin" /> Loading…</p>
       ) : visibleClients.length === 0 ? (
         <p className="muted">
           {onlyOutstanding
