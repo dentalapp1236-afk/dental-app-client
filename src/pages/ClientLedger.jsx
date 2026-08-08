@@ -58,7 +58,6 @@ export default function ClientLedger() {
   };
   const [showTreat, setShowTreat] = useState(false);
   const [openMenu, setOpenMenu] = useState(null); // id of the open ⋯ menu (treatment or payment)
-  const [noCharge, setNoCharge] = useState(false); // form locked to Rs 0 (no-charge visit)
   const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
   const [treatError, setTreatError] = useState("");
   const [savingTreat, setSavingTreat] = useState(false); // in-flight lock (prevents duplicate records)
@@ -99,25 +98,13 @@ export default function ClientLedger() {
 
   const openTreat = () => {
     setEditingTreatId(null);
-    setNoCharge(false);
     setTreatForm(TREAT_EMPTY);
-    setTreatError("");
-    setShowTreat(true);
-  };
-
-  // Shown when the patient has an outstanding balance: log a visit with the
-  // charges locked to Rs 0, so no new bill is added until the balance is cleared.
-  const openNoChargeTreat = () => {
-    setEditingTreatId(null);
-    setNoCharge(true);
-    setTreatForm({ ...TREAT_EMPTY, cost: "0" });
     setTreatError("");
     setShowTreat(true);
   };
 
   const openEditTreat = (t) => {
     setEditingTreatId(t._id);
-    setNoCharge(false);
     setEditTreatVersion(t.__v);
     setTreatForm({
       procedure: t.procedure || "",
@@ -168,17 +155,6 @@ export default function ClientLedger() {
     if (!treatForm.procedure.trim()) return setTreatError("Procedure is required.");
     if (treatForm.cost === "" || Number(treatForm.cost) < 0)
       return setTreatError("Charges are required.");
-    // A patient with an outstanding balance may still get a NO-CHARGE visit (e.g.
-    // a check-up), but not a new billed treatment — that forces the earlier
-    // payment to be recorded first without blocking a free visit.
-    if (!editingTreatId) {
-      const due = treatments.reduce((s, t) => s + (Number(t.balance) || 0), 0);
-      if (due > 0 && Number(treatForm.cost) > 0) {
-        return setTreatError(
-          `This patient has ${money(due)} outstanding. Record that payment first, or set the charges to 0 for a no-charge visit.`
-        );
-      }
-    }
     if (!treatForm.date) return setTreatError("Date is required.");
     if (!editingTreatId) {
       // A no-charge visit (charges = 0, e.g. a check-up) has nothing to collect,
@@ -409,13 +385,12 @@ export default function ClientLedger() {
             </label>
           )}
           {outstanding > 0 ? (
-            <button
-              className="btn-secondary icon"
-              onClick={openNoChargeTreat}
-              title={`${money(outstanding)} outstanding — record that payment to add a charged treatment. You can still log a no-charge visit.`}
+            <span
+              className="treat-locked icon"
+              title={`This patient has ${money(outstanding)} outstanding. Record the payment before adding a new treatment.`}
             >
-              <Icon name="add_circle" size={18} /> Record no-charge visit
-            </button>
+              <Icon name="lock" size={16} /> Clear {money(outstanding)} due before adding a treatment
+            </span>
           ) : (
             <button className="icon" onClick={openTreat}>
               <Icon name="add_circle" size={18} /> Record treatment
@@ -636,23 +611,13 @@ export default function ClientLedger() {
               <div className="modal-head">
                 <h3 className="icon">
                   <Icon name={editingTreatId ? "edit" : "add_circle"} size={18} />
-                  {editingTreatId
-                    ? "Edit treatment"
-                    : noCharge
-                    ? `Record no-charge visit for ${client.name}`
-                    : `Record treatment for ${client.name}`}
+                  {editingTreatId ? "Edit treatment" : `Record treatment for ${client.name}`}
                 </h3>
                 <button type="button" className="modal-close" aria-label="Close" onClick={() => setShowTreat(false)}>
                   <Icon name="close" />
                 </button>
               </div>
               {treatError && <div className="error">{treatError}</div>}
-              {noCharge && (
-                <p className="treat-locked icon" style={{ margin: 0 }}>
-                  <Icon name="info" size={16} /> {money(outstanding)} outstanding — charges are locked
-                  to 0. Record that payment to add a charged treatment.
-                </p>
-              )}
               <div className="grid-2">
                 <label>
                   <span className="lbl">Procedure <span className="req">*</span></span>
@@ -669,18 +634,15 @@ export default function ClientLedger() {
                   <input name="toothNumber" value={treatForm.toothNumber} onChange={treatChange} />
                 </label>
                 <label>
-                  <span className="lbl">
-                    Charges {noCharge ? <span className="muted">(locked — no charge)</span> : <span className="req">*</span>}
-                  </span>
+                  <span className="lbl">Charges <span className="req">*</span></span>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
                     name="cost"
                     required
-                    disabled={noCharge}
                     placeholder="e.g. 50000"
-                    value={noCharge ? "0" : treatForm.cost}
+                    value={treatForm.cost}
                     onKeyDown={(e) => ["-", "+", "e", "E"].includes(e.key) && e.preventDefault()}
                     onChange={treatChange}
                   />
