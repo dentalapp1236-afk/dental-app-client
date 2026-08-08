@@ -378,9 +378,18 @@ export default function ClientLedger() {
               </select>
             </label>
           )}
-          <button className="icon" onClick={openTreat}>
-            <Icon name="add_circle" size={18} /> Record treatment
-          </button>
+          {outstanding > 0 ? (
+            <span
+              className="treat-locked icon"
+              title={`This patient has ${money(outstanding)} outstanding. Record the payment on the existing treatment before adding a new one.`}
+            >
+              <Icon name="lock" size={16} /> Clear {money(outstanding)} due before adding a treatment
+            </span>
+          ) : (
+            <button className="icon" onClick={openTreat}>
+              <Icon name="add_circle" size={18} /> Record treatment
+            </button>
+          )}
         </div>
       </div>
       {treatments.length === 0 ? (

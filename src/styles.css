@@ -1881,6 +1881,13 @@ h2.icon { gap: 8px; }
   padding: 3px 8px; border-radius: 6px; font-size: 13px; font-weight: 500;
   background: var(--b-50); color: var(--b-700); border: 1px solid var(--border);
 }
+/* Shown in place of "Record treatment" when a patient has an outstanding balance */
+.treat-locked {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: #fff4e5; color: #8a5a00; border: 1px solid #ffe2a8;
+}
+.treat-locked .material-symbols-outlined { color: #d98a00; }
 .badge-info {
   padding: 3px 8px; border-radius: 6px; font-size: 13px; font-weight: 500;
   background: var(--b-100); color: var(--b-700);
