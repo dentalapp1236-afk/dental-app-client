@@ -269,9 +269,11 @@ export default function Clients({ mode = "patients" }) {
 
   const money = (n) => `Rs ${(Number(n) || 0).toLocaleString("en-US")}`;
   const outstandingCount = clients.filter((c) => balances[c._id] > 0).length;
-  const visibleClients = onlyOutstanding
-    ? clients.filter((c) => balances[c._id] > 0)
-    : clients;
+  const visibleClients = (
+    onlyOutstanding ? clients.filter((c) => balances[c._id] > 0) : clients
+  )
+    .slice() // don't mutate the source list
+    .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" }));
 
   return (
     <div className="page">
