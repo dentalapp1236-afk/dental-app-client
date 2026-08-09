@@ -980,10 +980,6 @@ a.btn-danger-soft {
   border: none;
 }
 .btn-secondary:hover:not(:disabled) { background: #d8dadf !important; }
-/* "Record payment" — a money/collect action, styled green (not the primary blue) */
-.btn-collect { background: #e7f6ec; color: #1a7f37; border: 1px solid #cbe9d6; }
-.btn-collect:hover:not(:disabled) { background: #d8f0e0 !important; }
-.btn-collect .material-symbols-outlined { color: #1a7f37; }
 
 /* Destructive secondary (e.g. Cancel appointment): same gray fill as the other
    card buttons, red text/icon as the cue — so it's consistent, not an outlier. */
