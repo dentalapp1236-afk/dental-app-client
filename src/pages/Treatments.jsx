@@ -268,7 +268,7 @@ export default function Treatments() {
               <td>{t.balance > 0 ? money(t.balance) : "—"}</td>
               <td className="row gap" style={{ justifyContent: "flex-end" }}>
                 {t.balance > 0 && (
-                  <button className="btn-secondary icon" onClick={() => openPayment(t)}>
+                  <button className="btn-collect icon" onClick={() => openPayment(t)}>
                     <Icon name="payments" size={18} /> Record payment
                   </button>
                 )}

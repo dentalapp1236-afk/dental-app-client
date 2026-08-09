@@ -437,7 +437,7 @@ export default function ClientLedger() {
                       {t.balance > 0 ? `Outstanding ${money(t.balance)}` : "Fully paid"}
                     </span>
                     {t.balance > 0 && (
-                      <button className="btn-secondary icon" onClick={() => openPayment(t)}>
+                      <button className="btn-collect icon" onClick={() => openPayment(t)}>
                         <Icon name="payments" size={18} /> Record payment
                       </button>
                     )}
