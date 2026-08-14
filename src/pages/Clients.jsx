@@ -361,7 +361,16 @@ export default function Clients({ mode = "patients" }) {
           </h3>
           <textarea readOnly rows={6} value={created.shareMessage} />
           <div className="row gap" style={{ flexWrap: "wrap" }}>
-            <button type="button" className="icon" onClick={copyCreds}>
+            {created.client?._id && (
+              <button
+                type="button"
+                className="icon"
+                onClick={() => { setCreated(null); navigate(`/clients/${created.client._id}`); }}
+              >
+                <Icon name="folder_open" size={18} /> Open {created.client.name}'s record
+              </button>
+            )}
+            <button type="button" className="btn-secondary" onClick={copyCreds}>
               <Icon name="content_copy" size={18} /> {copied ? "Copied!" : created.managed ? "Copy message" : "Copy credentials"}
             </button>
             <button
