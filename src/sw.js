@@ -26,7 +26,9 @@ self.addEventListener("push", (event) => {
     icon: "/pwa-192x192.png", // full-color tooth logo (large image)
     badge: "/badge-96x96.png", // monochrome tooth silhouette (status bar)
     vibrate: [120, 60, 120],
-    data: { url: data.url || "/" },
+    data: { url: data.url || "/", ack: data.ack || null },
+    // When the notification can be acknowledged, add a one-tap "Acknowledge" button.
+    ...(data.ack ? { actions: [{ action: "ack", title: "Acknowledge" }] } : {}),
   };
   event.waitUntil(
     (async () => {
@@ -52,17 +54,26 @@ self.addEventListener("push", (event) => {
   );
 });
 
-// Focus or open the app when a notification is clicked
+// Focus or open the app when a notification (or its Acknowledge action) is clicked
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/";
+  const ackId = event.notification.data?.ack;
+  const isAck = event.action === "ack" && ackId;
+  // Acknowledging opens the app to a URL it recognises; otherwise its normal link.
+  const url = isAck ? `/client?ack=${ackId}` : event.notification.data?.url || "/";
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((list) => {
         for (const client of list) {
-          if ("focus" in client) return client.focus();
+          if ("focus" in client) {
+            client.focus();
+            // App already open: tell it which notification to acknowledge.
+            if (isAck) client.postMessage({ type: "acknowledge", ack: ackId });
+            return;
+          }
         }
+        // App closed: open it at the deep link so it acknowledges on load.
         if (self.clients.openWindow) return self.clients.openWindow(url);
       })
   );

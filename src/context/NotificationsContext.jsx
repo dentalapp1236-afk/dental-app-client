@@ -45,12 +45,37 @@ export const NotificationsProvider = ({ children }) => {
   // Show older notifications by raising the fetch limit (the next poll fills them in).
   const loadMore = () => setLimit((n) => n + 50);
 
+  // If the app was opened from a push "Acknowledge" action (deep link ?ack=<id>),
+  // acknowledge that notification and clean the URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ackId = params.get("ack");
+    if (!ackId) return;
+    api
+      .post(`/notifications/${ackId}/acknowledge`, null, { skipLoader: true })
+      .catch(() => {})
+      .finally(() => refresh());
+    params.delete("ack");
+    const clean =
+      window.location.pathname + (params.toString() ? `?${params}` : "") + window.location.hash;
+    window.history.replaceState({}, "", clean);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Play the branded chime the instant a push arrives (the service worker posts a
   // message), instead of waiting for the next poll. Only when the tab is visible —
   // if it's hidden, the OS notification with its own sound has already fired.
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     const onMessage = (event) => {
+      // Tapping the push's "Acknowledge" action (app already open) -> acknowledge.
+      if (event.data?.type === "acknowledge" && event.data.ack) {
+        api
+          .post(`/notifications/${event.data.ack}/acknowledge`, null, { skipLoader: true })
+          .catch(() => {})
+          .finally(() => refresh());
+        return;
+      }
       if (event.data?.type !== "push-received") return;
       if (enabledRef.current && document.visibilityState === "visible") {
         playNotificationAlert();
@@ -142,6 +167,24 @@ export const NotificationsProvider = ({ children }) => {
     });
   };
 
+  // Patient acknowledges an appointment notification -> clinic is notified.
+  const acknowledge = async (id) => {
+    try {
+      await api.post(`/notifications/${id}/acknowledge`, null, { skipLoader: true });
+    } catch {
+      return; // leave the button so they can retry
+    }
+    setItems((prev) => {
+      const next = prev.map((i) =>
+        i._id === id ? { ...i, read: true, data: { ...i.data, acknowledged: true } } : i
+      );
+      const unread = next.filter((i) => !i.read).length;
+      setUnreadCount(unread);
+      prevUnread.current = unread;
+      return next;
+    });
+  };
+
   return (
     <NotificationsContext.Provider
       value={{
@@ -155,6 +198,7 @@ export const NotificationsProvider = ({ children }) => {
         markRead,
         markUnread,
         dismiss,
+        acknowledge,
         enabled,
         setEnabled,
       }}

@@ -36,7 +36,7 @@ const routeFor = (n) => {
 };
 
 export default function NotificationBell() {
-  const { items, unreadCount, markAllRead, markRead, markUnread, dismiss, hasMore, loadMore, enabled, setEnabled } =
+  const { items, unreadCount, markAllRead, markRead, markUnread, dismiss, acknowledge, hasMore, loadMore, enabled, setEnabled } =
     useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -92,6 +92,20 @@ export default function NotificationBell() {
                   <div className="bell-item-main">
                     <div className="bell-title">{n.title}</div>
                     {n.body && <div className="bell-body">{n.body}</div>}
+                    {n.data?.canAcknowledge && (
+                      n.data?.acknowledged ? (
+                        <div className="bell-ack done icon">
+                          <Icon name="check_circle" size={14} /> Acknowledged
+                        </div>
+                      ) : (
+                        <button
+                          className="bell-ack icon"
+                          onClick={(e) => { e.stopPropagation(); acknowledge(n._id); }}
+                        >
+                          <Icon name="done" size={14} /> Acknowledge
+                        </button>
+                      )
+                    )}
                     <div className="bell-time">{timeAgo(n.createdAt)}</div>
                   </div>
                   <div className="bell-item-actions">
