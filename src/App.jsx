@@ -35,6 +35,8 @@ import Maintenance from "./pages/Maintenance";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Agreement from "./pages/Agreement";
+import Impersonate from "./pages/Impersonate";
+import ImpersonationBanner from "./components/ImpersonationBanner";
 
 function Home() {
   const { user, loading } = useAuth();
@@ -81,6 +83,7 @@ function Shell({ children }) {
     <div className="app-shell">
       <Sidebar myDentistId={myDentistId} />
       <div className="app-main">
+        <ImpersonationBanner />
         <header className="topbar">
           <Link to="/" className="topbar-brand icon">
             <Icon name="dentistry" /> MyDentalBooking
@@ -108,6 +111,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/impersonate" element={<Impersonate />} />
         <Route path="/" element={<Home />} />
         <Route
           path="/dentist"
