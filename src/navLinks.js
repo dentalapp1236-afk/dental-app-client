@@ -9,6 +9,7 @@ export const ROLE_LINKS = {
     // Supplies temporarily hidden from the sidebar (route still exists).
     // { to: "/supplies", icon: "shopping_cart", label: "Supplies" },
     { to: "/expenses", icon: "receipt_long", label: "Expenses" },
+    { to: "/invoices", icon: "request_quote", label: "Invoices" },
     { to: "/staff", icon: "badge", label: "Staff" },
     { to: "/settings", icon: "settings", label: "Settings" },
     { to: "/agreement", icon: "handshake", label: "E-Agreement" },

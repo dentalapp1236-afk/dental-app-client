@@ -2280,3 +2280,13 @@ h2.icon { gap: 8px; }
   white-space: nowrap;
 }
 .impersonate-exit:hover { background: rgba(255, 255, 255, 0.24); }
+
+/* Dentist Invoices page */
+.pill-paid { background: #e7f6ec; color: #1a7f37; border-color: #bfe6cc; font-weight: 600; }
+.pill-unpaid { background: #eceef1; color: #4b5563; border-color: #d5dae0; font-weight: 600; }
+.pill-overdue { background: #fdeaea; color: #b42318; border-color: #f4c7c3; font-weight: 600; }
+.inv-due {
+  display: flex; align-items: center; gap: 10px;
+  background: #fdf6ec; border: 1px solid #f0dcb8; color: #8a5a1b;
+}
+.inv-table td[data-label] { vertical-align: middle; }

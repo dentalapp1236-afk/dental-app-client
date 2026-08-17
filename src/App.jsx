@@ -37,6 +37,7 @@ import Settings from "./pages/Settings";
 import Agreement from "./pages/Agreement";
 import Impersonate from "./pages/Impersonate";
 import ImpersonationBanner from "./components/ImpersonationBanner";
+import Invoices from "./pages/Invoices";
 
 function Home() {
   const { user, loading } = useAuth();
@@ -257,6 +258,14 @@ export default function App() {
           element={
             <ProtectedRoute role="dentist">
               <Maintenance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invoices"
+          element={
+            <ProtectedRoute role="dentist">
+              <Invoices />
             </ProtectedRoute>
           }
         />
