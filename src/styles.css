@@ -2290,3 +2290,24 @@ h2.icon { gap: 8px; }
   background: #fdf6ec; border: 1px solid #f0dcb8; color: #8a5a1b;
 }
 .inv-table td[data-label] { vertical-align: middle; }
+
+/* Invoices — "Pay to" bank details */
+.pay-card { padding: 16px; margin: 12px 0 16px; }
+.pay-head { font-weight: 700; margin-bottom: 10px; }
+.pay-row { display: flex; align-items: center; gap: 12px; padding: 5px 0; flex-wrap: wrap; }
+.pay-label { min-width: 110px; color: var(--muted); font-size: 14px; }
+.pay-value { font-weight: 600; }
+.pay-note { margin: 10px 0 0; font-size: 13px; }
+
+/* Copyable account number: blue, underlined, with a copy icon */
+.acct-copy {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 6px; border: none; background: transparent; cursor: pointer;
+  color: var(--primary); border-radius: 6px;
+}
+.acct-copy:hover { background: var(--b-50); }
+.acct-num {
+  font-weight: 700; letter-spacing: .3px;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.acct-copied { font-size: 12px; font-weight: 600; }
