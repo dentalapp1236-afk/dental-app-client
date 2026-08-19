@@ -2167,23 +2167,31 @@ h2.icon { gap: 8px; }
     scroll-behavior: smooth;
   }
   .mobile-nav::-webkit-scrollbar { display: none; }
-  /* Right-edge affordance: fades in when there's more to scroll; tap to advance. */
-  .mobile-nav-more {
+  /* Edge affordances: fade in when there are more tabs that way; tap to advance. */
+  .mobile-nav-arrow {
     position: absolute;
     top: 0;
-    right: 0;
     bottom: env(safe-area-inset-bottom);
     width: 46px;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding-right: 6px;
     border: none;
     cursor: pointer;
     color: var(--primary);
+  }
+  .mobile-nav-arrow.right {
+    right: 0;
+    justify-content: flex-end;
+    padding-right: 6px;
     background: linear-gradient(to right, transparent, var(--surface) 55%);
   }
-  .mobile-nav-more .material-symbols-outlined { font-size: 26px; }
+  .mobile-nav-arrow.left {
+    left: 0;
+    justify-content: flex-start;
+    padding-left: 6px;
+    background: linear-gradient(to left, transparent, var(--surface) 55%);
+  }
+  .mobile-nav-arrow .material-symbols-outlined { font-size: 26px; }
   .mobile-nav-item {
     flex: 1 0 auto;
     min-width: 60px;

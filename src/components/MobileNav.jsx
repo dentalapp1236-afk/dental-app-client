@@ -10,11 +10,13 @@ import Icon from "./Icon";
 export default function MobileNav({ role, myDentistId }) {
   const links = decorateClientLinks(ROLE_LINKS[role] || [], myDentistId);
   const scrollRef = useRef(null);
-  const [more, setMore] = useState(false);
+  const [less, setLess] = useState(false); // more tabs to the left
+  const [more, setMore] = useState(false); // more tabs to the right
 
   const update = () => {
     const el = scrollRef.current;
     if (!el) return;
+    setLess(el.scrollLeft > 4);
     setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   };
 
@@ -30,10 +32,15 @@ export default function MobileNav({ role, myDentistId }) {
     };
   }, [links.length, myDentistId]);
 
-  const nudge = () => scrollRef.current?.scrollBy({ left: 130, behavior: "smooth" });
+  const nudge = (dir) => scrollRef.current?.scrollBy({ left: dir * 130, behavior: "smooth" });
 
   return (
     <div className="mobile-nav-wrap">
+      {less && (
+        <button type="button" className="mobile-nav-arrow left" onClick={() => nudge(-1)} aria-label="Previous tabs">
+          <Icon name="chevron_left" />
+        </button>
+      )}
       <nav className="mobile-nav" ref={scrollRef}>
         {links.map((l) => (
           <NavLink
@@ -48,7 +55,7 @@ export default function MobileNav({ role, myDentistId }) {
         ))}
       </nav>
       {more && (
-        <button type="button" className="mobile-nav-more" onClick={nudge} aria-label="More tabs">
+        <button type="button" className="mobile-nav-arrow right" onClick={() => nudge(1)} aria-label="More tabs">
           <Icon name="chevron_right" />
         </button>
       )}
