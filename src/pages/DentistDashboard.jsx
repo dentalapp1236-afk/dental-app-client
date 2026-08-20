@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
+import SlotPicker from "../components/SlotPicker";
 import {
   clinicDayStr,
   clinicHM,
@@ -69,6 +70,8 @@ export default function DentistDashboard() {
   const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [reschedOpen, setReschedOpen] = useState(false); // reschedule panel in the modal
+  const [reschedDate, setReschedDate] = useState(null); // chosen new slot (ISO)
   const [dismissEnroll, setDismissEnroll] = useState(false); // hide discovery reminder
   const [step, setStep] = useState(15); // clinic's slot length (minutes)
   // Ticks every 30s so the waiting-time counters advance without a data refetch.
@@ -191,6 +194,42 @@ export default function DentistDashboard() {
       if (err.response?.status === 409) {
         await load();
         setSelected(null);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openReschedule = () => {
+    setReschedDate(selected?.date || null);
+    setReschedOpen(true);
+  };
+
+  // Staff move an appointment to a new slot (e.g. a clinic-wide disruption). Uses
+  // the staff edit endpoint, which re-arms reminders and notifies the patient of
+  // the new time.
+  const submitReschedule = async () => {
+    if (!selected || !reschedDate) return;
+    if (new Date(reschedDate).getTime() === new Date(selected.date).getTime()) {
+      setReschedOpen(false);
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data } = await api.put(`/appointments/${selected._id}`, {
+        date: reschedDate,
+        status: "scheduled",
+        version: selected.__v,
+      });
+      setSelected(data);
+      setReschedOpen(false);
+      await load();
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not reschedule.");
+      if (err.response?.status === 409) {
+        await load();
+        setSelected(null);
+        setReschedOpen(false);
       }
     } finally {
       setBusy(false);
@@ -344,7 +383,10 @@ export default function DentistDashboard() {
               <div
                 key={slot}
                 className="day-slot booked"
-                onClick={() => setSelected(appt)}
+                onClick={() => {
+                  setSelected(appt);
+                  setReschedOpen(false);
+                }}
                 title="View details"
               >
                 <span className="slot-time">{fmt12(slot)}</span>
@@ -482,6 +524,31 @@ export default function DentistDashboard() {
                     </button>
                   ))}
                 </div>
+
+                <div className="lbl" style={{ marginTop: 4 }}>Reschedule</div>
+                {!reschedOpen ? (
+                  <div className="row gap" style={{ flexWrap: "wrap" }}>
+                    <button type="button" className="btn-secondary icon" disabled={busy} onClick={openReschedule}>
+                      <Icon name="edit_calendar" size={18} /> Reschedule
+                    </button>
+                  </div>
+                ) : (
+                  <div className="resched-panel">
+                    <SlotPicker
+                      value={reschedDate}
+                      excludeId={selected._id}
+                      onChange={(iso) => setReschedDate(iso)}
+                    />
+                    <div className="row gap" style={{ marginTop: 8, flexWrap: "wrap" }}>
+                      <button type="button" className="icon" disabled={busy || !reschedDate} onClick={submitReschedule}>
+                        <Icon name="check_circle" size={18} /> Save new time
+                      </button>
+                      <button type="button" className="btn-secondary" disabled={busy} onClick={() => setReschedOpen(false)}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
