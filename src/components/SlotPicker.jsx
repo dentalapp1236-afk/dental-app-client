@@ -116,31 +116,36 @@ export default function SlotPicker({
   // override is supplied (public profile), the parent already has the hours.
   const hoursKnown = !!availabilityOverride || !loadError;
 
-  // Clinic hours for the selected day. A per-date override (early leave / day
-  // off) wins over the normal weekly hours for that specific date.
-  const hours = useMemo(() => {
+  // Clinic hours for the selected day, as one or more windows (a day can have a
+  // morning AND an evening session). A per-date override wins over the weekly
+  // hours for that specific date. Returns null while unknown, [] when closed.
+  const windows = useMemo(() => {
     if (!hoursKnown) return null;
     const override = dayOverrides.find((o) => o.date === day);
     if (override) {
-      if (override.closed) return null; // day off — no slots
+      if (override.closed) return []; // day off — no slots
       if (override.start && override.end)
-        return { start: toMin(override.start), end: toMin(override.end) };
+        return [{ start: toMin(override.start), end: toMin(override.end) }];
       // Malformed override -> fall through to weekly hours below.
     }
     const label = JS_DAY_TO_LABEL[clinicDow(day)];
-    const entry = availability.find((a) => a.day === label);
-    if (entry && entry.start && entry.end) return { start: toMin(entry.start), end: toMin(entry.end) };
+    const entries = availability.filter((a) => a.day === label && a.start && a.end);
+    if (entries.length) return entries.map((a) => ({ start: toMin(a.start), end: toMin(a.end) }));
     // No availability configured at all -> sensible default so scheduling still works.
-    if (availability.length === 0) return { start: 9 * 60, end: 18 * 60 };
-    return null; // configured, but closed on this weekday
+    if (availability.length === 0) return [{ start: 9 * 60, end: 18 * 60 }];
+    return []; // configured, but closed on this weekday
   }, [availability, dayOverrides, day, hoursKnown]);
+
+  const isClosed = Array.isArray(windows) && windows.length === 0;
 
   // Prefer the dentist's configured slot length; fall back to the prop default.
   const effectiveStep = fetchedStep || stepMin;
-  const slots = useMemo(
-    () => (hours ? buildSlots(hours.start, hours.end, effectiveStep) : []),
-    [hours, effectiveStep]
-  );
+  const slots = useMemo(() => {
+    if (!windows || windows.length === 0) return [];
+    const set = new Set();
+    for (const w of windows) for (const s of buildSlots(w.start, w.end, effectiveStep)) set.add(s);
+    return [...set].sort((a, b) => toMin(a) - toMin(b));
+  }, [windows, effectiveStep]);
 
   // Minutes-since-midnight (clinic time) of every booked appointment on this day.
   const bookedMins = useMemo(() => {
@@ -225,7 +230,7 @@ export default function SlotPicker({
             <Icon name="refresh" size={18} /> Retry
           </button>
         </div>
-      ) : !hours ? (
+      ) : isClosed ? (
         <p className="muted" style={{ margin: "8px 0" }}>The clinic is closed on this day.</p>
       ) : (
         <div className={`slot-grid${readOnly ? " readonly" : ""}`}>

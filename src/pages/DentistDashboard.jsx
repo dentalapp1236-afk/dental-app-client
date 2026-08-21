@@ -155,19 +155,20 @@ export default function DentistDashboard() {
     return map;
   }, [appts, today]);
 
-  // Clinic hours for today (or null if closed)
-  const hours = useMemo(() => {
+  // Clinic hours for today, as one or more windows (morning + evening supported).
+  const windows = useMemo(() => {
     const label = JS_DAY_TO_LABEL[clinicDow(today)];
-    const entry = availability.find((a) => a.day === label);
-    if (entry?.start && entry?.end) return { start: toMin(entry.start), end: toMin(entry.end) };
-    if (availability.length === 0) return { start: 9 * 60, end: 18 * 60 };
-    return null;
+    const entries = availability.filter((a) => a.day === label && a.start && a.end);
+    if (entries.length) return entries.map((a) => ({ start: toMin(a.start), end: toMin(a.end) }));
+    if (availability.length === 0) return [{ start: 9 * 60, end: 18 * 60 }];
+    return [];
   }, [availability, today]);
 
-  const slots = useMemo(
-    () => (hours ? buildSlots(hours.start, hours.end, step) : []),
-    [hours, step]
-  );
+  const slots = useMemo(() => {
+    const set = new Set();
+    for (const w of windows) for (const s of buildSlots(w.start, w.end, step)) set.add(s);
+    return [...set].sort((a, b) => toMin(a) - toMin(b));
+  }, [windows, step]);
 
   // Times to render = the clinic-hours grid PLUS any appointment whose time
   // doesn't fall on the current grid (e.g. a 9:15 booking made under 15-min

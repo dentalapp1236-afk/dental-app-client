@@ -2351,3 +2351,40 @@ h2.icon { gap: 8px; }
 
 /* Reschedule panel inside the Today's-Schedule appointment modal */
 .resched-panel { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* Prescription / doctor's advice */
+.rx-note {
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #7a5b12;
+}
+.rx-note .material-symbols-outlined { color: #b8791a; }
+.rx-card {
+  margin: 10px 0;
+  padding: 10px 12px;
+  background: #fff8ec;
+  border: 1px solid #f0dcb8;
+  border-radius: 10px;
+}
+.rx-card-head { gap: 6px; font-weight: 700; color: #8a5a1b; font-size: 13px; margin-bottom: 4px; }
+.rx-card-head .material-symbols-outlined { color: #b8791a; }
+.rx-card-body { color: #5c4a23; white-space: pre-wrap; }
+
+/* Multi-block clinic hours (morning + evening per day) */
+.avail-row { align-items: flex-start; }
+.avail-day { margin-top: 2px; }
+.avail-blocks { display: flex; flex-direction: column; gap: 8px; }
+.avail-add {
+  align-self: flex-start;
+  background: none; border: 1px dashed var(--border); color: var(--primary);
+  padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.avail-add:hover { background: var(--b-50); border-color: var(--primary); }
+.avail-remove {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  display: inline-flex; align-items: center; padding: 2px; border-radius: 6px;
+}
+.avail-remove:hover { color: var(--danger); background: #fdeaea; }

@@ -53,6 +53,7 @@ export default function ClientLedger() {
     toothNumber: "",
     diagnosis: "",
     description: "",
+    prescription: "",
     cost: "",
     upfront: "",
     upfrontMethod: "cash",
@@ -113,6 +114,7 @@ export default function ClientLedger() {
       toothNumber: t.toothNumber || "",
       diagnosis: t.diagnosis || "",
       description: t.description || "",
+      prescription: t.prescription || "",
       cost: t.cost ?? "",
       upfront: "",
       collected: t.paidAmount ?? 0, // read-only display on edit (from payments)
@@ -181,6 +183,7 @@ export default function ClientLedger() {
       toothNumber: treatForm.toothNumber,
       diagnosis: treatForm.diagnosis,
       description: treatForm.description,
+      prescription: treatForm.prescription,
       cost: Number(treatForm.cost) || 0,
       upfront: Number(treatForm.upfront) || 0,
       upfrontMethod: treatForm.upfrontMethod,
@@ -194,6 +197,7 @@ export default function ClientLedger() {
           toothNumber: treatForm.toothNumber,
           diagnosis: treatForm.diagnosis,
           description: treatForm.description,
+          prescription: treatForm.prescription,
           cost: Number(treatForm.cost) || 0,
           collected: Number(treatForm.collected) || 0,
           date: treatForm.date,
@@ -427,6 +431,12 @@ export default function ClientLedger() {
                   {t.toothNumber ? ` · Tooth ${t.toothNumber}` : ""}
                   {t.diagnosis ? ` · ${t.diagnosis}` : ""}
                 </div>
+                {t.prescription && (
+                  <div className="rx-note icon">
+                    <Icon name="prescriptions" size={15} />
+                    <span>{t.prescription}</span>
+                  </div>
+                )}
               </div>
               <div className="row gap" style={{ flexWrap: "wrap", alignItems: "center" }}>
                 {t.cost > 0 ? (
@@ -734,6 +744,17 @@ export default function ClientLedger() {
               <label>
                 Description
                 <textarea name="description" rows={2} value={treatForm.description} onChange={treatChange} />
+              </label>
+              <label>
+                <span className="lbl icon"><Icon name="prescriptions" size={16} /> Prescription / advice</span>
+                <textarea
+                  name="prescription"
+                  rows={2}
+                  placeholder="e.g. Avoid eating hard things, avoid hot drinks for 2 days"
+                  value={treatForm.prescription}
+                  onChange={treatChange}
+                />
+                <span className="muted" style={{ fontSize: 12 }}>The patient can see this in their app.</span>
               </label>
               <div className="row gap">
                 <button type="submit" className="icon" disabled={savingTreat}>

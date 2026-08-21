@@ -105,6 +105,14 @@ export default function ClientTreatments() {
                       </span>
                     )}
                   </div>
+                  {t.prescription && (
+                    <div className="rx-card">
+                      <div className="rx-card-head icon">
+                        <Icon name="prescriptions" size={16} /> Doctor's advice
+                      </div>
+                      <div className="rx-card-body">{t.prescription}</div>
+                    </div>
+                  )}
                   <div className="row gap" style={{ flexWrap: "wrap" }}>
                     <button className="btn-secondary icon" onClick={() => openReport(t)}>
                       <Icon name="report" size={18} /> Report a problem
