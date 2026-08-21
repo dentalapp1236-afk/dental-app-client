@@ -70,7 +70,7 @@ export default function AvailabilityEditor({ value = [], onChange }) {
                     )}
                   </div>
                 ))}
-                <button type="button" className="avail-add icon" onClick={() => addBlock(day)}>
+                <button type="button" className="btn-secondary avail-add icon" onClick={() => addBlock(day)}>
                   <Icon name="add" size={16} /> Add hours
                 </button>
               </div>
