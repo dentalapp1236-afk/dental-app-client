@@ -2185,13 +2185,22 @@ h2.icon { gap: 8px; }
   .mobile-nav-arrow:hover,
   .mobile-nav-arrow:active { color: var(--primary-hover); }
   .mobile-nav-arrow:focus-visible { outline: none; color: var(--primary-hover); }
-  .mobile-nav-arrow.right {
+  /* Hover/active/focus variants included so the gradient beats the global
+     `button:hover` blue fill (higher specificity) — otherwise the blue icon
+     gets camouflaged against a solid-blue background on tap. */
+  .mobile-nav-arrow.right,
+  .mobile-nav-arrow.right:hover:not(:disabled),
+  .mobile-nav-arrow.right:active,
+  .mobile-nav-arrow.right:focus {
     right: 0;
     justify-content: flex-end;
     padding-right: 6px;
     background: linear-gradient(to right, transparent, var(--surface) 55%);
   }
-  .mobile-nav-arrow.left {
+  .mobile-nav-arrow.left,
+  .mobile-nav-arrow.left:hover:not(:disabled),
+  .mobile-nav-arrow.left:active,
+  .mobile-nav-arrow.left:focus {
     left: 0;
     justify-content: flex-start;
     padding-left: 6px;
