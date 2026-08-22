@@ -2178,7 +2178,13 @@ h2.icon { gap: 8px; }
     border: none;
     cursor: pointer;
     color: var(--primary);
+    -webkit-tap-highlight-color: transparent; /* no grey flash on tap (mobile) */
   }
+  /* Match the app's icon-button convention: colour shift only, no box. The
+     gradient background is preserved across hover/active/focus. */
+  .mobile-nav-arrow:hover,
+  .mobile-nav-arrow:active { color: var(--primary-hover); }
+  .mobile-nav-arrow:focus-visible { outline: none; color: var(--primary-hover); }
   .mobile-nav-arrow.right {
     right: 0;
     justify-content: flex-end;
