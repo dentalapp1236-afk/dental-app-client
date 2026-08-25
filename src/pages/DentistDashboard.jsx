@@ -302,8 +302,8 @@ export default function DentistDashboard() {
           <Icon name="schedule" size={18} />
           <span>
             {enrollReminder.kind === "ending"
-              ? `Your free discovery period ends in ${enrollReminder.daysLeft} day${enrollReminder.daysLeft !== 1 ? "s" : ""} — Rs 2,000/month begins after that.`
-              : "Your free discovery period has ended — the Rs 2,000/month subscription is now active."}
+              ? `Your free discovery period ends in ${enrollReminder.daysLeft} day${enrollReminder.daysLeft !== 1 ? "s" : ""} — Rs 3,000/month begins after that.`
+              : "Your free discovery period has ended — the Rs 3,000/month subscription is now active."}
           </span>
           <button type="button" className="enroll-reminder-link" onClick={() => navigate("/agreement")}>
             View agreement

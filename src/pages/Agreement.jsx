@@ -20,7 +20,7 @@ const TERMS = [
   },
   {
     title: "3. Subscription fee",
-    body: "After the 3-month discovery phase, the subscription is Rs 2,000 per month, billed monthly. Continued use of the service after the discovery phase constitutes acceptance of the monthly fee. Prices are exclusive of any applicable taxes.",
+    body: "After the 3-month discovery phase, the subscription is Rs 3,000 per month, billed monthly. Continued use of the service after the discovery phase constitutes acceptance of the monthly fee. Prices are exclusive of any applicable taxes.",
   },
   {
     title: "4. Payment & cancellation",
@@ -81,7 +81,7 @@ export default function Agreement() {
   const accepted = agreement?.acceptedAt ? agreement : null;
 
   // Enrollment / billing tracker, derived from the sign date: 3-month free
-  // discovery, then Rs 2,000/month.
+  // discovery, then Rs 3,000/month.
   let enroll = null;
   if (accepted) {
     const enrolledAt = new Date(accepted.acceptedAt);
@@ -173,7 +173,7 @@ export default function Agreement() {
             </div>
             <div>
               <div className="enroll-label">Monthly fee after</div>
-              <div className="enroll-value">Rs 2,000<span className="muted" style={{ fontWeight: 500 }}> /month</span></div>
+              <div className="enroll-value">Rs 3,000<span className="muted" style={{ fontWeight: 500 }}> /month</span></div>
             </div>
           </div>
 
@@ -187,7 +187,7 @@ export default function Agreement() {
             </>
           ) : (
             <div className="enroll-status active icon">
-              <Icon name="workspace_premium" size={16} /> Subscription active — Rs 2,000 / month
+              <Icon name="workspace_premium" size={16} /> Subscription active — Rs 3,000 / month
               (discovery ended {formatDate(enroll.discoveryEnd)})
             </div>
           )}
@@ -219,7 +219,7 @@ export default function Agreement() {
         </div>
         <div className="ap-sep">then</div>
         <div className="ap-item">
-          <div className="ap-value">Rs 2,000<span>/month</span></div>
+          <div className="ap-value">Rs 3,000<span>/month</span></div>
           <div className="ap-label">Monthly subscription</div>
         </div>
       </div>
