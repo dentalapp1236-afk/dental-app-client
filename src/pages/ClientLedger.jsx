@@ -7,6 +7,7 @@ import SlotPicker from "../components/SlotPicker";
 import { SkeletonTable } from "../components/Skeleton";
 import { COMMON_PROCEDURES } from "../data/procedures";
 import ProcedureInput from "../components/ProcedureInput";
+import { trackAppointment, trackTreatment, trackPayment, trackFollowUp } from "../utils/analytics";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
@@ -145,6 +146,7 @@ export default function ClientLedger() {
         notes: apptForm.notes,
         date: apptForm.date, // already an ISO instant from the slot picker
       });
+      trackAppointment("booked", { appointment_id: data?.appointment?._id, actor: "dentist" });
       setShowAppt(false);
       setApptShare(data);
     } catch (err) {
@@ -203,8 +205,10 @@ export default function ClientLedger() {
           date: treatForm.date,
           version: editTreatVersion,
         });
+        trackTreatment("updated", { treatment_id: editingTreatId });
       } else {
         await api.post("/treatments", createPayload);
+        trackTreatment("created", { client_id: id });
       }
       setShowTreat(false);
       await loadTreatments();
@@ -214,6 +218,7 @@ export default function ClientLedger() {
         if (window.confirm("A matching treatment for this patient is already recorded today. Record it again anyway?")) {
           try {
             await api.post("/treatments", { ...createPayload, force: true });
+            trackTreatment("created", { client_id: id, forced: true });
             setShowTreat(false);
             await loadTreatments();
           } catch (e2) {
@@ -244,6 +249,7 @@ export default function ClientLedger() {
         method: payForm.method,
         date: payForm.date,
       });
+      trackPayment("created", { treatment_id: payTarget._id });
       setPayTarget(null);
       await loadTreatments();
     } catch (err) {
@@ -256,6 +262,7 @@ export default function ClientLedger() {
     if (!confirm(`Delete the "${t.procedure}" treatment and all its payments?`)) return;
     try {
       await api.delete(`/treatments/${t._id}`);
+      trackTreatment("deleted", { treatment_id: t._id });
       await loadTreatments();
     } catch (err) {
       alert(err.response?.data?.message || "Could not delete treatment.");
@@ -265,6 +272,7 @@ export default function ClientLedger() {
   const resolveFollowUp = async (treatId, fid) => {
     try {
       await api.put(`/treatments/${treatId}/follow-up/${fid}/resolve`);
+      trackFollowUp("resolved", { treatment_id: treatId, follow_up_id: fid });
       await loadTreatments();
     } catch (err) {
       alert(err.response?.data?.message || "Could not update the report.");
@@ -302,6 +310,7 @@ export default function ClientLedger() {
         method: editPay.method,
         date: editPay.date,
       });
+      trackPayment("updated", { treatment_id: editPay.treatId, payment_id: editPay.paymentId });
       setEditPay(null);
       await loadTreatments();
     } catch (err) {
@@ -314,6 +323,7 @@ export default function ClientLedger() {
     if (!confirm("Delete this payment?")) return;
     try {
       await api.delete(`/treatments/${treatId}/payments/${paymentId}`);
+      trackPayment("deleted", { treatment_id: treatId, payment_id: paymentId });
       await loadTreatments();
     } catch (err) {
       alert(err.response?.data?.message || "Could not delete payment.");

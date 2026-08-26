@@ -2,6 +2,7 @@ import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ROLE_LINKS, decorateClientLinks } from "../navLinks";
 import Icon from "./Icon";
+import { trackTabViewed } from "../utils/analytics";
 
 export default function Sidebar({ open, onNavigate, myDentistId }) {
   const { user } = useAuth();
@@ -25,7 +26,10 @@ export default function Sidebar({ open, onNavigate, myDentistId }) {
             to={l.to}
             end={links.some((o) => o.to !== l.to && o.to.startsWith(`${l.to}/`))}
             className="sidebar-link"
-            onClick={onNavigate}
+            onClick={() => {
+              trackTabViewed(l.label, l.to);
+              onNavigate?.();
+            }}
           >
             <Icon name={l.icon} />
             <span>{l.label}</span>

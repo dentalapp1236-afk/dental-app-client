@@ -6,6 +6,7 @@ import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 import AppointmentActions from "../components/AppointmentActions";
 import { SkeletonCards } from "../components/Skeleton";
+import { trackAppointment } from "../utils/analytics";
 
 const statusLabel = (s) =>
   s === "pending" ? "Awaiting confirmation" : s === "no_show" ? "No-show" : s;
@@ -64,6 +65,7 @@ export default function ClientAppointments() {
     setReqBusy(true);
     try {
       await api.post("/appointments/request", { date: reqDate, reason: reqReason, for: reqFor || undefined });
+      trackAppointment("requested", { dentist_id: assoc?.dentist?._id });
       setShowRequest(false);
       setReqSent(true);
       await loadAppointments();

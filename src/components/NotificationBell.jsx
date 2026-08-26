@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationsContext";
 import Icon from "./Icon";
+import { trackNotificationViewed, trackNotificationDismissed } from "../utils/analytics";
 
 const timeAgo = (d) => {
   const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
@@ -43,6 +44,7 @@ export default function NotificationBell() {
 
   const openItem = (n) => {
     if (!n.read) markRead(n._id);
+    trackNotificationViewed(n.type);
     setOpen(false);
     navigate(routeFor(n));
   };
@@ -126,6 +128,7 @@ export default function NotificationBell() {
                       title="Dismiss"
                       onClick={(e) => {
                         e.stopPropagation();
+                        trackNotificationDismissed(n.type);
                         dismiss(n._id);
                       }}
                     >

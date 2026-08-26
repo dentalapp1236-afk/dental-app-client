@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/axios";
+import { identify, resetAnalytics, trackLogIn, trackLogOut, trackSignUp } from "../utils/analytics";
 
 const AuthContext = createContext(null);
 
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }) => {
       .then((r) => {
         setUser(r.data.user);
         localStorage.setItem("user", JSON.stringify(r.data.user));
+        identify(r.data.user);
       })
       .catch(() => {
         localStorage.removeItem("token");
@@ -40,6 +42,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
     setUser(data.user);
+    identify(data.user);
+    trackLogIn(data.user);
     return data.user;
   };
 
@@ -48,6 +52,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
     setUser(data.user);
+    identify(data.user);
+    trackSignUp(data.user);
     return data.user;
   };
 
@@ -60,6 +66,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+    trackLogOut();
+    resetAnalytics();
   };
 
   return (

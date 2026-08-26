@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ROLE_LINKS, decorateClientLinks } from "../navLinks";
 import Icon from "./Icon";
+import { trackTabViewed } from "../utils/analytics";
 
 // Bottom tab bar shown on mobile to switch between sections. When the links
 // overflow (e.g. the dentist has many), the bar scrolls horizontally and shows
@@ -48,6 +49,7 @@ export default function MobileNav({ role, myDentistId }) {
             to={l.to}
             end={links.some((o) => o.to !== l.to && o.to.startsWith(`${l.to}/`))}
             className="mobile-nav-item"
+            onClick={() => trackTabViewed(l.label, l.to)}
           >
             <Icon name={l.icon} />
             <span>{l.label}</span>

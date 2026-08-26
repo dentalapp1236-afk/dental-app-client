@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
+import { trackAgreementSigned } from "../utils/analytics";
 
 // Bump this when the terms change so re-acceptance can be required/tracked.
 const AGREEMENT_VERSION = "2026-08-v1";
@@ -113,6 +114,7 @@ export default function Agreement() {
       });
       updateUser(data.user);
       setAgreement(data.user.agreement || null);
+      trackAgreementSigned();
     } catch (err) {
       setError(err.response?.data?.message || "Could not save your acceptance. Please try again.");
     } finally {

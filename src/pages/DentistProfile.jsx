@@ -6,6 +6,7 @@ import Icon from "../components/Icon";
 import Avatar from "../components/Avatar";
 import StarRating from "../components/StarRating";
 import PublicTopbar from "../components/PublicTopbar";
+import { trackDentistAssociationRequested } from "../utils/analytics";
 
 // "17:00" -> "5:00 PM" (or unchanged when show24).
 const fmtTime = (hhmm, show24) => {
@@ -69,6 +70,7 @@ export default function DentistProfile() {
     setRequesting(true);
     try {
       await api.post("/associations/request", { dentistId: id });
+      trackDentistAssociationRequested(id);
       setAssoc((a) => ({ ...(a || {}), pending: { dentist: { _id: id, name: dentist.name } } }));
       setAssocMsg("Request sent — the dentist will be notified.");
     } catch (err) {

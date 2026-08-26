@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import Icon from "./Icon";
 import SlotPicker from "./SlotPicker";
+import { trackAppointment } from "../utils/analytics";
 
 // Elapsed waiting time since the patient marked themselves arrived.
 const waitLabel = (arrivedAt, now) => {
@@ -44,6 +45,11 @@ export default function AppointmentActions({ appointment, onChanged }) {
     setArrBusy(true);
     try {
       await api.patch(`/appointments/${a._id}/arrival`, { status });
+      trackAppointment("arrival_updated", {
+        appointment_id: a._id,
+        arrival_status: status,
+        actor: "patient",
+      });
       if (status === "arrived") {
         setNowTick(Date.now());
         setJustArrived(true);
@@ -70,6 +76,7 @@ export default function AppointmentActions({ appointment, onChanged }) {
     setBusy(true);
     try {
       await api.patch(`/appointments/${a._id}/reschedule`, { date: reschedDate });
+      trackAppointment("rescheduled", { appointment_id: a._id, actor: "patient" });
       setReschedOpen(false);
       onChanged?.();
     } catch (e2) {
@@ -84,6 +91,7 @@ export default function AppointmentActions({ appointment, onChanged }) {
     setCancelling(true);
     try {
       await api.patch(`/appointments/${a._id}/cancel`);
+      trackAppointment("cancelled", { appointment_id: a._id, actor: "patient" });
       onChanged?.();
     } catch (e2) {
       alert(e2.response?.data?.message || "Could not cancel.");

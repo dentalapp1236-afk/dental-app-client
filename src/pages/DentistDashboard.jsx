@@ -7,6 +7,7 @@ import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
 import SlotPicker from "../components/SlotPicker";
+import { trackAppointment } from "../utils/analytics";
 import {
   clinicDayStr,
   clinicHM,
@@ -188,6 +189,11 @@ export default function DentistDashboard() {
         status,
         version: selected.__v,
       });
+      trackAppointment("status_changed", {
+        appointment_id: selected._id,
+        status,
+        actor: "dentist",
+      });
       setSelected(data);
       await load();
     } catch (err) {
@@ -222,6 +228,7 @@ export default function DentistDashboard() {
         status: "scheduled",
         version: selected.__v,
       });
+      trackAppointment("rescheduled", { appointment_id: selected._id, actor: "dentist" });
       setSelected(data);
       setReschedOpen(false);
       await load();
@@ -244,6 +251,11 @@ export default function DentistDashboard() {
     setBusy(true);
     try {
       const { data } = await api.patch(`/appointments/${selected._id}/arrival`, { status });
+      trackAppointment("arrival_updated", {
+        appointment_id: selected._id,
+        arrival_status: status,
+        actor: "dentist",
+      });
       setSelected(data);
       await load();
     } catch (err) {
@@ -258,6 +270,10 @@ export default function DentistDashboard() {
     setBusy(true);
     try {
       const { data } = await api.patch(`/appointments/${selected._id}/${action}`);
+      trackAppointment(action === "confirm" ? "confirmed" : "declined", {
+        appointment_id: selected._id,
+        actor: "dentist",
+      });
       setSelected(data);
       await load();
     } catch (err) {

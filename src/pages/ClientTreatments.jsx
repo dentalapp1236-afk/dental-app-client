@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
 import { SkeletonCards } from "../components/Skeleton";
+import { trackFollowUp } from "../utils/analytics";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -42,6 +43,7 @@ export default function ClientTreatments() {
     setReportBusy(true);
     try {
       await api.post(`/treatments/${reportTarget._id}/follow-up`, { message: reportText.trim() });
+      trackFollowUp("reported", { treatment_id: reportTarget._id });
       setReportTarget(null);
       setReportDone(true);
       await load();

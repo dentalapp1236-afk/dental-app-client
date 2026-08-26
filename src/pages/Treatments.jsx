@@ -5,6 +5,7 @@ import Icon from "../components/Icon";
 import ClientSearchSelect from "../components/ClientSearchSelect";
 import { COMMON_PROCEDURES } from "../data/procedures";
 import ProcedureInput from "../components/ProcedureInput";
+import { trackTreatment, trackPayment } from "../utils/analytics";
 
 const money = (n) =>
   `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -74,6 +75,7 @@ export default function Treatments() {
     setSaving(true);
     try {
       await api.post("/treatments", payload);
+      trackTreatment("created", { client_id: form.client });
       resetForm();
       load();
     } catch (err) {
@@ -82,6 +84,7 @@ export default function Treatments() {
         if (window.confirm("A matching treatment for this patient is already recorded today. Record it again anyway?")) {
           try {
             await api.post("/treatments", { ...payload, force: true });
+            trackTreatment("created", { client_id: form.client, forced: true });
             resetForm();
             load();
           } catch (e2) {
@@ -99,6 +102,7 @@ export default function Treatments() {
   const handleDelete = async (id) => {
     if (!confirm("Delete this treatment?")) return;
     await api.delete(`/treatments/${id}`);
+    trackTreatment("deleted", { treatment_id: id });
     load();
   };
 
@@ -119,6 +123,7 @@ export default function Treatments() {
         note: payForm.note,
         date: payForm.date,
       });
+      trackPayment("created", { treatment_id: payTarget._id });
       setPayTarget(null);
       load();
     } catch (err) {

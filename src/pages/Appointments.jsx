@@ -6,6 +6,7 @@ import { useNotifications } from "../context/NotificationsContext";
 import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 import ClientSearchSelect from "../components/ClientSearchSelect";
+import { trackAppointment } from "../utils/analytics";
 
 const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled" };
 const statusLabel = (s) => (s === "no_show" ? "No-show" : s === "pending" ? "Pending" : s);
@@ -147,9 +148,11 @@ export default function Appointments() {
       const payload = { ...form };
       if (editingId) {
         await api.put(`/appointments/${editingId}`, payload);
+        trackAppointment("updated", { appointment_id: editingId, actor: "dentist" });
         resetForm();
       } else {
         const { data } = await api.post("/appointments", payload);
+        trackAppointment("booked", { appointment_id: data?.appointment?._id, actor: "dentist" });
         resetForm();
         setScheduled(data);
       }
@@ -180,12 +183,17 @@ export default function Appointments() {
   const handleDelete = async (id) => {
     if (!confirm("Delete this appointment?")) return;
     await api.delete(`/appointments/${id}`);
+    trackAppointment("deleted", { appointment_id: id, actor: "dentist" });
     load();
   };
 
   const respondToRequest = async (id, action) => {
     try {
       await api.patch(`/appointments/${id}/${action}`);
+      trackAppointment(action === "confirm" ? "confirmed" : "declined", {
+        appointment_id: id,
+        actor: "dentist",
+      });
       await loadAppointments();
       refreshNotifications();
     } catch (err) {
