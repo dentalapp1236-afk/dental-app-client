@@ -650,7 +650,7 @@ a:hover { text-decoration: underline; }
 }
 .auth-forgot a:hover { color: var(--primary); }
 .auth-remember {
-  display: flex;
+  flex-direction: row !important;
   align-items: center;
   gap: 6px;
   font-size: 13px;
