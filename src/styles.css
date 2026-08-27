@@ -638,7 +638,9 @@ a:hover { text-decoration: underline; }
 }
 .auth-alt a:hover { text-decoration: underline; }
 .auth-forgot {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: -4px;
 }
 .auth-forgot a {
@@ -647,6 +649,15 @@ a:hover { text-decoration: underline; }
   color: var(--muted);
 }
 .auth-forgot a:hover { color: var(--primary); }
+.auth-remember {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.auth-remember input { width: auto; cursor: pointer; }
 
 /* Inputs with a leading icon */
 .input-wrap { position: relative; display: flex; width: 100%; }

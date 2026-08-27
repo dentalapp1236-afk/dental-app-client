@@ -11,6 +11,7 @@ export default function Login() {
   const { canInstall, install, iosHint } = usePwaInstall();
   const navigate = useNavigate();
   const [form, setForm] = useState({ identifier: "", password: "" });
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -53,7 +54,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const user = await login(form.identifier, form.password);
+      const user = await login(form.identifier, form.password, remember);
       navigate(
         user.role === "dentist"
           ? "/dentist"
@@ -107,6 +108,14 @@ export default function Login() {
           {errors.password && <span className="field-error">{errors.password}</span>}
         </label>
         <div className="auth-forgot">
+          <label className="auth-remember">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+            />
+            Remember me
+          </label>
           <Link to="/forgot-password">Forgot password?</Link>
         </div>
         <button type="submit" disabled={loading}>
