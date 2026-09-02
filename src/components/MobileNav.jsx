@@ -8,7 +8,7 @@ import { trackTabViewed } from "../utils/analytics";
 // overflow (e.g. the dentist has many), the bar scrolls horizontally and shows
 // a right-edge chevron; tapping it nudges the bar along. Scroll is contained so
 // swiping the bar never triggers the browser's back/forward gesture.
-export default function MobileNav({ role, myDentistId }) {
+export default function MobileNav({ role, myDentistId, badges }) {
   const links = decorateClientLinks(ROLE_LINKS[role] || [], myDentistId);
   const scrollRef = useRef(null);
   const [less, setLess] = useState(false); // more tabs to the left
@@ -43,18 +43,24 @@ export default function MobileNav({ role, myDentistId }) {
         </button>
       )}
       <nav className="mobile-nav" ref={scrollRef}>
-        {links.map((l) => (
-          <NavLink
-            key={l.to}
-            to={l.to}
-            end={links.some((o) => o.to !== l.to && o.to.startsWith(`${l.to}/`))}
-            className="mobile-nav-item"
-            onClick={() => trackTabViewed(l.label, l.to)}
-          >
-            <Icon name={l.icon} />
-            <span>{l.label}</span>
-          </NavLink>
-        ))}
+        {links.map((l) => {
+          const count = badges?.[l.to];
+          return (
+            <NavLink
+              key={l.to}
+              to={l.to}
+              end={links.some((o) => o.to !== l.to && o.to.startsWith(`${l.to}/`))}
+              className="mobile-nav-item"
+              onClick={() => trackTabViewed(l.label, l.to)}
+            >
+              <span className="nav-icon-wrap">
+                <Icon name={l.icon} />
+                {!!count && <span className="nav-badge">{count > 9 ? "9+" : count}</span>}
+              </span>
+              <span>{l.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
       {more && (
         <button type="button" className="mobile-nav-arrow right" onClick={() => nudge(1)} aria-label="More tabs">

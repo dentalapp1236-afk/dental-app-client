@@ -60,6 +60,9 @@ function Shell({ children }) {
   // For patients: know their associated dentist so the "Find a dentist" tab
   // becomes "My dentist" pointing to that dentist's profile.
   const [myDentistId, setMyDentistId] = useState(null);
+  // For dentist/assistant: red nav-badge counts so a pending association or
+  // appointment request is visible without having to open that tab first.
+  const [badges, setBadges] = useState({});
 
   useEffect(() => {
     if (user?.role !== "client") {
@@ -78,11 +81,30 @@ function Shell({ children }) {
     return () => window.removeEventListener("association-changed", refresh);
   }, [user, items.length]);
 
+  useEffect(() => {
+    if (user?.role !== "dentist" && user?.role !== "assistant") {
+      setBadges({});
+      return;
+    }
+    const refresh = () =>
+      Promise.all([
+        api.get("/associations/requests", { skipLoader: true }),
+        api.get("/appointments/pending-count", { skipLoader: true }),
+      ])
+        .then(([assoc, appt]) =>
+          setBadges({ "/clients": assoc.data.length, "/appointments": appt.data.count })
+        )
+        .catch(() => {});
+    refresh();
+    window.addEventListener("association-changed", refresh);
+    return () => window.removeEventListener("association-changed", refresh);
+  }, [user, items.length]);
+
   if (!user) return children;
 
   return (
     <div className="app-shell">
-      <Sidebar myDentistId={myDentistId} />
+      <Sidebar myDentistId={myDentistId} badges={badges} />
       <div className="app-main">
         <ImpersonationBanner />
         <header className="topbar">
@@ -96,7 +118,7 @@ function Shell({ children }) {
         </header>
         {children}
       </div>
-      <MobileNav role={user.role} myDentistId={myDentistId} />
+      <MobileNav role={user.role} myDentistId={myDentistId} badges={badges} />
     </div>
   );
 }

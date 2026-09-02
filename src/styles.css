@@ -473,6 +473,29 @@ a:hover { text-decoration: underline; }
   justify-content: center;
   line-height: 1;
 }
+
+/* Same red-count treatment as .bell-badge, sized for a nav-link icon (Sidebar +
+   MobileNav) so a pending association/appointment request is visible without
+   opening that tab first. */
+.nav-icon-wrap { position: relative; display: inline-flex; }
+.nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 8px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .bell-dropdown {
   /* Desktop: drop below the bell, aligned to its right edge */
   position: absolute;
