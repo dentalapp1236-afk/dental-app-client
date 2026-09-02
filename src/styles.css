@@ -1398,9 +1398,16 @@ a.btn-danger-soft {
 /* Subtle on-brand hover (overrides the generic solid-blue button:hover) */
 .avail-day:hover:not(:disabled) { background: var(--b-50); color: var(--primary); }
 .avail-day .material-symbols-outlined { color: inherit; }
-.avail-times { display: flex; align-items: center; gap: 8px; }
+.avail-times { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .avail-times input { width: auto; }
 .avail-dash { color: var(--muted); }
+
+/* Always-12-hour time picker (hour / minute / AM-PM) — replaces native
+   <input type="time">, whose clock format follows the device's OS locale and
+   can't be forced to 12h from HTML/CSS. */
+.time12 { display: flex; align-items: center; gap: 3px; flex-wrap: nowrap; }
+.time12 select { width: auto; padding: 6px 4px; font-size: 14px; }
+.time12-colon { color: var(--muted); }
 
 /* Per-date schedule exceptions (early leave / day off) */
 .override-editor { display: flex; flex-direction: column; gap: 12px; }

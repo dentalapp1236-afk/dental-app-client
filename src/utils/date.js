@@ -46,3 +46,12 @@ export const formatTime = (value) => {
     hour12: true,
   });
 };
+
+// "HH:MM" (24h, e.g. clinic opening hours) -> "9:00 AM". Not a full date, so
+// toLocaleTimeString doesn't apply — always 12-hour, independent of device locale.
+export const formatHM = (hhmm) => {
+  if (!hhmm) return "—";
+  const [h, m] = hhmm.split(":").map(Number);
+  const period = h < 12 ? "AM" : "PM";
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${period}`;
+};
