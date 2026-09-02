@@ -28,6 +28,17 @@ export default function AvailabilityEditor({ value = [], onChange }) {
   const setTime = (day, idx, field, t) =>
     emit(day, (byDay[day] || []).map((b, i) => (i === idx ? { ...b, [field]: t } : b)));
 
+  // Most clinics keep the same hours every day — let the dentist set one day
+  // and copy it everywhere instead of retyping the same times seven times.
+  const copyToAll = (day) => {
+    const blocks = byDay[day] || [];
+    if (!blocks.length) return;
+    const times = blocks.map((b) => `${b.start}–${b.end}`).join(", ");
+    if (!confirm(`Use ${day}'s hours (${times}) for every day? This replaces any existing hours.`)) return;
+    const next = WEEKDAYS.flatMap((d) => blocks.map((b) => ({ ...b, day: d })));
+    onChange(next);
+  };
+
   return (
     <div className="avail-editor">
       {WEEKDAYS.map((day) => {
@@ -70,9 +81,14 @@ export default function AvailabilityEditor({ value = [], onChange }) {
                     )}
                   </div>
                 ))}
-                <button type="button" className="btn-secondary avail-add icon" onClick={() => addBlock(day)}>
-                  <Icon name="add" size={16} /> Add hours
-                </button>
+                <div className="avail-actions">
+                  <button type="button" className="btn-secondary avail-add icon" onClick={() => addBlock(day)}>
+                    <Icon name="add" size={16} /> Add hours
+                  </button>
+                  <button type="button" className="btn-secondary avail-add icon" onClick={() => copyToAll(day)}>
+                    <Icon name="content_copy" size={16} /> Use for all days
+                  </button>
+                </div>
               </div>
             ) : (
               <span className="muted">Closed</span>
