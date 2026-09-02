@@ -185,6 +185,7 @@ export default function Appointments() {
     await api.delete(`/appointments/${id}`);
     trackAppointment("deleted", { appointment_id: id, actor: "dentist" });
     load();
+    window.dispatchEvent(new Event("pending-requests-changed"));
   };
 
   const respondToRequest = async (id, action) => {
@@ -196,6 +197,7 @@ export default function Appointments() {
       });
       await loadAppointments();
       refreshNotifications();
+      window.dispatchEvent(new Event("pending-requests-changed"));
     } catch (err) {
       alert(err.response?.data?.message || "Could not update the request.");
       loadAppointments();

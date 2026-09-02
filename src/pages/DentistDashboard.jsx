@@ -276,6 +276,7 @@ export default function DentistDashboard() {
       });
       setSelected(data);
       await load();
+      window.dispatchEvent(new Event("pending-requests-changed"));
     } catch (err) {
       alert(err.response?.data?.message || "Could not update the request.");
       await load();

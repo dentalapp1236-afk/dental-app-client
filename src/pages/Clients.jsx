@@ -270,6 +270,7 @@ export default function Clients({ mode = "patients" }) {
     await loadRequests();
     await load();
     refreshNotifications();
+    window.dispatchEvent(new Event("pending-requests-changed"));
   };
 
   const copyCreds = async () => {

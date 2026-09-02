@@ -96,8 +96,16 @@ function Shell({ children }) {
         )
         .catch(() => {});
     refresh();
+    // "association-changed" fires from the patient side (request/leave); the
+    // dentist/assistant side fires "pending-requests-changed" the instant they
+    // approve/reject an association or confirm/decline an appointment, so the
+    // badge clears immediately instead of waiting for the next notifications poll.
     window.addEventListener("association-changed", refresh);
-    return () => window.removeEventListener("association-changed", refresh);
+    window.addEventListener("pending-requests-changed", refresh);
+    return () => {
+      window.removeEventListener("association-changed", refresh);
+      window.removeEventListener("pending-requests-changed", refresh);
+    };
   }, [user, items.length]);
 
   if (!user) return children;
