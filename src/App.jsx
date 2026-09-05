@@ -36,6 +36,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Agreement from "./pages/Agreement";
 import Impersonate from "./pages/Impersonate";
+import AdminApp from "./pages/admin/AdminApp";
 import ImpersonationBanner from "./components/ImpersonationBanner";
 import Invoices from "./pages/Invoices";
 
@@ -44,7 +45,9 @@ function Home() {
   if (loading) return <FullScreenLoader />;
   if (!user) return <Navigate to="/login" replace />;
   const home =
-    user.role === "dentist" || user.role === "assistant"
+    user.role === "admin"
+      ? "/admin"
+      : user.role === "dentist" || user.role === "assistant"
       ? "/dentist"
       : user.role === "vendor"
       ? "/vendor"
@@ -108,7 +111,8 @@ function Shell({ children }) {
     };
   }, [user, items.length]);
 
-  if (!user) return children;
+  // Admin panel renders full-screen with its own chrome (no doctor sidebar/nav).
+  if (!user || user.role === "admin") return children;
 
   return (
     <div className="app-shell">
@@ -143,6 +147,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/impersonate" element={<Impersonate />} />
+        <Route path="/admin" element={<AdminApp />} />
         <Route path="/" element={<Home />} />
         <Route
           path="/dentist"

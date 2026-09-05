@@ -7,10 +7,22 @@ export default function ImpersonationBanner() {
   if (viewAs === null) return null;
 
   const exit = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
     localStorage.removeItem("viewAs");
-    window.location.replace("/login");
+    const adminToken = localStorage.getItem("adminToken");
+    if (adminToken) {
+      // Restore the admin session and go back to the admin dashboard.
+      const adminUser = localStorage.getItem("adminUser");
+      localStorage.setItem("token", adminToken);
+      if (adminUser) localStorage.setItem("user", adminUser);
+      else localStorage.removeItem("user");
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUser");
+      window.location.replace("/admin");
+    } else {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.replace("/login");
+    }
   };
 
   return (

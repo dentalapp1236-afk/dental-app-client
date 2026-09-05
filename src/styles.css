@@ -2441,3 +2441,54 @@ h2.icon { gap: 8px; }
   display: inline-flex; align-items: center; padding: 2px; border-radius: 6px;
 }
 .avail-remove:hover { color: var(--danger); background: #fdeaea; }
+
+/* ============ Admin panel (ported from the standalone admin app) ============ */
+/* Everything is scoped under .admin-ui so it never touches the patient/doctor UI. */
+.admin-ui {
+  --navy: #14233c; --blue: #3a72e3; --ink: #1f2d3d; --muted: #5d6f88;
+  --line: #e2e9f3; --bg: #eef3fa; --ok: #1a8a4f; --bad: #c0392b;
+  min-height: 100vh; background: var(--bg); color: var(--ink);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+.admin-ui .muted { color: var(--muted); }
+.admin-ui .small { font-size: 13px; }
+.admin-ui .row { display: flex; align-items: center; gap: 10px; }
+.admin-ui .row.between { justify-content: space-between; }
+.admin-ui .row.wrap, .admin-ui .wrap { flex-wrap: wrap; }
+.admin-ui .error { background: #fdecea; color: var(--bad); border: 1px solid #f5c6c0; padding: 8px 12px; border-radius: 8px; margin: 10px 0; }
+.admin-ui .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+.admin-ui .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+.admin-ui .auth-card { width: 100%; max-width: 360px; box-shadow: 0 20px 50px -28px rgba(20,35,60,.5); }
+.admin-ui .auth-card h1 { margin: 0; font-size: 22px; color: var(--navy); }
+.admin-ui .auth-card label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; margin-top: 14px; color: var(--muted); }
+.admin-ui input, .admin-ui select { font: inherit; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+.admin-ui button { font: inherit; cursor: pointer; border: none; border-radius: 8px; background: var(--blue); color: #fff; padding: 9px 14px; font-weight: 600; }
+.admin-ui button:hover:not(:disabled) { filter: brightness(0.94); }
+.admin-ui button:disabled { opacity: .6; cursor: default; }
+.admin-ui .auth-card button { width: 100%; margin-top: 18px; }
+.admin-ui button.ghost { background: transparent; color: var(--navy); border: 1px solid var(--line); }
+.admin-ui button.tab { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.admin-ui button.tab.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.admin-ui button.chip { background: #fff; color: var(--muted); border: 1px solid var(--line); padding: 5px 12px; border-radius: 999px; font-weight: 500; }
+.admin-ui button.chip.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+.admin-ui button.btn-sm { padding: 5px 12px; font-size: 13px; }
+.admin-ui button.danger { background: var(--bad); }
+.admin-ui button.link-danger { background: transparent; color: var(--bad); border: none; padding: 2px 8px; font-size: 16px; line-height: 1; font-weight: 700; }
+.admin-ui button.link-danger:hover { background: #fdecea; border-radius: 6px; filter: none; }
+.admin-ui .topbar { background: var(--navy); color: #fff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.admin-ui .topbar .muted { color: #a9c2ea; }
+.admin-ui .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; }
+.admin-ui .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+.admin-ui .stat { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.admin-ui .stat.warn { border-color: #f0c2bc; background: #fef6f5; }
+.admin-ui .stat-value { font-size: 28px; font-weight: 800; color: var(--navy); }
+.admin-ui .stat-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.admin-ui .table-wrap { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+.admin-ui table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-ui th, .admin-ui td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: normal; }
+.admin-ui th { background: #f7fafe; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; }
+.admin-ui tbody tr:hover { background: #f9fbfe; }
+.admin-ui .nowrap { white-space: nowrap; }
+.admin-ui .ok { color: var(--ok); font-weight: 600; }
+.admin-ui .bad { color: var(--bad); font-weight: 600; }
+.admin-ui h3 { color: var(--ink); }
