@@ -56,7 +56,9 @@ export default function Login() {
     try {
       const user = await login(form.identifier, form.password, remember);
       navigate(
-        user.role === "dentist"
+        user.role === "admin"
+          ? "/admin"
+          : user.role === "dentist" || user.role === "assistant"
           ? "/dentist"
           : user.role === "vendor"
           ? "/vendor"

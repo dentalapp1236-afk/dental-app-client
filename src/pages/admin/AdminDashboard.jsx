@@ -19,10 +19,10 @@ const shortUA = (ua = "") => {
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
 
-  // Clear the session and land cleanly on the admin login page.
+  // Clear the session and land on the shared login page.
   const handleLogout = () => {
     logout();
-    window.location.assign("/admin");
+    window.location.assign("/login");
   };
   const [hours, setHours] = useState(24);
   const [tab, setTab] = useState("logins"); // logins | users | enrollments | invoices
