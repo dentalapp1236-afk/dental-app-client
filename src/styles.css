@@ -2543,3 +2543,15 @@ h2.icon { gap: 8px; }
 .ap-header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .ap-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
 .ap-skill { display: inline-block; margin: 3px 6px 3px 0; padding: 3px 10px; border-radius: 999px; background: var(--b-50); color: var(--primary); font-size: 13px; font-weight: 600; }
+
+/* Keep the assistant clinic switcher from overflowing the mobile top bar */
+@media (max-width: 900px) {
+  .topbar { gap: 8px; }
+  .topbar .row.gap { gap: 8px; min-width: 0; flex-shrink: 0; }
+  .clinic-switcher-btn { max-width: 150px; padding: 5px 8px; }
+}
+@media (max-width: 560px) {
+  /* Compact to an icon-only chip; full clinic names live in the dropdown. */
+  .clinic-switcher-btn .clinic-name { display: none; }
+  .clinic-switcher-btn { max-width: none; padding: 6px; gap: 2px; }
+}
