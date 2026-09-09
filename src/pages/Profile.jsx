@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import AvatarUpload from "../components/AvatarUpload";
 import { normalizePkPhone } from "../utils/phone";
+import { formatDate } from "../utils/date";
+
+const fmtRange = (s, e) => {
+  const start = s ? formatDate(s) : "—";
+  return `${start} — ${e ? formatDate(e) : "Present"}`;
+};
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -27,8 +33,19 @@ export default function Profile() {
     specialization: user.specialization || "",
     yearsOfExperience: user.yearsOfExperience ?? "",
     about: user.about || "",
+    // assistant
+    skills: (user.skills || []).join(", "),
   });
   const [avatarUrl, setAvatarUrl] = useState(user.image || "");
+  const [history, setHistory] = useState(null); // assistant work history
+
+  useEffect(() => {
+    if (!isAssistant) return;
+    api
+      .get("/engagements/history", { skipLoader: true })
+      .then((r) => setHistory(r.data || []))
+      .catch(() => setHistory([]));
+  }, [isAssistant]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(""); // shown in a success modal
@@ -82,6 +99,13 @@ export default function Profile() {
         payload.yearsOfExperience = form.yearsOfExperience;
         payload.about = form.about;
         payload.address = form.address;
+      }
+      if (isAssistant) {
+        payload.specialization = form.specialization; // title / role
+        payload.yearsOfExperience = form.yearsOfExperience;
+        payload.about = form.about;
+        payload.address = form.address; // city / location
+        payload.skills = form.skills;
       }
       const { data } = await api.put("/auth/me", payload);
       updateUser(data.user);
@@ -216,12 +240,72 @@ export default function Profile() {
           </>
         )}
 
+        {isAssistant && (
+          <>
+            <hr className="divider" />
+            <h3 className="icon"><Icon name="badge" size={18} /> Professional profile</h3>
+            <div className="grid-2">
+              <label>
+                Title / role
+                <input name="specialization" placeholder="e.g. Dental Assistant" value={form.specialization} onChange={handleChange} />
+              </label>
+              <label>
+                Years of experience
+                <input
+                  type="number"
+                  name="yearsOfExperience"
+                  min="0"
+                  step="1"
+                  value={form.yearsOfExperience}
+                  onKeyDown={(e) => ["-", "+", "e", "E", "."].includes(e.key) && e.preventDefault()}
+                  onChange={handleChange}
+                />
+              </label>
+            </div>
+            <label>
+              City / location
+              <input name="address" value={form.address} onChange={handleChange} />
+            </label>
+            <label>
+              Skills <span className="muted">(comma-separated)</span>
+              <input name="skills" placeholder="e.g. Chairside assisting, Sterilization, X-rays" value={form.skills} onChange={handleChange} />
+            </label>
+            <label>
+              About
+              <textarea name="about" rows={3} value={form.about} onChange={handleChange} />
+            </label>
+          </>
+        )}
+
         <div className="row">
           <button type="submit" className="icon" disabled={saving}>
             <Icon name="save" size={18} /> {saving ? "Saving…" : "Save profile"}
           </button>
         </div>
       </form>
+
+      {isAssistant && (
+        <div className="card" style={{ maxWidth: 620, marginTop: 16, padding: 20 }}>
+          <h3 className="icon" style={{ marginTop: 0 }}><Icon name="work_history" size={18} /> Work history</h3>
+          {history === null ? (
+            <p className="muted">Loading…</p>
+          ) : history.length === 0 ? (
+            <p className="muted">No clinics yet. Once you join a clinic, it appears here.</p>
+          ) : (
+            <ul className="work-history">
+              {history.map((h) => (
+                <li key={h._id}>
+                  <div className="wh-clinic">
+                    <Icon name="apartment" size={16} /> {h.clinic}
+                    {h.status === "active" && <span className="wh-current">Current</span>}
+                  </div>
+                  <div className="muted wh-range">{fmtRange(h.startedAt, h.endedAt)}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <form className="card" onSubmit={changePassword}>
         <h3 className="icon"><Icon name="lock" size={18} /> Change password</h3>

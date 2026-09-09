@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
@@ -7,6 +8,7 @@ import { SkeletonTable } from "../components/Skeleton";
 const empty = { name: "", email: "", phone: "", password: "", confirmPassword: "" };
 
 export default function Staff() {
+  const navigate = useNavigate();
   const [staff, setStaff] = useState([]);
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
@@ -244,6 +246,9 @@ export default function Staff() {
                 <td>{s.email || "—"}</td>
                 <td>{s.phone || "—"}</td>
                 <td className="row gap" style={{ justifyContent: "flex-end" }}>
+                  <button className="btn-secondary icon" onClick={() => navigate(`/assistants/${s._id}`)}>
+                    <Icon name="badge" size={18} /> Profile
+                  </button>
                   <button className="btn-secondary icon" onClick={() => openEdit(s)}>
                     <Icon name="edit" size={18} /> Edit
                   </button>

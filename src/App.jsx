@@ -39,6 +39,7 @@ import Impersonate from "./pages/Impersonate";
 import AdminApp from "./pages/admin/AdminApp";
 import Invites from "./pages/Invites";
 import ClinicSwitcher from "./components/ClinicSwitcher";
+import AssistantProfile from "./pages/AssistantProfile";
 import ImpersonationBanner from "./components/ImpersonationBanner";
 import Invoices from "./pages/Invoices";
 
@@ -229,6 +230,14 @@ export default function App() {
           element={
             <ProtectedRoute role="dentist">
               <Staff />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assistants/:id"
+          element={
+            <ProtectedRoute role="dentist">
+              <AssistantProfile />
             </ProtectedRoute>
           }
         />

@@ -2528,3 +2528,18 @@ h2.icon { gap: 8px; }
 .clinic-menu-item.on { color: var(--primary); font-weight: 600; }
 .clinic-menu-item .material-symbols-outlined { color: inherit; }
 .clinic-menu-sep { height: 1px; background: var(--border); margin: 6px 4px; }
+
+/* Assistant work history + profile */
+.work-history { list-style: none; margin: 8px 0 0; padding: 0; }
+.work-history li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.work-history li:last-child { border-bottom: none; }
+.wh-clinic { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.wh-clinic .material-symbols-outlined { color: var(--muted); }
+.wh-current {
+  margin-left: 6px; font-size: 11px; font-weight: 700; color: #1a7f37;
+  background: #e7f6ec; border: 1px solid #bfe6cc; border-radius: 999px; padding: 1px 8px;
+}
+.wh-range { font-size: 13px; margin-top: 2px; }
+.ap-header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ap-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+.ap-skill { display: inline-block; margin: 3px 6px 3px 0; padding: 3px 10px; border-radius: 999px; background: var(--b-50); color: var(--primary); font-size: 13px; font-weight: 600; }
