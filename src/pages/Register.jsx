@@ -43,7 +43,11 @@ export default function Register() {
   const isVendor = form.role === "vendor";
 
   const roleHome = (role) =>
-    role === "dentist" ? "/dentist" : role === "vendor" ? "/vendor" : "/client";
+    role === "dentist" || role === "assistant"
+      ? "/dentist"
+      : role === "vendor"
+      ? "/vendor"
+      : "/client";
 
   // Clear a field's error as soon as the user edits it
   const handleChange = (e) => {
@@ -183,6 +187,7 @@ export default function Register() {
             <select name="role" value={form.role} onChange={handleChange}>
               <option value="client">Patient</option>
               <option value="dentist">Dentist</option>
+              <option value="assistant">Dental assistant</option>
               <option value="vendor">Vendor / Supplier</option>
             </select>
           </label>

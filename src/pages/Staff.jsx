@@ -73,8 +73,13 @@ export default function Staff() {
           phone: form.phone,
           password: form.password,
         });
-        setCreated(data);
-        setCopied(false);
+        if (data.invited) {
+          // Assistant already had an account — an invite was sent for them to accept.
+          alert(`Invite sent to ${data.assistant.name}. They'll see it under “Clinic invites” and appear here once they accept.`);
+        } else {
+          setCreated(data);
+          setCopied(false);
+        }
         resetForm();
       }
       await load();
@@ -242,7 +247,7 @@ export default function Staff() {
                   <button className="btn-secondary icon" onClick={() => openEdit(s)}>
                     <Icon name="edit" size={18} /> Edit
                   </button>
-                  <button className="btn-danger-soft icon" onClick={() => remove(s._id)}>
+                  <button className="btn-danger-soft icon" onClick={() => remove(s.engagementId)}>
                     <Icon name="delete" size={18} /> Remove
                   </button>
                 </td>

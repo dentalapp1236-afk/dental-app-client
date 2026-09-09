@@ -20,6 +20,7 @@ export const ROLE_LINKS = {
     { to: "/appointments", icon: "calendar_month", label: "Appointments" },
     { to: "/clients", icon: "group", label: "Patients" },
     { to: "/dependents", icon: "escalator_warning", label: "Dependents" },
+    { to: "/invites", icon: "mail", label: "Clinic invites" },
     { to: "/settings", icon: "settings", label: "Settings" },
   ],
   client: [

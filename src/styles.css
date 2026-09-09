@@ -2492,3 +2492,39 @@ h2.icon { gap: 8px; }
 .admin-ui .ok { color: var(--ok); font-weight: 600; }
 .admin-ui .bad { color: var(--bad); font-weight: 600; }
 .admin-ui h3 { color: var(--ink); }
+
+/* Assistant clinic switcher (top bar) */
+.clinic-switcher { position: relative; }
+.clinic-switcher-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--b-50); color: var(--primary); border: 1px solid var(--b-200);
+  border-radius: 999px; padding: 5px 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+  max-width: 190px; position: relative;
+}
+.clinic-switcher-btn:hover:not(:disabled) { background: var(--b-100); }
+.clinic-switcher-btn .clinic-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clinic-switcher-btn .material-symbols-outlined { color: var(--primary); }
+.clinic-badge {
+  position: absolute; top: -6px; right: -6px;
+  min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+  background: var(--danger); color: #fff; font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.clinic-badge.sm { position: static; margin-left: auto; }
+.cs-backdrop { position: fixed; inset: 0; z-index: 60; }
+.clinic-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 61;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.14); padding: 6px; min-width: 230px;
+}
+.clinic-menu-head { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 6px 10px; }
+.clinic-menu-empty { padding: 6px 10px 10px; color: var(--muted); font-size: 13px; }
+.clinic-menu-item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: none; border: none; text-align: left; cursor: pointer;
+  padding: 9px 10px; border-radius: 8px; font-size: 14px; color: var(--text);
+}
+.clinic-menu-item:hover { background: var(--b-50); }
+.clinic-menu-item.on { color: var(--primary); font-weight: 600; }
+.clinic-menu-item .material-symbols-outlined { color: inherit; }
+.clinic-menu-sep { height: 1px; background: var(--border); margin: 6px 4px; }

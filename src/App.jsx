@@ -37,6 +37,8 @@ import Settings from "./pages/Settings";
 import Agreement from "./pages/Agreement";
 import Impersonate from "./pages/Impersonate";
 import AdminApp from "./pages/admin/AdminApp";
+import Invites from "./pages/Invites";
+import ClinicSwitcher from "./components/ClinicSwitcher";
 import ImpersonationBanner from "./components/ImpersonationBanner";
 import Invoices from "./pages/Invoices";
 
@@ -124,6 +126,7 @@ function Shell({ children }) {
             <Icon name="dentistry" /> MyDentalBooking
           </Link>
           <div className="row gap">
+            <ClinicSwitcher />
             <NotificationBell />
             <ProfileMenu />
           </div>
@@ -148,6 +151,14 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/impersonate" element={<Impersonate />} />
         <Route path="/admin" element={<AdminApp />} />
+        <Route
+          path="/invites"
+          element={
+            <ProtectedRoute role="assistant">
+              <Invites />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/" element={<Home />} />
         <Route
           path="/dentist"

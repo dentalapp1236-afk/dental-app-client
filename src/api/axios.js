@@ -28,6 +28,9 @@ api.interceptors.request.use(
     if (token) config.headers.Authorization = `Bearer ${token}`;
     // Tell the server how the app is being used (installed PWA vs browser).
     config.headers["X-Display-Mode"] = isStandalone() ? "standalone" : "browser";
+    // For an assistant working across clinics, tell the server which one is active.
+    const clinic = localStorage.getItem("activeClinic");
+    if (clinic) config.headers["X-Clinic-Id"] = clinic;
     return config;
   },
   (err) => {
