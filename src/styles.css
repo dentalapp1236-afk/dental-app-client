@@ -2555,3 +2555,14 @@ h2.icon { gap: 8px; }
   .clinic-switcher-btn .clinic-name { display: none; }
   .clinic-switcher-btn { max-width: none; padding: 6px; gap: 2px; }
 }
+
+/* Admin top bar is dark navy — its ghost buttons (Logout/Refresh) need light text */
+.admin-ui .topbar button.ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+}
+.admin-ui .topbar button.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+  filter: none;
+}
