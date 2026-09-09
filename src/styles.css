@@ -2467,7 +2467,8 @@ h2.icon { gap: 8px; }
 .admin-ui button:disabled { opacity: .6; cursor: default; }
 .admin-ui .auth-card button { width: 100%; margin-top: 18px; }
 .admin-ui button.ghost { background: transparent; color: var(--navy); border: 1px solid var(--line); }
-.admin-ui button.tab { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.admin-ui button.tab { background: #fff; color: var(--ink); border: 1px solid #c3cfe0; }
+.admin-ui button.tab:hover:not(:disabled) { border-color: var(--blue); filter: none; }
 .admin-ui button.tab.on { background: var(--navy); color: #fff; border-color: var(--navy); }
 .admin-ui button.chip { background: #fff; color: var(--muted); border: 1px solid var(--line); padding: 5px 12px; border-radius: 999px; font-weight: 500; }
 .admin-ui button.chip.on { background: var(--blue); color: #fff; border-color: var(--blue); }
