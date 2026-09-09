@@ -39,6 +39,7 @@ export default function AdminDashboard() {
   const [userPwa, setUserPwa] = useState("all");
   const [userRole, setUserRole] = useState("");
   const [userSearch, setUserSearch] = useState("");
+  const [userDentist, setUserDentist] = useState(""); // doctor-wise filter
   const [viewingId, setViewingId] = useState(null);
 
   // "View as" — become the doctor (read-only) and boot into their real app.
@@ -86,15 +87,26 @@ export default function AdminDashboard() {
         if (userPwa !== "all") p.set("pwa", userPwa);
         if (userRole) p.set("role", userRole);
         if (userSearch.trim()) p.set("search", userSearch.trim());
-        const r = await api.get(`/admin/users?${p.toString()}`);
+        if (userDentist) p.set("dentist", userDentist);
+        const [r, enr] = await Promise.all([
+          api.get(`/admin/users?${p.toString()}`),
+          api.get(`/admin/enrollments`),
+        ]);
         setUsers(r.data.users || []);
+        setClinics(enr.data.clinics || []); // doctor list for the filter + name map
       }
     } catch (err) {
       setError(err.response?.data?.message || "Could not load data.");
     } finally {
       setLoading(false);
     }
-  }, [hours, tab, successFilter, userPwa, userRole, userSearch]);
+  }, [hours, tab, successFilter, userPwa, userRole, userSearch, userDentist]);
+
+  // Map a doctor id -> clinic/name for the Users table's "Doctor" column.
+  const doctorName = (id) => {
+    const c = clinics.find((x) => String(x._id) === String(id));
+    return c ? c.clinicName || c.name : null;
+  };
 
   const saveBilling = async (dentistId, startMonth, monthlyFee) => {
     setBusy(true);
@@ -284,6 +296,12 @@ export default function AdminDashboard() {
                 ))}
               </div>
               <div className="row wrap">
+                <select value={userDentist} onChange={(e) => setUserDentist(e.target.value)}>
+                  <option value="">All doctors</option>
+                  {clinics.map((c) => (
+                    <option key={c._id} value={c._id}>{c.clinicName || c.name}</option>
+                  ))}
+                </select>
                 <select value={userRole} onChange={(e) => setUserRole(e.target.value)}>
                   <option value="">All roles</option>
                   <option value="client">Patients</option>
@@ -302,7 +320,7 @@ export default function AdminDashboard() {
             <div className="table-wrap">
               <table>
                 <thead>
-                  <tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Clinic</th><th>Last via</th><th>Joined</th></tr>
+                  <tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Doctor</th><th>Last via</th><th>Joined</th></tr>
                 </thead>
                 <tbody>
                   {loading ? (
@@ -316,7 +334,11 @@ export default function AdminDashboard() {
                         <td>{u.email || "—"}</td>
                         <td className="nowrap">{u.phone || "—"}</td>
                         <td>{u.role}</td>
-                        <td>{u.clinicName || "—"}</td>
+                        <td>
+                          {u.role === "dentist"
+                            ? u.clinicName || u.name
+                            : doctorName(u.dentist) || "—"}
+                        </td>
                         <td>
                           {u.lastLoginPwa === true ? <span className="ok">PWA</span>
                             : u.lastLoginPwa === false ? <span className="muted">Browser</span>
