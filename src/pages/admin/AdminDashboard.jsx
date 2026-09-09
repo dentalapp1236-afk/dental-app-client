@@ -18,6 +18,12 @@ const shortUA = (ua = "") => {
 // screens; the read-only banner's Exit restores this admin session.
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
+
+  // Clear the session and land cleanly on the admin login page.
+  const handleLogout = () => {
+    logout();
+    window.location.assign("/admin");
+  };
   const [hours, setHours] = useState(24);
   const [tab, setTab] = useState("logins"); // logins | users | enrollments | invoices
   const [successFilter, setSuccessFilter] = useState("all");
@@ -160,7 +166,7 @@ export default function AdminDashboard() {
         <div className="row">
           <span className="muted">{user?.name || user?.email}</span>
           <button className="ghost" onClick={load} disabled={loading}>↻ Refresh</button>
-          <button className="ghost" onClick={logout}>Logout</button>
+          <button className="ghost" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 
