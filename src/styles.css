@@ -2512,7 +2512,7 @@ h2.icon { gap: 8px; }
   display: inline-flex; align-items: center; justify-content: center;
 }
 .clinic-badge.sm { position: static; margin-left: auto; }
-.cs-backdrop { position: fixed; inset: 0; z-index: 60; }
+.clinic-backdrop { position: fixed; inset: 0; z-index: 60; }
 .clinic-menu {
   position: absolute; right: 0; top: calc(100% + 8px); z-index: 61;
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;

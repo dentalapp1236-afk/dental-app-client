@@ -24,7 +24,7 @@ export default function ClinicSwitcher() {
       </button>
       {open && (
         <>
-          <div className="cs-backdrop" onClick={() => setOpen(false)} />
+          <div className="clinic-backdrop" onClick={() => setOpen(false)} />
           <div className="clinic-menu">
             <div className="clinic-menu-head">Your clinics</div>
             {active.length === 0 && <div className="clinic-menu-empty">You're not on any clinic yet.</div>}
