@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
+import { useConfirm } from "../context/ConfirmContext";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const titleCase = (s) => s.replace(/[0-9]/g, "").replace(/\b\p{L}/gu, (c) => c.toUpperCase());
 
 export default function Family() {
+  const confirm = useConfirm();
   const [deps, setDeps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -43,9 +45,9 @@ export default function Family() {
     }
   };
 
-  const removeDep = async (id) => {
-    if (!confirm("Remove this dependent? Their records stay with the clinic.")) return;
-    await api.delete(`/family/${id}`);
+  const removeDep = async (d) => {
+    if (!(await confirm(`Remove ${d.name} from your family list? Their records stay with the clinic.`, { title: "Remove dependent" }))) return;
+    await api.delete(`/family/${d._id}`);
     await load();
   };
 
@@ -99,7 +101,7 @@ export default function Family() {
                 <button className="btn-secondary icon" onClick={() => openTreatments(d)}>
                   <Icon name="medical_services" size={18} /> Treatments
                 </button>
-                <button className="btn-danger-soft icon" onClick={() => removeDep(d._id)}>
+                <button className="btn-danger-soft icon" onClick={() => removeDep(d)}>
                   <Icon name="delete" size={18} /> Remove
                 </button>
               </div>

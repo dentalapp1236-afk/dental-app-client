@@ -7,11 +7,13 @@ import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 import ClientSearchSelect from "../components/ClientSearchSelect";
 import { trackAppointment } from "../utils/analytics";
+import { useConfirm } from "../context/ConfirmContext";
 
 const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled" };
 const statusLabel = (s) => (s === "no_show" ? "No-show" : s === "pending" ? "Pending" : s);
 
 export default function Appointments() {
+  const confirm = useConfirm();
   const [appointments, setAppointments] = useState([]);
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState(empty);
@@ -180,10 +182,12 @@ export default function Appointments() {
     });
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this appointment?")) return;
-    await api.delete(`/appointments/${id}`);
-    trackAppointment("deleted", { appointment_id: id, actor: "dentist" });
+  const handleDelete = async (a) => {
+    const label = a.client?.name ? `for ${a.client.name}` : "";
+    if (!(await confirm(`Delete this appointment ${label} on ${formatDateTime(a.date)}?`.replace(/\s+/g, " ").trim(), { title: "Delete appointment" })))
+      return;
+    await api.delete(`/appointments/${a._id}`);
+    trackAppointment("deleted", { appointment_id: a._id, actor: "dentist" });
     load();
     window.dispatchEvent(new Event("pending-requests-changed"));
   };
@@ -288,7 +292,7 @@ export default function Appointments() {
         <button className="btn-secondary icon" onClick={(e) => { e.stopPropagation(); handleEdit(a); }}>
           <Icon name="edit" size={18} /> Edit
         </button>
-        <button className="btn-danger-soft icon" onClick={(e) => { e.stopPropagation(); handleDelete(a._id); }}>
+        <button className="btn-danger-soft icon" onClick={(e) => { e.stopPropagation(); handleDelete(a); }}>
           <Icon name="delete" size={18} /> Delete
         </button>
       </div>
@@ -627,7 +631,7 @@ export default function Appointments() {
               </button>
               <button
                 className="btn-danger-soft icon"
-                onClick={() => { const id = selected._id; setSelected(null); handleDelete(id); }}
+                onClick={() => { const a = selected; setSelected(null); handleDelete(a); }}
               >
                 <Icon name="delete" size={18} /> Delete
               </button>

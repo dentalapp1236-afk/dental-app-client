@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationsContext";
 import Icon from "./Icon";
-import { trackNotificationViewed, trackNotificationDismissed } from "../utils/analytics";
+import { trackNotificationViewed } from "../utils/analytics";
 
 const timeAgo = (d) => {
   const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
@@ -128,8 +128,7 @@ export default function NotificationBell() {
                       title="Dismiss"
                       onClick={(e) => {
                         e.stopPropagation();
-                        trackNotificationDismissed(n.type);
-                        dismiss(n._id);
+                        dismiss(n);
                       }}
                     >
                       <Icon name="close" size={16} />

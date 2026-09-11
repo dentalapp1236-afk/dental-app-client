@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { formatDate } from "../utils/date";
 import Icon from "../components/Icon";
 import { SkeletonTable } from "../components/Skeleton";
+import { useConfirm } from "../context/ConfirmContext";
 
 const CATEGORIES = [
   "Machine maintenance",
@@ -23,6 +24,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 const EMPTY = { title: "", category: "Machine maintenance", amount: "", date: todayISO(), notes: "" };
 
 export default function Maintenance() {
+  const confirm = useConfirm();
   const [expenses, setExpenses] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -95,9 +97,9 @@ export default function Maintenance() {
     }
   };
 
-  const remove = async (id) => {
-    if (!confirm("Delete this expense?")) return;
-    await api.delete(`/expenses/${id}`);
+  const remove = async (e) => {
+    if (!(await confirm(`Delete the "${e.title}" expense (${money(e.amount)})?`, { title: "Delete expense" }))) return;
+    await api.delete(`/expenses/${e._id}`);
     await load();
   };
 
@@ -219,7 +221,7 @@ export default function Maintenance() {
                   <button className="btn-secondary icon" onClick={() => openEdit(e)}>
                     <Icon name="edit" size={18} /> Edit
                   </button>
-                  <button className="btn-danger-soft icon" onClick={() => remove(e._id)}>
+                  <button className="btn-danger-soft icon" onClick={() => remove(e)}>
                     <Icon name="delete" size={18} /> Delete
                   </button>
                 </td>

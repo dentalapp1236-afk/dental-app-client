@@ -7,6 +7,7 @@ import { shareViaSheet } from "../utils/share";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import { useNotifications } from "../context/NotificationsContext";
+import { useConfirm } from "../context/ConfirmContext";
 
 // Build a WhatsApp click-to-chat URL: local number -> international, message prefilled.
 // Opens the dentist's own WhatsApp (app on phone / WhatsApp Web on desktop).
@@ -40,6 +41,7 @@ const titleCase = (s) => s.replace(/[0-9]/g, "").replace(/\b\p{L}/gu, (ch) => ch
 export default function Clients({ mode = "patients" }) {
   const isDependents = mode === "dependents";
   const { items, refresh: refreshNotifications } = useNotifications();
+  const confirm = useConfirm();
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -259,9 +261,9 @@ export default function Clients({ mode = "patients" }) {
     });
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this patient?")) return;
-    await api.delete(`/clients/${id}`);
+  const handleDelete = async (c) => {
+    if (!(await confirm(`Delete ${c.name}'s patient record? This cannot be undone.`, { title: "Delete patient" }))) return;
+    await api.delete(`/clients/${c._id}`);
     load();
   };
 
@@ -800,7 +802,7 @@ export default function Clients({ mode = "patients" }) {
                       )}
                       <button
                         className="card-menu-item danger"
-                        onClick={() => { setMenuFor(null); handleDelete(c._id); }}
+                        onClick={() => { setMenuFor(null); handleDelete(c); }}
                       >
                         <Icon name="delete" size={18} /> Delete
                       </button>

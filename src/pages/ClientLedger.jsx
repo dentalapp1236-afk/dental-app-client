@@ -9,6 +9,7 @@ import { COMMON_PROCEDURES } from "../data/procedures";
 import ProcedureInput from "../components/ProcedureInput";
 import { trackAppointment, trackTreatment, trackPayment, trackFollowUp } from "../utils/analytics";
 import MethodToggle from "../components/MethodToggle";
+import { useConfirm } from "../context/ConfirmContext";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
@@ -16,6 +17,7 @@ const fmtDate = (x) => formatDate(x);
 export default function ClientLedger() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [client, setClient] = useState(null);
   const [treatments, setTreatments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -245,7 +247,7 @@ export default function ClientLedger() {
   };
 
   const deleteTreat = async (t) => {
-    if (!confirm(`Delete the "${t.procedure}" treatment and all its payments?`)) return;
+    if (!(await confirm(`Delete the "${t.procedure}" treatment and all its payments?`, { title: "Delete treatment" }))) return;
     try {
       await api.delete(`/treatments/${t._id}`);
       trackTreatment("deleted", { treatment_id: t._id });
@@ -305,11 +307,11 @@ export default function ClientLedger() {
     }
   };
 
-  const deletePayment = async (treatId, paymentId) => {
-    if (!confirm("Delete this payment?")) return;
+  const deletePayment = async (treatId, p) => {
+    if (!(await confirm(`Delete this ${money(p.amount)} payment?`, { title: "Delete payment" }))) return;
     try {
-      await api.delete(`/treatments/${treatId}/payments/${paymentId}`);
-      trackPayment("deleted", { treatment_id: treatId, payment_id: paymentId });
+      await api.delete(`/treatments/${treatId}/payments/${p._id}`);
+      trackPayment("deleted", { treatment_id: treatId, payment_id: p._id });
       await loadTreatments();
     } catch (err) {
       alert(err.response?.data?.message || "Could not delete payment.");
@@ -556,7 +558,7 @@ export default function ClientLedger() {
                                 <button
                                   type="button"
                                   className="card-menu-item danger"
-                                  onClick={() => { setOpenMenu(null); deletePayment(t._id, p._id); }}
+                                  onClick={() => { setOpenMenu(null); deletePayment(t._id, p); }}
                                 >
                                   <Icon name="delete" size={16} /> Delete
                                 </button>

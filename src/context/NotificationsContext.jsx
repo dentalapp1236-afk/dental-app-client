@@ -3,11 +3,14 @@ import api from "../api/axios";
 import { useAuth } from "./AuthContext";
 import { subscribeToPush, unsubscribeFromPush } from "../push";
 import { playNotificationAlert } from "../utils/notificationSound";
+import { trackNotificationDismissed } from "../utils/analytics";
+import { useConfirm } from "./ConfirmContext";
 
 const NotificationsContext = createContext(null);
 
 export const NotificationsProvider = ({ children }) => {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const [items, setItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [total, setTotal] = useState(0);
@@ -152,7 +155,11 @@ export const NotificationsProvider = ({ children }) => {
     });
   };
 
-  const dismiss = async (id) => {
+  const dismiss = async (n) => {
+    const id = n._id;
+    if (!(await confirm(n.title ? `Dismiss "${n.title}"?` : "Dismiss this notification?", { title: "Dismiss notification", confirmLabel: "Dismiss" })))
+      return;
+    trackNotificationDismissed(n.type);
     try {
       await api.delete(`/notifications/${id}`, { skipLoader: true });
     } catch {

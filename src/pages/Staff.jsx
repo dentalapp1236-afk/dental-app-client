@@ -4,11 +4,13 @@ import api from "../api/axios";
 import Icon from "../components/Icon";
 import PasswordInput from "../components/PasswordInput";
 import { SkeletonTable } from "../components/Skeleton";
+import { useConfirm } from "../context/ConfirmContext";
 
 const empty = { name: "", email: "", phone: "", password: "", confirmPassword: "" };
 
 export default function Staff() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [staff, setStaff] = useState([]);
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
@@ -90,9 +92,9 @@ export default function Staff() {
     }
   };
 
-  const remove = async (id) => {
-    if (!confirm("Remove this assistant's access?")) return;
-    await api.delete(`/staff/${id}`);
+  const remove = async (s) => {
+    if (!(await confirm(`Remove ${s.name}'s access to this clinic?`, { title: "Remove assistant" }))) return;
+    await api.delete(`/staff/${s.engagementId}`);
     await load();
   };
 
@@ -252,7 +254,7 @@ export default function Staff() {
                   <button className="btn-secondary icon" onClick={() => openEdit(s)}>
                     <Icon name="edit" size={18} /> Edit
                   </button>
-                  <button className="btn-danger-soft icon" onClick={() => remove(s.engagementId)}>
+                  <button className="btn-danger-soft icon" onClick={() => remove(s)}>
                     <Icon name="delete" size={18} /> Remove
                   </button>
                 </td>

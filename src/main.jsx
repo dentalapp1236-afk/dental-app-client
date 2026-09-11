@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ClinicProvider } from "./context/ClinicContext.jsx";
 import { NotificationsProvider } from "./context/NotificationsContext.jsx";
+import { ConfirmProvider } from "./context/ConfirmContext.jsx";
 import { initAnalytics } from "./utils/analytics";
 import "./styles.css";
 
@@ -13,13 +14,15 @@ initAnalytics();
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <ClinicProvider>
-          <NotificationsProvider>
-            <App />
-          </NotificationsProvider>
-        </ClinicProvider>
-      </AuthProvider>
+      <ConfirmProvider>
+        <AuthProvider>
+          <ClinicProvider>
+            <NotificationsProvider>
+              <App />
+            </NotificationsProvider>
+          </ClinicProvider>
+        </AuthProvider>
+      </ConfirmProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

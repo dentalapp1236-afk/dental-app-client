@@ -1392,6 +1392,7 @@ a.btn-danger-soft {
   font-size: 52px;
   color: #1a7f37;
 }
+.modal-confirm .confirm-icon.confirm-icon-danger .material-symbols-outlined { color: var(--danger); }
 
 /* Per-day clinic hours editor */
 .avail-editor { display: flex; flex-direction: column; gap: 8px; }

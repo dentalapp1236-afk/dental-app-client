@@ -7,6 +7,7 @@ import { COMMON_PROCEDURES } from "../data/procedures";
 import ProcedureInput from "../components/ProcedureInput";
 import MethodToggle from "../components/MethodToggle";
 import { trackTreatment, trackPayment } from "../utils/analytics";
+import { useConfirm } from "../context/ConfirmContext";
 
 const money = (n) =>
   `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -23,6 +24,7 @@ const empty = {
 };
 
 export default function Treatments() {
+  const confirm = useConfirm();
   const [treatments, setTreatments] = useState([]);
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState(empty);
@@ -101,10 +103,11 @@ export default function Treatments() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this treatment?")) return;
-    await api.delete(`/treatments/${id}`);
-    trackTreatment("deleted", { treatment_id: id });
+  const handleDelete = async (t) => {
+    if (!(await confirm(`Delete the "${t.procedure}" treatment for ${t.client?.name}? This also deletes its recorded payments.`, { title: "Delete treatment" })))
+      return;
+    await api.delete(`/treatments/${t._id}`);
+    trackTreatment("deleted", { treatment_id: t._id });
     load();
   };
 
@@ -287,7 +290,7 @@ export default function Treatments() {
                 )}
                 <button
                   className="btn-danger icon"
-                  onClick={() => handleDelete(t._id)}
+                  onClick={() => handleDelete(t)}
                 >
                   <Icon name="delete" size={18} /> Delete
                 </button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
+import { useConfirm } from "../context/ConfirmContext";
 import Icon from "../components/Icon";
 
 const STATUS_FLOW = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
@@ -17,6 +18,7 @@ const EMPTY = { name: "", category: "", price: "", unit: "each", stock: "", desc
 
 export default function VendorDashboard() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const [tab, setTab] = useState("products");
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -76,9 +78,9 @@ export default function VendorDashboard() {
     setTab("products");
   };
 
-  const deleteProduct = async (id) => {
-    if (!confirm("Delete this product?")) return;
-    await api.delete(`/products/${id}`);
+  const deleteProduct = async (p) => {
+    if (!(await confirm(`Delete "${p.name}"? This cannot be undone.`, { title: "Delete product" }))) return;
+    await api.delete(`/products/${p._id}`);
     await loadProducts();
   };
 
@@ -212,7 +214,7 @@ export default function VendorDashboard() {
                         </button>
                         <button
                           className="btn-link icon"
-                          onClick={() => deleteProduct(p._id)}
+                          onClick={() => deleteProduct(p)}
                         >
                           <Icon name="delete" size={18} />
                         </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const fmt = (d) => new Date(d).toLocaleString();
 const shortUA = (ua = "") => {
@@ -18,6 +19,7 @@ const shortUA = (ua = "") => {
 // screens; the read-only banner's Exit restores this admin session.
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
+  const confirm = useConfirm();
 
   // Clear the session and land on the shared login page.
   const handleLogout = () => {
@@ -150,7 +152,7 @@ export default function AdminDashboard() {
   }, [load]);
 
   const deleteEvent = async (id) => {
-    if (!confirm("Delete this login record?")) return;
+    if (!(await confirm("Delete this login record?", { title: "Delete login record" }))) return;
     try {
       await api.delete(`/admin/logins/${id}`);
       load();
@@ -160,7 +162,7 @@ export default function AdminDashboard() {
   };
 
   const clearAll = async () => {
-    if (!confirm("Delete ALL login records? This cannot be undone.")) return;
+    if (!(await confirm("Delete ALL login records? This cannot be undone.", { title: "Clear all login records", confirmLabel: "Delete all" }))) return;
     try {
       await api.delete("/admin/logins");
       load();
