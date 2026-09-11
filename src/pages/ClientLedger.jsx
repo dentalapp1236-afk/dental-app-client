@@ -10,6 +10,7 @@ import ProcedureInput from "../components/ProcedureInput";
 import { trackAppointment, trackTreatment, trackPayment, trackFollowUp } from "../utils/analytics";
 import MethodToggle from "../components/MethodToggle";
 import { useConfirm } from "../context/ConfirmContext";
+import { useAuth } from "../context/AuthContext";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
@@ -18,6 +19,7 @@ export default function ClientLedger() {
   const { id } = useParams();
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const { user } = useAuth();
   const [client, setClient] = useState(null);
   const [treatments, setTreatments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,7 @@ export default function ClientLedger() {
         notes: apptForm.notes,
         date: apptForm.date, // already an ISO instant from the slot picker
       });
-      trackAppointment("booked", { appointment_id: data?.appointment?._id, actor: "dentist" });
+      trackAppointment("booked", { appointment_id: data?.appointment?._id, actor: user?.role });
       setShowAppt(false);
       setApptShare(data);
     } catch (err) {

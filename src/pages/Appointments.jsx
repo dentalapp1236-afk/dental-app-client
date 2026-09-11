@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import { formatDateTime, formatTime } from "../utils/date";
 import { useNotifications } from "../context/NotificationsContext";
+import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import SlotPicker from "../components/SlotPicker";
 import ClientSearchSelect from "../components/ClientSearchSelect";
@@ -13,6 +14,7 @@ const empty = { client: "", date: "", reason: "", notes: "", status: "scheduled"
 const statusLabel = (s) => (s === "no_show" ? "No-show" : s === "pending" ? "Pending" : s);
 
 export default function Appointments() {
+  const { user } = useAuth();
   const confirm = useConfirm();
   const [appointments, setAppointments] = useState([]);
   const [clients, setClients] = useState([]);
@@ -150,11 +152,11 @@ export default function Appointments() {
       const payload = { ...form };
       if (editingId) {
         await api.put(`/appointments/${editingId}`, payload);
-        trackAppointment("updated", { appointment_id: editingId, actor: "dentist" });
+        trackAppointment("updated", { appointment_id: editingId, actor: user?.role });
         resetForm();
       } else {
         const { data } = await api.post("/appointments", payload);
-        trackAppointment("booked", { appointment_id: data?.appointment?._id, actor: "dentist" });
+        trackAppointment("booked", { appointment_id: data?.appointment?._id, actor: user?.role });
         resetForm();
         setScheduled(data);
       }
@@ -187,7 +189,7 @@ export default function Appointments() {
     if (!(await confirm(`Delete this appointment ${label} on ${formatDateTime(a.date)}?`.replace(/\s+/g, " ").trim(), { title: "Delete appointment" })))
       return;
     await api.delete(`/appointments/${a._id}`);
-    trackAppointment("deleted", { appointment_id: a._id, actor: "dentist" });
+    trackAppointment("deleted", { appointment_id: a._id, actor: user?.role });
     load();
     window.dispatchEvent(new Event("pending-requests-changed"));
   };
@@ -197,7 +199,7 @@ export default function Appointments() {
       await api.patch(`/appointments/${id}/${action}`);
       trackAppointment(action === "confirm" ? "confirmed" : "declined", {
         appointment_id: id,
-        actor: "dentist",
+        actor: user?.role,
       });
       await loadAppointments();
       refreshNotifications();

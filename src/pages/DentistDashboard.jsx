@@ -192,7 +192,7 @@ export default function DentistDashboard() {
       trackAppointment("status_changed", {
         appointment_id: selected._id,
         status,
-        actor: "dentist",
+        actor: user?.role,
       });
       setSelected(data);
       await load();
@@ -228,7 +228,7 @@ export default function DentistDashboard() {
         status: "scheduled",
         version: selected.__v,
       });
-      trackAppointment("rescheduled", { appointment_id: selected._id, actor: "dentist" });
+      trackAppointment("rescheduled", { appointment_id: selected._id, actor: user?.role });
       setSelected(data);
       setReschedOpen(false);
       await load();
@@ -254,7 +254,7 @@ export default function DentistDashboard() {
       trackAppointment("arrival_updated", {
         appointment_id: selected._id,
         arrival_status: status,
-        actor: "dentist",
+        actor: user?.role,
       });
       setSelected(data);
       await load();
@@ -272,7 +272,7 @@ export default function DentistDashboard() {
       const { data } = await api.patch(`/appointments/${selected._id}/${action}`);
       trackAppointment(action === "confirm" ? "confirmed" : "declined", {
         appointment_id: selected._id,
-        actor: "dentist",
+        actor: user?.role,
       });
       setSelected(data);
       await load();
