@@ -2505,13 +2505,13 @@ h2.icon { gap: 8px; }
 .clinic-switcher-btn:hover:not(:disabled) { background: var(--b-100); }
 .clinic-switcher-btn .clinic-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .clinic-switcher-btn .material-symbols-outlined { color: var(--primary); }
-.clinic-badge {
+.clinic-invite-badge {
   position: absolute; top: -6px; right: -6px;
   min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
   background: var(--danger); color: #fff; font-size: 11px; font-weight: 700;
   display: inline-flex; align-items: center; justify-content: center;
 }
-.clinic-badge.sm { position: static; margin-left: auto; }
+.clinic-invite-badge.sm { position: static; margin-left: auto; }
 .clinic-backdrop { position: fixed; inset: 0; z-index: 60; }
 .clinic-menu {
   position: absolute; right: 0; top: calc(100% + 8px); z-index: 61;

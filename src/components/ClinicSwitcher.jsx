@@ -20,7 +20,7 @@ export default function ClinicSwitcher() {
         <Icon name="apartment" size={18} />
         <span className="clinic-name">{label}</span>
         <Icon name="expand_more" size={18} />
-        {pending.length > 0 && <span className="clinic-badge">{pending.length}</span>}
+        {pending.length > 0 && <span className="clinic-invite-badge">{pending.length}</span>}
       </button>
       {open && (
         <>
@@ -56,7 +56,7 @@ export default function ClinicSwitcher() {
             >
               <Icon name="mail" size={16} />
               <span>Invites</span>
-              {pending.length > 0 && <span className="clinic-badge sm">{pending.length}</span>}
+              {pending.length > 0 && <span className="clinic-invite-badge sm">{pending.length}</span>}
             </button>
           </div>
         </>
