@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
@@ -30,6 +30,7 @@ export default function ClientLedger() {
   const [payForm, setPayForm] = useState({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
   const [payError, setPayError] = useState("");
   const [paySaving, setPaySaving] = useState(false); // in-flight lock so a double-click can't record the payment twice
+  const paySavingRef = useRef(false); // synchronous mirror of paySaving — state updates aren't instant, so a second call in the same tick could otherwise slip past the check
   // Edit-payment modal
   const [editPay, setEditPay] = useState(null); // { treatId, paymentId, amount, note, date }
   const [editPayError, setEditPayError] = useState("");
@@ -50,6 +51,7 @@ export default function ClientLedger() {
   const [treatForm, setTreatForm] = useState(TREAT_EMPTY);
   const [treatError, setTreatError] = useState("");
   const [savingTreat, setSavingTreat] = useState(false); // in-flight lock (prevents duplicate records)
+  const savingTreatRef = useRef(false); // synchronous mirror of savingTreat, same reason as paySavingRef
   const [editingTreatId, setEditingTreatId] = useState(null);
   const [editTreatVersion, setEditTreatVersion] = useState(undefined);
   // Schedule-appointment modal
@@ -83,6 +85,7 @@ export default function ClientLedger() {
     setPayTarget(t);
     setPayForm({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
     setPayError("");
+    paySavingRef.current = false;
     setPaySaving(false);
   };
 
@@ -90,6 +93,7 @@ export default function ClientLedger() {
     setEditingTreatId(null);
     setTreatForm(TREAT_EMPTY);
     setTreatError("");
+    savingTreatRef.current = false;
     setShowTreat(true);
   };
 
@@ -108,6 +112,7 @@ export default function ClientLedger() {
       date: t.date ? new Date(t.date).toISOString().slice(0, 10) : TREAT_EMPTY.date,
     });
     setTreatError("");
+    savingTreatRef.current = false;
     setShowTreat(true);
   };
 
@@ -143,7 +148,9 @@ export default function ClientLedger() {
   const submitTreat = async (e) => {
     e.preventDefault();
     setTreatError("");
-    if (savingTreat) return; // ignore a second click while the first is still saving
+    // Checked (and set) via the ref first, synchronously, so two calls arriving in
+    // the same tick can't both pass before `savingTreat` state has flushed.
+    if (savingTreatRef.current) return;
     if (!treatForm.procedure.trim()) return setTreatError("Procedure is required.");
     if (treatForm.cost === "" || Number(treatForm.cost) < 0)
       return setTreatError("Charges are required.");
@@ -177,6 +184,7 @@ export default function ClientLedger() {
       upfrontMethod: treatForm.upfrontMethod,
       date: treatForm.date,
     };
+    savingTreatRef.current = true;
     setSavingTreat(true);
     try {
       if (editingTreatId) {
@@ -193,8 +201,8 @@ export default function ClientLedger() {
         });
         trackTreatment("updated", { treatment_id: editingTreatId });
       } else {
-        await api.post("/treatments", createPayload);
-        trackTreatment("created", { client_id: id });
+        const { data } = await api.post("/treatments", createPayload);
+        if (!data?._retry) trackTreatment("created", { client_id: id });
       }
       setShowTreat(false);
       await loadTreatments();
@@ -216,6 +224,7 @@ export default function ClientLedger() {
         if (err.response?.status === 409) loadTreatments();
       }
     } finally {
+      savingTreatRef.current = false;
       setSavingTreat(false);
     }
   };
@@ -223,27 +232,29 @@ export default function ClientLedger() {
   const submitPayment = async (e) => {
     e.preventDefault();
     setPayError("");
-    if (paySaving) return; // ignore a second click while the first is still saving
+    if (paySavingRef.current) return; // ignore a second click while the first is still saving
     // Allow 0 (a "visit / no collection" log); reject only empty or negative.
     if (payForm.amount === "" || Number(payForm.amount) < 0)
       return setPayError("Enter a valid amount.");
     if (Number(payForm.amount) > payTarget.balance)
       return setPayError(`Amount cannot exceed the remaining balance (${money(payTarget.balance)}).`);
+    paySavingRef.current = true;
     setPaySaving(true);
     try {
-      await api.post(`/treatments/${payTarget._id}/payments`, {
+      const { data } = await api.post(`/treatments/${payTarget._id}/payments`, {
         amount: Number(payForm.amount),
         note: payForm.note,
         method: payForm.method,
         date: payForm.date,
       });
-      trackPayment("created", { treatment_id: payTarget._id });
+      if (!data?._retry) trackPayment("created", { treatment_id: payTarget._id });
       setPayTarget(null);
       await loadTreatments();
     } catch (err) {
       setPayError(err.response?.data?.message || "Could not record payment.");
       if (err.response?.status === 409) loadTreatments();
     } finally {
+      paySavingRef.current = false;
       setPaySaving(false);
     }
   };

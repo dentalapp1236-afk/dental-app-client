@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 import { formatDate, formatDateTime } from "../utils/date";
 import Icon from "../components/Icon";
@@ -31,12 +31,14 @@ export default function Treatments() {
   const [filterClient, setFilterClient] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false); // in-flight lock so a double-click can't create duplicates
+  const savingRef = useRef(false); // synchronous mirror of `saving` — state updates aren't instant, so a second call in the same tick could otherwise slip past the check below
   const [showForm, setShowForm] = useState(false);
   // Record-payment modal
   const [payTarget, setPayTarget] = useState(null); // treatment being paid
   const [payForm, setPayForm] = useState({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
   const [payError, setPayError] = useState("");
   const [paySaving, setPaySaving] = useState(false); // in-flight lock so a double-click can't record the payment twice
+  const paySavingRef = useRef(false); // synchronous mirror of `paySaving`, same reason as savingRef
 
   const load = async () => {
     const params = filterClient ? { client: filterClient } : {};
@@ -67,19 +69,23 @@ export default function Treatments() {
   const openCreate = () => {
     setForm(empty);
     setError("");
+    savingRef.current = false;
     setShowForm(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (saving) return; // ignore a second click while the first is still saving
+    // Checked (and set) via the ref first, synchronously, so two calls arriving
+    // in the same tick can't both pass before `saving` state has flushed.
+    if (savingRef.current) return;
     if (!form.client) return setError("Please select a patient.");
     const payload = { ...form, cost: Number(form.cost) || 0 };
+    savingRef.current = true;
     setSaving(true);
     try {
-      await api.post("/treatments", payload);
-      trackTreatment("created", { client_id: form.client });
+      const { data } = await api.post("/treatments", payload);
+      if (!data?._retry) trackTreatment("created", { client_id: form.client });
       resetForm();
       load();
     } catch (err) {
@@ -99,6 +105,7 @@ export default function Treatments() {
         setError(err.response?.data?.message || "Save failed");
       }
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
@@ -115,29 +122,32 @@ export default function Treatments() {
     setPayTarget(t);
     setPayForm({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
     setPayError("");
+    paySavingRef.current = false;
     setPaySaving(false);
   };
 
   const submitPayment = async (e) => {
     e.preventDefault();
     setPayError("");
-    if (paySaving) return; // ignore a second click while the first is still saving
+    if (paySavingRef.current) return; // ignore a second click while the first is still saving
     if (!payForm.amount || Number(payForm.amount) <= 0)
       return setPayError("Enter a valid amount.");
+    paySavingRef.current = true;
     setPaySaving(true);
     try {
-      await api.post(`/treatments/${payTarget._id}/payments`, {
+      const { data } = await api.post(`/treatments/${payTarget._id}/payments`, {
         amount: Number(payForm.amount),
         note: payForm.note,
         method: payForm.method,
         date: payForm.date,
       });
-      trackPayment("created", { treatment_id: payTarget._id });
+      if (!data?._retry) trackPayment("created", { treatment_id: payTarget._id });
       setPayTarget(null);
       load();
     } catch (err) {
       setPayError(err.response?.data?.message || "Could not record payment.");
     } finally {
+      paySavingRef.current = false;
       setPaySaving(false);
     }
   };
