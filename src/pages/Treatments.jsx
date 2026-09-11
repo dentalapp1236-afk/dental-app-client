@@ -5,6 +5,7 @@ import Icon from "../components/Icon";
 import ClientSearchSelect from "../components/ClientSearchSelect";
 import { COMMON_PROCEDURES } from "../data/procedures";
 import ProcedureInput from "../components/ProcedureInput";
+import MethodToggle from "../components/MethodToggle";
 import { trackTreatment, trackPayment } from "../utils/analytics";
 
 const money = (n) =>
@@ -31,8 +32,9 @@ export default function Treatments() {
   const [showForm, setShowForm] = useState(false);
   // Record-payment modal
   const [payTarget, setPayTarget] = useState(null); // treatment being paid
-  const [payForm, setPayForm] = useState({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+  const [payForm, setPayForm] = useState({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
   const [payError, setPayError] = useState("");
+  const [paySaving, setPaySaving] = useState(false); // in-flight lock so a double-click can't record the payment twice
 
   const load = async () => {
     const params = filterClient ? { client: filterClient } : {};
@@ -108,19 +110,23 @@ export default function Treatments() {
 
   const openPayment = (t) => {
     setPayTarget(t);
-    setPayForm({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+    setPayForm({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
     setPayError("");
+    setPaySaving(false);
   };
 
   const submitPayment = async (e) => {
     e.preventDefault();
     setPayError("");
+    if (paySaving) return; // ignore a second click while the first is still saving
     if (!payForm.amount || Number(payForm.amount) <= 0)
       return setPayError("Enter a valid amount.");
+    setPaySaving(true);
     try {
       await api.post(`/treatments/${payTarget._id}/payments`, {
         amount: Number(payForm.amount),
         note: payForm.note,
+        method: payForm.method,
         date: payForm.date,
       });
       trackPayment("created", { treatment_id: payTarget._id });
@@ -128,6 +134,8 @@ export default function Treatments() {
       load();
     } catch (err) {
       setPayError(err.response?.data?.message || "Could not record payment.");
+    } finally {
+      setPaySaving(false);
     }
   };
 
@@ -330,6 +338,10 @@ export default function Treatments() {
                 </label>
               </div>
               <label>
+                <span className="lbl">Paid via <span className="req">*</span></span>
+                <MethodToggle value={payForm.method} onChange={(m) => setPayForm({ ...payForm, method: m })} />
+              </label>
+              <label>
                 Note (optional)
                 <input
                   placeholder="e.g. Visit 3 adjustment"
@@ -338,8 +350,10 @@ export default function Treatments() {
                 />
               </label>
               <div className="row gap">
-                <button type="submit" className="icon"><Icon name="check" size={18} /> Save payment</button>
-                <button type="button" className="btn-secondary" onClick={() => setPayTarget(null)}>
+                <button type="submit" className="icon" disabled={paySaving}>
+                  <Icon name="check" size={18} /> {paySaving ? "Saving…" : "Save payment"}
+                </button>
+                <button type="button" className="btn-secondary" disabled={paySaving} onClick={() => setPayTarget(null)}>
                   Cancel
                 </button>
               </div>

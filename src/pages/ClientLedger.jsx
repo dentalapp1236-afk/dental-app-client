@@ -8,30 +8,10 @@ import { SkeletonTable } from "../components/Skeleton";
 import { COMMON_PROCEDURES } from "../data/procedures";
 import ProcedureInput from "../components/ProcedureInput";
 import { trackAppointment, trackTreatment, trackPayment, trackFollowUp } from "../utils/analytics";
+import MethodToggle from "../components/MethodToggle";
 
 const money = (n) => `Rs ${(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const fmtDate = (x) => formatDate(x);
-
-// Cash / Online segmented selector for how a payment was collected.
-function MethodToggle({ value, onChange }) {
-  return (
-    <div className="period-toggle" style={{ marginTop: 4 }}>
-      {[
-        { v: "cash", label: "Cash", icon: "payments" },
-        { v: "online", label: "Online", icon: "account_balance" },
-      ].map((m) => (
-        <button
-          key={m.v}
-          type="button"
-          className={`icon ${value === m.v ? "active" : ""}`}
-          onClick={() => onChange(m.v)}
-        >
-          <Icon name={m.icon} size={16} /> {m.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export default function ClientLedger() {
   const { id } = useParams();
@@ -45,6 +25,7 @@ export default function ClientLedger() {
   const [payTarget, setPayTarget] = useState(null);
   const [payForm, setPayForm] = useState({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
   const [payError, setPayError] = useState("");
+  const [paySaving, setPaySaving] = useState(false); // in-flight lock so a double-click can't record the payment twice
   // Edit-payment modal
   const [editPay, setEditPay] = useState(null); // { treatId, paymentId, amount, note, date }
   const [editPayError, setEditPayError] = useState("");
@@ -98,6 +79,7 @@ export default function ClientLedger() {
     setPayTarget(t);
     setPayForm({ amount: "", note: "", method: "cash", date: new Date().toISOString().slice(0, 10) });
     setPayError("");
+    setPaySaving(false);
   };
 
   const openTreat = () => {
@@ -237,11 +219,13 @@ export default function ClientLedger() {
   const submitPayment = async (e) => {
     e.preventDefault();
     setPayError("");
+    if (paySaving) return; // ignore a second click while the first is still saving
     // Allow 0 (a "visit / no collection" log); reject only empty or negative.
     if (payForm.amount === "" || Number(payForm.amount) < 0)
       return setPayError("Enter a valid amount.");
     if (Number(payForm.amount) > payTarget.balance)
       return setPayError(`Amount cannot exceed the remaining balance (${money(payTarget.balance)}).`);
+    setPaySaving(true);
     try {
       await api.post(`/treatments/${payTarget._id}/payments`, {
         amount: Number(payForm.amount),
@@ -255,6 +239,8 @@ export default function ClientLedger() {
     } catch (err) {
       setPayError(err.response?.data?.message || "Could not record payment.");
       if (err.response?.status === 409) loadTreatments();
+    } finally {
+      setPaySaving(false);
     }
   };
 
@@ -829,8 +815,10 @@ export default function ClientLedger() {
                 />
               </label>
               <div className="row gap">
-                <button type="submit" className="icon"><Icon name="check" size={18} /> Save payment</button>
-                <button type="button" className="btn-secondary" onClick={() => setPayTarget(null)}>
+                <button type="submit" className="icon" disabled={paySaving}>
+                  <Icon name="check" size={18} /> {paySaving ? "Saving…" : "Save payment"}
+                </button>
+                <button type="button" className="btn-secondary" disabled={paySaving} onClick={() => setPayTarget(null)}>
                   Cancel
                 </button>
               </div>
