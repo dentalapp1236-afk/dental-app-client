@@ -14,7 +14,7 @@ import { loadingStore } from "./loading";
 // preview) gets the staging backend — never the reverse.
 // Local dev still uses VITE_API_URL (or localhost).
 const PROD_URL = "https://dentalappserver.onrender.com/api";
-const STAGING_URL = "https://dental-app-server-staging.onrender.com/api";
+const STAGING_URL = "https://dental-app-server.onrender.com/api";
 
 const baseURL = !import.meta.env.PROD
   ? import.meta.env.VITE_API_URL || "http://localhost:5000/api"
