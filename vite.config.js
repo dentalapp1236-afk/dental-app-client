@@ -3,6 +3,14 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // Vercel sets VERCEL_GIT_COMMIT_REF (the branch being built) as a build-time
+  // process env var, not a client-exposed one — bake it into the bundle so
+  // src/api/axios.js can tell a staging build from the real production build
+  // (both are Vite "production mode" builds, so import.meta.env.PROD alone
+  // can't distinguish them).
+  define: {
+    "import.meta.env.VITE_GIT_BRANCH": JSON.stringify(process.env.VERCEL_GIT_COMMIT_REF || ""),
+  },
   plugins: [
     react(),
     VitePWA({

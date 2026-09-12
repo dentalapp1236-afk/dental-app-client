@@ -3,12 +3,24 @@ import { loadingStore } from "./loading";
 
 // Production always talks to the deployed Render API — this is the backend the
 // app has always used, and the one the Content-Security-Policy allows. We do NOT
-// read VITE_API_URL in production on purpose, so a stray build-time env override
-// can't repoint the live app at another host and get blocked by the CSP.
-// Dev still uses VITE_API_URL (or localhost).
-const baseURL = import.meta.env.PROD
-  ? "https://dentalappserver.onrender.com/api"
-  : import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// read VITE_API_URL in a production-mode build on purpose, so a stray build-time
+// env override can't repoint a live deployment at another host.
+//
+// Vite's import.meta.env.PROD is true for ANY production-mode build though,
+// including the staging deployment — so we also check which git branch is
+// being built (VITE_GIT_BRANCH, baked in by vite.config.js from Vercel's
+// VERCEL_GIT_COMMIT_REF). ONLY an actual `main`-branch build gets the real
+// production URL; every other production-mode build (staging, or any other
+// preview) gets the staging backend — never the reverse.
+// Local dev still uses VITE_API_URL (or localhost).
+const PROD_URL = "https://dentalappserver.onrender.com/api";
+const STAGING_URL = "https://dental-app-server-staging.onrender.com/api";
+
+const baseURL = !import.meta.env.PROD
+  ? import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+  : import.meta.env.VITE_GIT_BRANCH === "main"
+  ? PROD_URL
+  : STAGING_URL;
 
 const api = axios.create({ baseURL });
 
