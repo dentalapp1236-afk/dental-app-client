@@ -92,13 +92,19 @@ function Shell({ children }) {
       setBadges({});
       return;
     }
+    // Invoices are dentist-only (assistants never see billing) — skip the call
+    // for an assistant instead of letting a 403 fail the whole Promise.all.
+    const isDentist = user.role === "dentist";
     const refresh = () =>
       Promise.all([
         api.get("/associations/requests", { skipLoader: true }),
         api.get("/appointments/pending-count", { skipLoader: true }),
+        isDentist
+          ? api.get("/invoices/unpaid-count", { skipLoader: true })
+          : Promise.resolve({ data: { count: 0 } }),
       ])
-        .then(([assoc, appt]) =>
-          setBadges({ "/clients": assoc.data.length, "/appointments": appt.data.count })
+        .then(([assoc, appt, inv]) =>
+          setBadges({ "/clients": assoc.data.length, "/appointments": appt.data.count, "/invoices": inv.data.count })
         )
         .catch(() => {});
     refresh();
