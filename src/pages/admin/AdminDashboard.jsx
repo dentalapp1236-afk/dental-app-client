@@ -147,6 +147,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const downloadInvoicePdf = async (iv) => {
+    try {
+      const res = await api.get(`/admin/invoices/${iv._id}/pdf`, {
+        responseType: "blob",
+        skipLoader: true,
+      });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      const clinic = (iv.dentist?.clinicName || iv.dentist?.name || "clinic").replace(/[^a-z0-9]+/gi, "-");
+      a.download = `invoice-${iv.month}-${clinic}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Could not download the invoice PDF.");
+    }
+  };
+
   useEffect(() => {
     load();
   }, [load]);
@@ -471,6 +491,7 @@ export default function AdminDashboard() {
                             )}
                           </td>
                           <td className="nowrap">
+                            <button className="ghost btn-sm" onClick={() => downloadInvoicePdf(iv)}>Download PDF</button>{" "}
                             {iv.status === "paid" ? (
                               <button className="ghost btn-sm" disabled={busy} onClick={() => setInvoiceStatus(iv._id, "unpaid")}>Mark unpaid</button>
                             ) : (
