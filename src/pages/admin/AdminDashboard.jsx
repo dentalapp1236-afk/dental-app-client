@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../context/ConfirmContext";
+import AccountNumber from "../../components/AccountNumber";
 
 const fmt = (d) => new Date(d).toLocaleString();
 const shortUA = (ua = "") => {
@@ -35,6 +36,7 @@ export default function AdminDashboard() {
   const [clinics, setClinics] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [defaultFee, setDefaultFee] = useState(0);
+  const [bank, setBank] = useState(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -77,13 +79,15 @@ export default function AdminDashboard() {
         const r = await api.get(`/admin/enrollments`);
         setClinics(r.data.clinics || []);
       } else if (tab === "invoices") {
-        const [inv, enr] = await Promise.all([
+        const [inv, enr, pay] = await Promise.all([
           api.get(`/admin/invoices`),
           api.get(`/admin/enrollments`),
+          api.get(`/admin/payment-details`),
         ]);
         setInvoices(inv.data.invoices || []);
         setDefaultFee(inv.data.defaultFee || 0);
         setClinics(enr.data.clinics || []);
+        setBank(pay.data);
       } else {
         const p = new URLSearchParams({ limit: "1000" });
         if (userPwa !== "all") p.set("pwa", userPwa);
@@ -460,6 +464,15 @@ export default function AdminDashboard() {
                 </table>
               </div>
             </section>
+
+            {bank && (
+              <div className="card pay-card">
+                <div className="pay-head">Clinics pay to</div>
+                <div className="pay-row"><span className="pay-label">Bank</span><span className="pay-value">{bank.bankName}</span></div>
+                <div className="pay-row"><span className="pay-label">Account title</span><span className="pay-value">{bank.accountTitle}</span></div>
+                <div className="pay-row"><span className="pay-label">Account no.</span><AccountNumber value={bank.accountNumber} /></div>
+              </div>
+            )}
 
             <div className="table-wrap">
               <table>
