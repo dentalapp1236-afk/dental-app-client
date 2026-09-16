@@ -1,10 +1,16 @@
 import { precacheAndRoute } from "workbox-precaching";
 
-// Activate immediately. While the app was live this waited for the user to tap
-// "Reload" in the update prompt — but the platform is now retired, and a user
-// who taps "Later" would otherwise keep running the old, fully-working build
-// and creating data that no longer syncs anywhere. The retirement build has to
-// reach every device unconditionally.
+// TEMPORARY — recovery from the brief retirement. Remove this block, restore
+// registerType "prompt" in vite.config.js, and delete the activate handler
+// below once every device is back on a working build (give it a few days of
+// normal use). Until then a device sitting on the handover screen has no other
+// way back: that build never mounted UpdatePrompt, so it isn't polling for
+// updates and would need a manual refresh.
+//
+// The cost of leaving it in is real: with skipWaiting plus the forced
+// navigation, EVERY future deploy reloads every open tab within about a minute,
+// which can yank the page out from under someone mid-form. That's why this is
+// a recovery measure and not the resting behaviour.
 self.skipWaiting();
 
 // Marker written at install time when this worker is REPLACING a live one, so
@@ -36,8 +42,10 @@ self.addEventListener("activate", (event) => {
       // Claiming only routes FUTURE requests through this worker. The page
       // already on screen carries on running the old bundle it booted from the
       // old precache — index.html is precached, so a returning user gets the
-      // whole previous app from cache and the handover screen only appeared on
-      // a second, manual refresh. Do that refresh for them instead.
+      // whole previous app from cache and a deploy only took effect on a
+      // second, manual refresh. Do that refresh for them instead.
+      //
+      // TEMPORARY, paired with the skipWaiting() note at the top of this file.
       if (!(await caches.has(REPLACING))) return;
       await caches.delete(REPLACING);
       const windows = await self.clients.matchAll({ type: "window" });

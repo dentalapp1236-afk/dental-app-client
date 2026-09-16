@@ -12,7 +12,7 @@
 //
 // Then pair it with RETIRED=true on this API, which is the actual kill switch —
 // this constant only controls what users see.
-export const RETIRED = true;
+export const RETIRED = false;
 
 // www is canonical — the bare apex 308-redirects here, so link straight to it
 // and skip the extra hop. Keep the scheme: without it this is a RELATIVE path,
