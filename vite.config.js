@@ -17,9 +17,10 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.js",
-      // "prompt": a new build waits and we ask the user to reload (see
-      // components/UpdatePrompt.jsx) instead of silently reloading the page.
-      registerType: "prompt",
+      // "autoUpdate" since retirement: a waiting worker would let someone tap
+      // "Later" and keep using the retired app indefinitely. The handover build
+      // must take over on its own.
+      registerType: "autoUpdate",
       // We register the SW ourselves via `virtual:pwa-register/react` inside the
       // app bundle (external, hashed JS) — CSP-safe with no 'unsafe-inline'.
       injectRegister: null,

@@ -2568,3 +2568,65 @@ h2.icon { gap: 8px; }
   background: rgba(255, 255, 255, 0.18);
   filter: none;
 }
+
+/* ---- Platform retirement handover screen (replaces the whole app) ---- */
+.retired-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+.retired-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(31, 45, 61, 0.10);
+  padding: 32px 26px;
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
+}
+.retired-logo {
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 16px;
+  border-radius: 20px;
+  background: var(--b-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.retired-logo .material-symbols-outlined { color: var(--primary); }
+.retired-card h1 { font-size: 22px; margin: 0 0 10px; }
+.retired-lede { color: var(--text); font-size: 15px; line-height: 1.5; margin: 0 0 20px; }
+.retired-greeting { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.retired-actions { display: flex; justify-content: center; margin-bottom: 10px; }
+.retired-actions button,
+.retired-actions .btn-primary-link {
+  min-width: 240px;
+  justify-content: center;
+}
+a.btn-primary-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 18px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+a.btn-primary-link:hover { background: var(--primary-hover); text-decoration: none; }
+a.btn-primary-link .material-symbols-outlined { color: #fff; }
+.retired-note { font-size: 13px; margin: 0; }
+.retired-error { margin-top: 14px; text-align: left; }
+.retired-divider { border-top: 1px solid var(--border); margin: 26px 0 20px; }
+.retired-install { text-align: left; }
+.retired-install h2 { font-size: 15px; margin: 0 0 8px; }
+.retired-install p { font-size: 13.5px; margin: 0 0 10px; }
+.retired-steps { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.7; }
+.retired-url { font-weight: 700; color: var(--primary); }
+.retired-help { font-size: 13px; margin: 22px 0 0; }

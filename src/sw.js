@@ -1,9 +1,14 @@
 import { precacheAndRoute } from "workbox-precaching";
 import { clientsClaim } from "workbox-core";
 
-// Don't auto-activate. A freshly installed worker waits until the user taps
-// "Reload" in the update prompt, which posts SKIP_WAITING (below). This is what
-// makes the "new version available" popup possible instead of a silent reload.
+// Activate immediately. While the app was live this waited for the user to tap
+// "Reload" in the update prompt — but the platform is now retired, and a user
+// who taps "Later" would otherwise keep running the old, fully-working build
+// and creating data that no longer syncs anywhere. The retirement build has to
+// reach every device unconditionally.
+self.skipWaiting();
+self.addEventListener("install", () => self.skipWaiting());
+// Kept so any OLD worker still running out there can be told to stand down.
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });

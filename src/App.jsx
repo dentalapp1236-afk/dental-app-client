@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, Link } from "react-router-dom";
 import api from "./api/axios";
 import { useAuth } from "./context/AuthContext";
+import { RETIRED } from "./config/retirement";
+import Retired from "./pages/Retired";
 import Sidebar from "./components/Sidebar";
 import MobileNav from "./components/MobileNav";
 import ProfileMenu from "./components/ProfileMenu";
@@ -146,6 +148,11 @@ function Shell({ children }) {
 }
 
 export default function App() {
+  // Platform retired — the entire app is replaced by the handover screen.
+  // Returned before anything else mounts, so no route, provider or background
+  // poll in the old app can run (or write) any more.
+  if (RETIRED) return <Retired />;
+
   return (
     <>
       <GlobalLoader />
