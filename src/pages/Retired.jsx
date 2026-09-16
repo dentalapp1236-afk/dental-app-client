@@ -77,12 +77,19 @@ export default function Retired() {
               </button>
             </div>
             <p className="retired-note muted">You'll be signed in automatically — no password needed.</p>
+            {/* Always offer a plain link too. The one-tap handoff depends on
+                MyMedIn's receiver being live; this one can never fail. */}
+            <div className="retired-actions retired-actions-secondary">
+              <a className="btn-secondary icon" href={MYMEDIN_URL}>
+                <Icon name="open_in_new" size={16} /> Go to mymedin.com
+              </a>
+            </div>
           </>
         ) : (
           <>
             <div className="retired-actions">
               <a className="btn-primary-link icon" href={MYMEDIN_URL}>
-                <Icon name="arrow_forward" size={18} /> Open MyMedIn
+                <Icon name="arrow_forward" size={18} /> Go to mymedin.com
               </a>
             </div>
             <p className="retired-note muted">

@@ -12,6 +12,9 @@
 //
 // Then pair it with RETIRED=true on this API, which is the actual kill switch —
 // this constant only controls what users see.
-export const RETIRED = false;
+export const RETIRED = true;
 
-export const MYMEDIN_URL = "https://mymedin.com";
+// www is canonical — the bare apex 308-redirects here, so link straight to it
+// and skip the extra hop. Keep the scheme: without it this is a RELATIVE path,
+// and every link would resolve against mydentalbooking.com instead.
+export const MYMEDIN_URL = "https://www.mymedin.com";
