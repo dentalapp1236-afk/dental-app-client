@@ -21,6 +21,11 @@ export default function Appointments() {
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
+  // The appointment standing in the way, when the API rejects a booking with
+  // PATIENT_DAY_TAKEN. Held onto so the form can offer to MOVE that one to the
+  // time we wanted, instead of leaving staff at a dead end. `wantedDate` is the
+  // slot we were trying to book.
+  const [conflict, setConflict] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [scheduled, setScheduled] = useState(null); // { shareMessage, whatsappUrl } after creating
   const [search, setSearch] = useState("");
@@ -101,6 +106,7 @@ export default function Appointments() {
     setForm(empty);
     setEditingId(null);
     setError("");
+    setConflict(null);
     setShowForm(false);
   };
 
@@ -108,6 +114,7 @@ export default function Appointments() {
     setForm(empty);
     setEditingId(null);
     setError("");
+    setConflict(null);
     setCreateDay(day);
     setShowForm(true);
   };
@@ -119,6 +126,7 @@ export default function Appointments() {
     setForm({ ...empty, date: iso });
     setEditingId(null);
     setError("");
+    setConflict(null);
     setCreateDay(day);
     setShowForm(true);
   };
@@ -137,6 +145,7 @@ export default function Appointments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setConflict(null);
     if (saving) return; // ignore a second click while the first is still saving
     if (!form.client) return setError("Please select a patient.");
     if (!form.date) return setError("Please pick a time slot.");
@@ -162,7 +171,14 @@ export default function Appointments() {
       }
       load();
     } catch (err) {
-      setError(err.response?.data?.message || "Save failed");
+      const data = err.response?.data;
+      setError(data?.message || "Save failed");
+      // "Already booked that day" used to be the end of the road — staff had to
+      // leave the form, hunt down the other appointment and edit it by hand.
+      // Hold on to it so we can offer the move right here instead.
+      if (data?.code === "PATIENT_DAY_TAKEN" && data.conflict) {
+        setConflict({ ...data.conflict, wantedDate: form.date });
+      }
       // On a conflict (slot taken or record changed by someone else), pull the
       // latest so the dentist/assistant sees the current state before retrying.
       if (err.response?.status === 409) loadAppointments();
@@ -171,8 +187,45 @@ export default function Appointments() {
     }
   };
 
+  // One tap out of a PATIENT_DAY_TAKEN clash: move the appointment that is in
+  // the way to the slot we were trying to book. Goes through the same PUT as a
+  // hand-made edit, so the patient still gets the "rescheduled" notification and
+  // the reminders re-arm for the new time.
+  const moveConflicting = async () => {
+    if (!conflict || saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      await api.put(`/appointments/${conflict.id}`, {
+        date: conflict.wantedDate,
+        version: conflict.version,
+      });
+      trackAppointment("rescheduled", { appointment_id: conflict.id, actor: user?.role });
+      resetForm();
+      load();
+    } catch (err) {
+      // Someone moved it underneath us, or that slot went too. Withdraw the
+      // offer and say why; the refresh shows what the schedule looks like now.
+      setError(err.response?.data?.message || "Could not move that appointment.");
+      setConflict(null);
+      loadAppointments();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Close the form and open the clashing appointment's own details.
+  const viewConflicting = () => {
+    const found = appointments.find((a) => a._id === conflict?.id);
+    if (!found) return;
+    resetForm();
+    setSelected(found);
+  };
+
   const handleEdit = (a) => {
     setEditingId(a._id);
+    setError("");
+    setConflict(null);
     setShowForm(true);
     setForm({
       client: a.client?._id || "",
@@ -455,7 +508,37 @@ export default function Appointments() {
           <Icon name={editingId ? "edit_calendar" : "event"} size={18} />
           {editingId ? "Edit appointment" : "Schedule appointment"}
         </h3>
-        {error && <div className="error">{error}</div>}
+        {error && (
+          <div className="error">
+            <div>{error}</div>
+            {conflict && (
+              <div className="appt-conflict">
+                <div className="appt-conflict-when icon">
+                  <Icon name="event_busy" size={16} />
+                  Already booked for {formatDateTime(conflict.date)}
+                </div>
+                <div className="appt-conflict-actions">
+                  {!editingId && (
+                    <button type="button" className="icon" onClick={moveConflicting} disabled={saving}>
+                      <Icon name="edit_calendar" size={16} />
+                      {saving ? "Moving\u2026" : `Move it to ${formatTime(conflict.wantedDate)}`}
+                    </button>
+                  )}
+                  {appointments.some((a) => a._id === conflict.id) && (
+                    <button
+                      type="button"
+                      className="btn-secondary icon"
+                      onClick={viewConflicting}
+                      disabled={saving}
+                    >
+                      <Icon name="visibility" size={16} /> View it
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <div className="grid-2">
           <div className="field" style={{ gridColumn: "1 / -1" }}>
             Client
@@ -473,7 +556,7 @@ export default function Appointments() {
               initialDay={createDay}
               excludeId={editingId}
               allowPast={!!editingId}
-              onChange={(iso) => setForm((f) => ({ ...f, date: iso }))}
+              onChange={(iso) => { setForm((f) => ({ ...f, date: iso })); setConflict(null); }}
             />
           </div>
           <label>
