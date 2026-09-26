@@ -35,9 +35,6 @@ export default function Profile() {
     about: user.about || "",
     // assistant
     skills: (user.skills || []).join(", "),
-    // WhatsApp — everyone can set their own, patients for reminders and
-    // dentists for invoice notices.
-    whatsappOptIn: !!user.whatsappOptIn,
   });
   const [avatarUrl, setAvatarUrl] = useState(user.image || "");
   const [history, setHistory] = useState(null); // assistant work history
@@ -89,12 +86,7 @@ export default function Profile() {
       return setError("Phone number must be exactly 11 digits.");
     setSaving(true);
     try {
-      const payload = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        whatsappOptIn: form.whatsappOptIn,
-      };
+      const payload = { name: form.name, email: form.email, phone: form.phone };
       if (canPhoto) payload.image = avatarUrl;
       if (user.role === "client") {
         payload.dateOfBirth = form.dateOfBirth;
@@ -185,23 +177,6 @@ export default function Profile() {
             <input value={user.role} disabled style={{ textTransform: "capitalize" }} />
           </label>
         </div>
-
-        <label className="consent-check">
-          <input
-            type="checkbox"
-            checked={form.whatsappOptIn}
-            onChange={(e) => setForm({ ...form, whatsappOptIn: e.target.checked })}
-            disabled={!form.phone}
-          />
-          <span>
-            Send me WhatsApp {user.role === "dentist" ? "invoice notices" : "appointment reminders"}
-            <span className="muted consent-note">
-              {form.phone
-                ? `Sent to ${form.phone}. Messages come from the platform's number and don't accept replies — you can turn this off at any time.`
-                : "Add a phone number above first."}
-            </span>
-          </span>
-        </label>
 
         {user.role === "client" && (
           <div className="grid-2">
