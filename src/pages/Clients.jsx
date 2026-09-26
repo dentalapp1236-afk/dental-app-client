@@ -33,6 +33,8 @@ const empty = {
   guardianName: "",
   guardianPhone: "",
   guardianEmail: "",
+  // Opt IN, never opt out. Nothing is sent to a patient who hasn't agreed.
+  whatsappOptIn: false,
 };
 
 // Capitalize the first letter of every word as the user types.
@@ -258,6 +260,7 @@ export default function Clients({ mode = "patients" }) {
       guardianName: c.guardianName || "",
       guardianPhone: c.guardianPhone || "",
       guardianEmail: c.guardianEmail || "",
+      whatsappOptIn: !!c.whatsappOptIn,
     });
   };
 
@@ -680,6 +683,24 @@ export default function Clients({ mode = "patients" }) {
             )}
           </>
         )}
+        {/* Common to both a dependent and a regular patient — for a dependent
+            it is the guardian who receives the message, and so the guardian
+            who consents. */}
+        <label className="consent-check">
+          <input
+            type="checkbox"
+            checked={form.whatsappOptIn}
+            onChange={(e) => setForm({ ...form, whatsappOptIn: e.target.checked })}
+          />
+          <span>
+            Send WhatsApp reminders to{" "}
+            <strong>{form.managed ? form.guardianPhone || "the guardian" : form.phone || "this number"}</strong>
+            <span className="muted consent-note">
+              Tick only if {form.managed ? "the guardian has" : "the patient has"} agreed. Messages
+              arrive from the platform's number, not the clinic's, and don't accept replies.
+            </span>
+          </span>
+        </label>
         <div className="row gap">
           <button type="submit">{editingId ? "Update" : isDependents ? "Add dependent" : "Add patient"}</button>
           <button type="button" className="btn-secondary" onClick={resetForm}>
