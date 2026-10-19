@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import Icon from "./Icon";
+import { formatDate } from "../utils/date";
 import {
   clinicDayStr,
   clinicMinutes,
@@ -71,6 +72,8 @@ export default function SlotPicker({
   const [fetchedStep, setFetchedStep] = useState(null);
   // Per-date exceptions to the weekly hours (early leave / day off).
   const [dayOverrides, setDayOverrides] = useState([]);
+  // Doctor's leave periods, inclusive { from, to } dates — no slots inside one.
+  const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(false);
   // Whether the last fetch failed (slow connection / server cold start). We must
   // NOT fall back to default hours in that case — that would silently show the
@@ -98,6 +101,7 @@ export default function SlotPicker({
         setBookedISO(r.data.slots || []);
         setFetchedAvailability(r.data.availability || []);
         setDayOverrides(r.data.dayOverrides || []);
+        setLeaves(r.data.leaves || []);
         if (r.data.slotDuration) setFetchedStep(Number(r.data.slotDuration));
       })
       .catch(() => {
@@ -119,8 +123,11 @@ export default function SlotPicker({
   // Clinic hours for the selected day, as one or more windows (a day can have a
   // morning AND an evening session). A per-date override wins over the weekly
   // hours for that specific date. Returns null while unknown, [] when closed.
+  const leave = leaves.find((l) => l.from <= day && day <= l.to);
+
   const windows = useMemo(() => {
     if (!hoursKnown) return null;
+    if (leave) return []; // doctor on leave — no slots
     const override = dayOverrides.find((o) => o.date === day);
     if (override) {
       if (override.closed) return []; // day off — no slots
@@ -134,7 +141,7 @@ export default function SlotPicker({
     // No availability configured at all -> sensible default so scheduling still works.
     if (availability.length === 0) return [{ start: 9 * 60, end: 18 * 60 }];
     return []; // configured, but closed on this weekday
-  }, [availability, dayOverrides, day, hoursKnown]);
+  }, [availability, dayOverrides, leave, day, hoursKnown]);
 
   const isClosed = Array.isArray(windows) && windows.length === 0;
 
@@ -230,6 +237,11 @@ export default function SlotPicker({
             <Icon name="refresh" size={18} /> Retry
           </button>
         </div>
+      ) : leave ? (
+        <p className="slot-leave icon" style={{ margin: "8px 0" }}>
+          <Icon name="flight" size={18} /> The doctor is on leave until{" "}
+          {formatDate(`${leave.to}T12:00:00Z`)}.
+        </p>
       ) : isClosed ? (
         <p className="muted" style={{ margin: "8px 0" }}>The clinic is closed on this day.</p>
       ) : (

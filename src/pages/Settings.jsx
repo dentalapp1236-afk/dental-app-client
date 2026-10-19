@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import AvailabilityEditor from "../components/AvailabilityEditor";
 import DayOverridesEditor from "../components/DayOverridesEditor";
+import LeavesEditor from "../components/LeavesEditor";
 
 const DEFAULT_HOURS = ["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => ({
   day,
@@ -28,6 +29,8 @@ export default function Settings() {
   const [slotDurationBase, setSlotDurationBase] = useState(15);
   const [dayOverrides, setDayOverrides] = useState([]);
   const [dayOverridesBase, setDayOverridesBase] = useState([]);
+  const [leaves, setLeaves] = useState([]);
+  const [leavesBase, setLeavesBase] = useState([]);
   const [coords, setCoords] = useState(null);
   const [coordsBase, setCoordsBase] = useState(null);
 
@@ -53,6 +56,8 @@ export default function Settings() {
         setSlotDurationBase(data.slotDuration || 15);
         setDayOverrides(data.dayOverrides || []);
         setDayOverridesBase(data.dayOverrides || []);
+        setLeaves(data.leaves || []);
+        setLeavesBase(data.leaves || []);
         const c = data.location?.coordinates
           ? { latitude: data.location.coordinates[1], longitude: data.location.coordinates[0] }
           : null;
@@ -107,6 +112,7 @@ export default function Settings() {
   const hoursDirty = !eq(availability, availabilityBase);
   const slotDirty = Number(slotDuration) !== Number(slotDurationBase);
   const overridesDirty = !eq(dayOverrides, dayOverridesBase);
+  const leavesDirty = !eq(leaves, leavesBase);
   const locDirty = !eq(coords, coordsBase);
 
   const saveHours = () =>
@@ -120,6 +126,12 @@ export default function Settings() {
       // The server prunes past-dated exceptions — reflect the cleaned list.
       setDayOverrides(data.dayOverrides || []);
       setDayOverridesBase(data.dayOverrides || []);
+    });
+  const saveLeaves = () =>
+    putSection("leaves", { leaves }, (data) => {
+      // The server drops leaves that have already ended — reflect the cleaned list.
+      setLeaves(data.leaves || []);
+      setLeavesBase(data.leaves || []);
     });
   const saveLocation = () =>
     putSection(
@@ -213,6 +225,18 @@ export default function Settings() {
         </p>
         <DayOverridesEditor value={dayOverrides} onChange={setDayOverrides} />
         {saveRow("overrides", overridesDirty, saveOverrides, () => setDayOverrides(dayOverridesBase))}
+      </div>
+
+      {/* Leave */}
+      <div className="card">
+        <h3 className="icon"><Icon name="flight" size={18} /> Leave</h3>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Add the dates you'll be away. Patients can't book or reschedule into any
+          day of a leave — the app tells them you're on leave until the last day.
+          Existing appointments in those dates are not cancelled automatically.
+        </p>
+        <LeavesEditor value={leaves} onChange={setLeaves} />
+        {saveRow("leaves", leavesDirty, saveLeaves, () => setLeaves(leavesBase))}
       </div>
 
       {/* Clinic location */}
