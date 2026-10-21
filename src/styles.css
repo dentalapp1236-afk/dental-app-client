@@ -749,6 +749,9 @@ button.password-toggle:hover:not(:disabled) { background: transparent; color: va
   font-size: 18px;
 }
 .fsl-brand .material-symbols-outlined { color: var(--primary); }
+.conn-error { gap: 12px; padding: 0 16px; max-width: 360px; text-align: center; }
+.conn-error > .material-symbols-outlined { color: var(--muted, #8a94a6); }
+.conn-error p { margin: 0; }
 
 /* --- Skeleton placeholders --- */
 .skeleton {
