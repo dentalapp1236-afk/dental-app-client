@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../api/axios";
 import { formatDateTime } from "../utils/date";
 import { useAuth } from "../context/AuthContext";
@@ -26,6 +27,8 @@ export default function ClientAppointments() {
   const [reqError, setReqError] = useState("");
   const [reqBusy, setReqBusy] = useState(false);
   const [reqSent, setReqSent] = useState(false);
+  // "?request=1" (the home screen's Request appointment button) opens the form.
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const loadAppointments = () =>
     api.get("/appointments", { skipLoader: true }).then((r) => setAppointments(r.data)).catch(() => {});
@@ -87,6 +90,12 @@ export default function ClientAppointments() {
       new Date(a.date).getTime() >= now
   );
   const hideRequest = hasActiveOwn && deps.length === 0;
+
+  useEffect(() => {
+    if (loading || searchParams.get("request") !== "1") return;
+    setSearchParams({}, { replace: true });
+    if (assoc?.dentist && !hideRequest) openRequest();
+  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="page">

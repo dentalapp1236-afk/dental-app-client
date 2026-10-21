@@ -51,6 +51,7 @@ export default function ClientDashboard() {
   const navigate = useNavigate();
   const [assoc, setAssoc] = useState(null); // { dentist, pending }
   const [upcoming, setUpcoming] = useState([]);
+  const [hasDeps, setHasDeps] = useState(false); // guardians can book for a child
   const [outstanding, setOutstanding] = useState(0);
   const [showLeave, setShowLeave] = useState(false);
   const [leaveRating, setLeaveRating] = useState(5);
@@ -113,6 +114,10 @@ export default function ClientDashboard() {
     loadAssoc();
     loadUpcoming();
     loadBalance();
+    api
+      .get("/family", { skipLoader: true })
+      .then((r) => setHasDeps((r.data || []).length > 0))
+      .catch(() => {});
   }, []);
 
   // If the patient arrived via the public "Associate with this clinic" flow,
@@ -228,9 +233,25 @@ export default function ClientDashboard() {
     );
   };
 
+  // Same rule as the Appointments page: offer a request unless the patient
+  // already has an active appointment of their own (guardians always can).
+  const hasActiveOwn = upcoming.some(
+    (a) => a.client?._id === user._id && new Date(a.date).getTime() >= Date.now()
+  );
+  const canRequest = !!assoc?.dentist && (!hasActiveOwn || hasDeps);
+
   return (
     <div className="page">
       <h1 className="icon"><Icon name="waving_hand" /> Hello, {user.name}</h1>
+
+      {canRequest && (
+        <button
+          className="icon home-request-btn"
+          onClick={() => navigate("/client/appointments?request=1")}
+        >
+          <Icon name="event" size={20} /> Request appointment
+        </button>
+      )}
 
       {assocNotice && (
         <div className="card" style={{ maxWidth: "none", borderColor: "var(--primary)" }}>
