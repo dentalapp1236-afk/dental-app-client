@@ -25,6 +25,8 @@ export default function Settings() {
   // Each section keeps a live value + the last-saved baseline (…Base).
   const [availability, setAvailability] = useState(DEFAULT_HOURS);
   const [availabilityBase, setAvailabilityBase] = useState(DEFAULT_HOURS);
+  const [scheduledAvailability, setScheduledAvailability] = useState([]);
+  const [scheduledAvailabilityBase, setScheduledAvailabilityBase] = useState([]);
   const [slotDuration, setSlotDuration] = useState(15);
   const [slotDurationBase, setSlotDurationBase] = useState(15);
   const [dayOverrides, setDayOverrides] = useState([]);
@@ -33,6 +35,12 @@ export default function Settings() {
   const [leavesBase, setLeavesBase] = useState([]);
   const [coords, setCoords] = useState(null);
   const [coordsBase, setCoordsBase] = useState(null);
+  const [futureDate, setFutureDate] = useState("2026-12-01");
+  const [futureAvailability, setFutureAvailability] = useState([
+    { day: "Mon", start: "19:00", end: "21:30" },
+    { day: "Tue", start: "19:00", end: "21:30" },
+    { day: "Wed", start: "19:00", end: "21:30" },
+  ]);
 
   const [loading, setLoading] = useState(true);
   const [locStatus, setLocStatus] = useState("");
@@ -52,6 +60,8 @@ export default function Settings() {
           : DEFAULT_HOURS;
         setAvailability(hours);
         setAvailabilityBase(hours);
+        setScheduledAvailability(data.scheduledAvailability || []);
+        setScheduledAvailabilityBase(data.scheduledAvailability || []);
         setSlotDuration(data.slotDuration || 15);
         setSlotDurationBase(data.slotDuration || 15);
         setDayOverrides(data.dayOverrides || []);
@@ -114,6 +124,10 @@ export default function Settings() {
   const overridesDirty = !eq(dayOverrides, dayOverridesBase);
   const leavesDirty = !eq(leaves, leavesBase);
   const locDirty = !eq(coords, coordsBase);
+  const scheduledDirty = (() => {
+    const existing = scheduledAvailability.find((entry) => entry.effectiveDate === futureDate);
+    return !existing || !eq(existing.availability, futureAvailability);
+  })();
 
   const saveHours = () =>
     putSection("hours", { availability }, () => setAvailabilityBase(availability));
@@ -139,6 +153,16 @@ export default function Settings() {
       coords ? { latitude: coords.latitude, longitude: coords.longitude } : {},
       () => setCoordsBase(coords)
     );
+  const saveScheduledHours = () => {
+    const next = [
+      ...scheduledAvailability.filter((entry) => entry.effectiveDate !== futureDate),
+      { effectiveDate: futureDate, availability: futureAvailability },
+    ].sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
+    putSection("scheduled", { scheduledAvailability: next }, (data) => {
+      setScheduledAvailability(data.scheduledAvailability || []);
+      setScheduledAvailabilityBase(data.scheduledAvailability || []);
+    });
+  };
 
   // Per-section Save + Cancel row; both inactive until the section is edited.
   const saveRow = (section, dirty, onSave, onCancel) => (
@@ -258,6 +282,61 @@ export default function Settings() {
         {saveRow("location", locDirty, saveLocation, () => {
           setCoords(coordsBase);
           setLocStatus("");
+        })}
+      </div>
+
+      {/* Future schedules */}
+      <div className="card">
+        <h3 className="icon"><Icon name="schedule_send" size={18} /> Future clinic schedules</h3>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Set your availability for future dates. This lets patients book appointments
+          even when you're not available in the short term.
+        </p>
+        <div className="row gap" style={{ flexWrap: "nowrap" }}>
+          <input
+            type="date"
+            value={futureDate}
+            onChange={(e) => setFutureDate(e.target.value)}
+            style={{ flex: "0 0 220px" }}
+          />
+          <AvailabilityEditor
+            value={futureAvailability}
+            onChange={setFutureAvailability}
+            compact
+            style={{ flex: "1 1 100%" }}
+          />
+        </div>
+        {saveRow("scheduled", scheduledDirty, saveScheduledHours, () => {
+          setScheduledAvailability(scheduledAvailabilityBase);
+          setFutureDate("2026-12-01");
+          setFutureAvailability([
+            { day: "Mon", start: "19:00", end: "21:30" },
+            { day: "Tue", start: "19:00", end: "21:30" },
+            { day: "Wed", start: "19:00", end: "21:30" },
+          ]);
+        })}
+      </div>
+
+      {/* Future clinic hours */}
+      <div className="card">
+        <h3 className="icon"><Icon name="update" size={18} /> Future clinic hours</h3>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Schedule a new weekly timetable while keeping today's current hours until
+          it becomes effective. Customers booking after the date will see the new slots.
+        </p>
+        <label style={{ maxWidth: 260 }}>
+          Effective date
+          <input
+            type="date"
+            min="2026-11-26"
+            value={futureDate}
+            onChange={(e) => setFutureDate(e.target.value)}
+          />
+        </label>
+        <AvailabilityEditor value={futureAvailability} onChange={setFutureAvailability} />
+        {saveRow("scheduled", scheduledDirty, saveScheduledHours, () => {
+          const existing = scheduledAvailability.find((entry) => entry.effectiveDate === futureDate);
+          setFutureAvailability(existing?.availability || futureAvailability);
         })}
       </div>
     </div>

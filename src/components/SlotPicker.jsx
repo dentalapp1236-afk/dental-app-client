@@ -72,6 +72,7 @@ export default function SlotPicker({
   const [fetchedStep, setFetchedStep] = useState(null);
   // Per-date exceptions to the weekly hours (early leave / day off).
   const [dayOverrides, setDayOverrides] = useState([]);
+  const [scheduledAvailability, setScheduledAvailability] = useState([]);
   // Doctor's leave periods, inclusive { from, to } dates — no slots inside one.
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -100,6 +101,7 @@ export default function SlotPicker({
         if (!active) return;
         setBookedISO(r.data.slots || []);
         setFetchedAvailability(r.data.availability || []);
+        setScheduledAvailability(r.data.scheduledAvailability || []);
         setDayOverrides(r.data.dayOverrides || []);
         setLeaves(r.data.leaves || []);
         if (r.data.slotDuration) setFetchedStep(Number(r.data.slotDuration));
@@ -115,7 +117,13 @@ export default function SlotPicker({
     };
   }, [day, excludeId, dentistId, reload]);
 
-  const availability = availabilityOverride || fetchedAvailability;
+  const availability = (() => {
+    if (availabilityOverride) return availabilityOverride;
+    const applicable = [...scheduledAvailability]
+      .filter((entry) => entry?.effectiveDate && entry.effectiveDate <= day)
+      .sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate));
+    return applicable[0]?.availability?.length ? applicable[0].availability : fetchedAvailability;
+  })();
   // Trust the fetched hours only when the request actually succeeded. When an
   // override is supplied (public profile), the parent already has the hours.
   const hoursKnown = !!availabilityOverride || !loadError;
